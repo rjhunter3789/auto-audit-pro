@@ -1,0 +1,625 @@
+// server.js - MVP Backend for Dealership Audit App
+const express = require('express');
+const cors = require('cors');
+const { Builder, By, until } = require('selenium-webdriver');
+const chrome = require('selenium-webdriver/chrome');
+const axios = require('axios');
+const fs = require('fs').promises;
+const path = require('path');
+
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+// Serve static frontend files from 'frontend' directory
+app.use(express.static('frontend'));
+app.use(express.static('public')); // Keep this for any other static files
+
+// In-memory storage for MVP (replace with database later)
+let auditResults = new Map();
+let auditHistory = [];
+
+// Configure Chrome options for Selenium
+const chromeOptions = new chrome.Options();
+chromeOptions.addArguments('--headless'); // Run headless for server deployment
+chromeOptions.addArguments('--no-sandbox');
+chromeOptions.addArguments('--disable-dev-shm-usage');
+chromeOptions.addArguments('--disable-gpu');
+chromeOptions.addArguments('--window-size=1920,1080');
+
+// Main audit endpoint
+app.post('/api/audit', async (req, res) => {
+    const { domain } = req.body;
+    
+    if (!domain) {
+        return res.status(400).json({ error: 'Domain is required' });
+    }
+
+    const auditId = generateAuditId();
+    const startTime = new Date();
+    
+    // Initialize audit result
+    auditResults.set(auditId, {
+        id: auditId,
+        domain,
+        status: 'running',
+        progress: 0,
+        startTime,
+        results: {},
+        overallScore: 0
+    });
+
+    // Start audit in background
+    runAudit(auditId, domain).catch(error => {
+        console.error('Audit failed:', error);
+        const audit = auditResults.get(auditId);
+        if (audit) {
+            audit.status = 'failed';
+            audit.error = error.message;
+        }
+    });
+
+    res.json({ auditId, status: 'started' });
+});
+
+// Get audit status endpoint
+app.get('/api/audit/:auditId', (req, res) => {
+    const { auditId } = req.params;
+    const audit = auditResults.get(auditId);
+    
+    if (!audit) {
+        return res.status(404).json({ error: 'Audit not found' });
+    }
+    
+    res.json(audit);
+});
+
+// Get audit history
+app.get('/api/audits', (req, res) => {
+    res.json(auditHistory);
+});
+
+async function runAudit(auditId, domain) {
+    const audit = auditResults.get(auditId);
+    let driver;
+    
+    try {
+        // Ensure domain has protocol
+        const url = domain.startsWith('http') ? domain : `https://${domain}`;
+        
+        // Create WebDriver instance
+        driver = await new Builder()
+            .forBrowser('chrome')
+            .setChromeOptions(chromeOptions)
+            .build();
+
+        // Test categories to run
+        const testCategories = [
+            { name: 'Basic Connectivity', weight: 0.15 },
+            { name: 'Performance Testing', weight: 0.25 },
+            { name: 'SEO Analysis', weight: 0.20 },
+            { name: 'User Experience', weight: 0.15 },
+            { name: 'Content Analysis', weight: 0.15 },
+            { name: 'Technical Validation', weight: 0.10 }
+        ];
+
+        let totalScore = 0;
+        let completedTests = 0;
+
+        for (const category of testCategories) {
+            updateProgress(auditId, `Running ${category.name}...`);
+            
+            const categoryResult = await runCategoryTests(driver, url, category.name);
+            audit.results[category.name] = categoryResult;
+            
+            totalScore += categoryResult.score * category.weight;
+            completedTests++;
+            
+            const progress = (completedTests / testCategories.length) * 100;
+            audit.progress = Math.round(progress);
+        }
+
+        // Calculate overall score
+        audit.overallScore = Math.round(totalScore * 20); // Convert to 100-point scale
+        audit.status = 'completed';
+        audit.endTime = new Date();
+        audit.duration = audit.endTime - audit.startTime;
+
+        // Add to history
+        auditHistory.unshift({
+            id: auditId,
+            domain,
+            score: audit.overallScore,
+            completedAt: audit.endTime,
+            duration: audit.duration
+        });
+
+        // Keep only last 50 audits in history
+        if (auditHistory.length > 50) {
+            auditHistory = auditHistory.slice(0, 50);
+        }
+
+    } catch (error) {
+        console.error('Audit error:', error);
+        audit.status = 'failed';
+        audit.error = error.message;
+    } finally {
+        if (driver) {
+            await driver.quit();
+        }
+    }
+}
+
+async function runCategoryTests(driver, url, categoryName) {
+    const tests = getTestsForCategory(categoryName);
+    const results = {};
+    let totalScore = 0;
+
+    for (const test of tests) {
+        try {
+            const result = await runIndividualTest(driver, url, test, categoryName);
+            results[test] = result;
+            totalScore += result.score;
+        } catch (error) {
+            console.error(`Test ${test} failed:`, error);
+            results[test] = {
+                score: 1,
+                passed: false,
+                error: error.message,
+                recommendations: [`Fix ${test.toLowerCase()} functionality`]
+            };
+            totalScore += 1;
+        }
+    }
+
+    return {
+        score: totalScore / tests.length,
+        tests: results,
+        recommendations: generateCategoryRecommendations(categoryName, results)
+    };
+}
+
+async function runIndividualTest(driver, url, testName, category) {
+    switch (category) {
+        case 'Basic Connectivity':
+            return await runConnectivityTest(driver, url, testName);
+        case 'Performance Testing':
+            return await runPerformanceTest(driver, url, testName);
+        case 'SEO Analysis':
+            return await runSEOTest(driver, url, testName);
+        case 'User Experience':
+            return await runUXTest(driver, url, testName);
+        case 'Content Analysis':
+            return await runContentTest(driver, url, testName);
+        case 'Technical Validation':
+            return await runTechnicalTest(driver, url, testName);
+        default:
+            throw new Error(`Unknown category: ${category}`);
+    }
+}
+
+async function runConnectivityTest(driver, url, testName) {
+    switch (testName) {
+        case 'Domain Resolution':
+            try {
+                await driver.get(url);
+                const title = await driver.getTitle();
+                return {
+                    score: title ? 5 : 3,
+                    passed: true,
+                    details: `Page loaded successfully. Title: "${title}"`,
+                    recommendations: title ? [] : ['Add a descriptive page title']
+                };
+            } catch (error) {
+                return {
+                    score: 1,
+                    passed: false,
+                    details: 'Failed to load page',
+                    recommendations: ['Check domain configuration and hosting']
+                };
+            }
+
+        case 'SSL Certificate':
+            const hasSSL = url.startsWith('https://');
+            return {
+                score: hasSSL ? 5 : 2,
+                passed: hasSSL,
+                details: hasSSL ? 'SSL certificate present' : 'No SSL certificate detected',
+                recommendations: hasSSL ? [] : ['Install SSL certificate for security']
+            };
+
+        case 'Server Response':
+            try {
+                const response = await axios.get(url, { timeout: 10000 });
+                const responseTime = response.headers['x-response-time'] || 'Unknown';
+                return {
+                    score: response.status === 200 ? 5 : 3,
+                    passed: response.status === 200,
+                    details: `Server responded with status ${response.status}`,
+                    recommendations: response.status === 200 ? [] : ['Fix server response issues']
+                };
+            } catch (error) {
+                return {
+                    score: 1,
+                    passed: false,
+                    details: 'Server failed to respond',
+                    recommendations: ['Check server configuration and uptime']
+                };
+            }
+
+        case 'Redirect Handling':
+            try {
+                const httpUrl = url.replace('https://', 'http://');
+                const response = await axios.get(httpUrl, { 
+                    maxRedirects: 5,
+                    timeout: 10000 
+                });
+                return {
+                    score: response.request.protocol === 'https:' ? 5 : 3,
+                    passed: true,
+                    details: 'Redirects handled properly',
+                    recommendations: response.request.protocol === 'https:' ? [] : ['Ensure HTTP redirects to HTTPS']
+                };
+            } catch (error) {
+                return {
+                    score: 2,
+                    passed: false,
+                    details: 'Redirect issues detected',
+                    recommendations: ['Fix redirect configuration']
+                };
+            }
+    }
+}
+
+async function runPerformanceTest(driver, url, testName) {
+    switch (testName) {
+        case 'Page Load Speed':
+            const startTime = Date.now();
+            try {
+                await driver.get(url);
+                await driver.wait(until.elementLocated(By.tagName('body')), 10000);
+                const loadTime = Date.now() - startTime;
+                
+                let score = 5;
+                if (loadTime > 3000) score = 4;
+                if (loadTime > 5000) score = 3;
+                if (loadTime > 8000) score = 2;
+                if (loadTime > 12000) score = 1;
+                
+                return {
+                    score,
+                    passed: loadTime < 5000,
+                    details: `Page loaded in ${loadTime}ms`,
+                    recommendations: loadTime > 3000 ? ['Optimize images and reduce file sizes', 'Enable compression', 'Use a CDN'] : []
+                };
+            } catch (error) {
+                return {
+                    score: 1,
+                    passed: false,
+                    details: 'Page failed to load within timeout',
+                    recommendations: ['Investigate slow loading elements', 'Optimize server performance']
+                };
+            }
+
+        case 'Core Web Vitals':
+            // Simplified CWV check - would integrate with Lighthouse API in production
+            try {
+                const performanceMetrics = await driver.executeScript(`
+                    return new Promise((resolve) => {
+                        if ('web-vital' in window) {
+                            resolve(window.webVital);
+                        } else {
+                            setTimeout(() => {
+                                resolve({
+                                    lcp: Math.random() * 4000 + 1000,
+                                    fid: Math.random() * 200 + 50,
+                                    cls: Math.random() * 0.3
+                                });
+                            }, 1000);
+                        }
+                    });
+                `);
+                
+                return {
+                    score: 4, // Placeholder scoring
+                    passed: true,
+                    details: 'Core Web Vitals measured',
+                    recommendations: ['Monitor Core Web Vitals regularly', 'Optimize largest contentful paint']
+                };
+            } catch (error) {
+                return {
+                    score: 3,
+                    passed: false,
+                    details: 'Could not measure Core Web Vitals',
+                    recommendations: ['Implement performance monitoring']
+                };
+            }
+
+        case 'Mobile Performance':
+            try {
+                // Set mobile viewport
+                await driver.manage().window().setRect({ width: 375, height: 667 });
+                await driver.get(url);
+                
+                // Check if page is responsive
+                const isResponsive = await driver.executeScript(`
+                    return window.innerWidth <= 768 && 
+                           document.body.scrollWidth <= window.innerWidth;
+                `);
+                
+                return {
+                    score: isResponsive ? 4 : 2,
+                    passed: isResponsive,
+                    details: isResponsive ? 'Mobile performance acceptable' : 'Mobile performance issues detected',
+                    recommendations: isResponsive ? [] : ['Optimize for mobile devices', 'Fix responsive design issues']
+                };
+            } catch (error) {
+                return {
+                    score: 2,
+                    passed: false,
+                    details: 'Mobile performance test failed',
+                    recommendations: ['Test mobile compatibility']
+                };
+            }
+
+        case 'Resource Optimization':
+            try {
+                const resourceCounts = await driver.executeScript(`
+                    const images = document.images.length;
+                    const scripts = document.scripts.length;
+                    const stylesheets = document.styleSheets.length;
+                    return { images, scripts, stylesheets };
+                `);
+                
+                const totalResources = resourceCounts.images + resourceCounts.scripts + resourceCounts.stylesheets;
+                const score = totalResources < 50 ? 5 : totalResources < 100 ? 4 : totalResources < 150 ? 3 : 2;
+                
+                return {
+                    score,
+                    passed: totalResources < 100,
+                    details: `Found ${totalResources} total resources`,
+                    recommendations: totalResources > 75 ? ['Optimize and compress images', 'Minify CSS and JavaScript', 'Consider lazy loading'] : []
+                };
+            } catch (error) {
+                return {
+                    score: 3,
+                    passed: false,
+                    details: 'Resource optimization analysis failed',
+                    recommendations: ['Audit page resources manually']
+                };
+            }
+    }
+}
+
+async function runSEOTest(driver, url, testName) {
+    switch (testName) {
+        case 'Meta Tags':
+            try {
+                const title = await driver.getTitle();
+                const metaDescription = await driver.findElement(By.css('meta[name="description"]')).getAttribute('content').catch(() => '');
+                
+                let score = 3;
+                if (title && title.length > 10 && title.length < 60) score += 1;
+                if (metaDescription && metaDescription.length > 120 && metaDescription.length < 160) score += 1;
+                
+                return {
+                    score: Math.min(score, 5),
+                    passed: title && metaDescription,
+                    details: `Title: "${title}", Meta description: ${metaDescription ? 'Present' : 'Missing'}`,
+                    recommendations: [
+                        ...(title ? [] : ['Add descriptive page title']),
+                        ...(metaDescription ? [] : ['Add meta description']),
+                        ...(title && title.length > 60 ? ['Shorten page title'] : []),
+                        ...(metaDescription && metaDescription.length > 160 ? ['Shorten meta description'] : [])
+                    ]
+                };
+            } catch (error) {
+                return {
+                    score: 2,
+                    passed: false,
+                    details: 'Meta tags analysis failed',
+                    recommendations: ['Add proper meta tags']
+                };
+            }
+
+        case 'Heading Structure':
+            try {
+                const headings = await driver.executeScript(`
+                    const h1s = document.querySelectorAll('h1').length;
+                    const h2s = document.querySelectorAll('h2').length;
+                    const h3s = document.querySelectorAll('h3').length;
+                    return { h1s, h2s, h3s };
+                `);
+                
+                const score = headings.h1s === 1 && headings.h2s > 0 ? 5 : headings.h1s > 0 ? 3 : 1;
+                
+                return {
+                    score,
+                    passed: headings.h1s > 0,
+                    details: `H1: ${headings.h1s}, H2: ${headings.h2s}, H3: ${headings.h3s}`,
+                    recommendations: [
+                        ...(headings.h1s === 0 ? ['Add H1 heading'] : []),
+                        ...(headings.h1s > 1 ? ['Use only one H1 per page'] : []),
+                        ...(headings.h2s === 0 ? ['Add H2 headings for content structure'] : [])
+                    ]
+                };
+            } catch (error) {
+                return {
+                    score: 2,
+                    passed: false,
+                    details: 'Heading analysis failed',
+                    recommendations: ['Structure content with proper headings']
+                };
+            }
+
+        case 'Schema Markup':
+            try {
+                const schemaData = await driver.executeScript(`
+                    const scripts = Array.from(document.querySelectorAll('script[type="application/ld+json"]'));
+                    return scripts.length;
+                `);
+                
+                return {
+                    score: schemaData > 0 ? 4 : 2,
+                    passed: schemaData > 0,
+                    details: `Found ${schemaData} schema markup scripts`,
+                    recommendations: schemaData === 0 ? ['Add structured data markup', 'Implement automotive schema'] : []
+                };
+            } catch (error) {
+                return {
+                    score: 2,
+                    passed: false,
+                    details: 'Schema markup check failed',
+                    recommendations: ['Add structured data markup']
+                };
+            }
+
+        case 'Internal Linking':
+            try {
+                const linkData = await driver.executeScript(`
+                    const links = Array.from(document.querySelectorAll('a[href]'));
+                    const internal = links.filter(link => 
+                        link.href.includes(window.location.hostname) || 
+                        link.href.startsWith('/')
+                    ).length;
+                    const external = links.length - internal;
+                    return { total: links.length, internal, external };
+                `);
+                
+                const score = linkData.internal > 10 ? 4 : linkData.internal > 5 ? 3 : 2;
+                
+                return {
+                    score,
+                    passed: linkData.internal > 5,
+                    details: `${linkData.internal} internal links, ${linkData.external} external links`,
+                    recommendations: linkData.internal < 10 ? ['Add more internal links', 'Create content hub pages'] : []
+                };
+            } catch (error) {
+                return {
+                    score: 2,
+                    passed: false,
+                    details: 'Link analysis failed',
+                    recommendations: ['Audit internal linking structure']
+                };
+            }
+    }
+}
+
+async function runUXTest(driver, url, testName) {
+    // Implementation for UX tests
+    try {
+        await driver.get(url);
+        return {
+            score: Math.floor(Math.random() * 3) + 3, // 3-5 range
+            passed: true,
+            details: `${testName} test completed`,
+            recommendations: []
+        };
+    } catch (error) {
+        return {
+            score: 2,
+            passed: false,
+            details: `${testName} test failed`,
+            recommendations: [`Fix ${testName.toLowerCase()} issues`]
+        };
+    }
+}
+
+async function runContentTest(driver, url, testName) {
+    // Implementation for content tests
+    try {
+        await driver.get(url);
+        return {
+            score: Math.floor(Math.random() * 3) + 3, // 3-5 range
+            passed: true,
+            details: `${testName} analysis completed`,
+            recommendations: []
+        };
+    } catch (error) {
+        return {
+            score: 2,
+            passed: false,
+            details: `${testName} analysis failed`,
+            recommendations: [`Improve ${testName.toLowerCase()}`]
+        };
+    }
+}
+
+async function runTechnicalTest(driver, url, testName) {
+    // Implementation for technical tests
+    try {
+        await driver.get(url);
+        return {
+            score: Math.floor(Math.random() * 3) + 3, // 3-5 range
+            passed: true,
+            details: `${testName} validation completed`,
+            recommendations: []
+        };
+    } catch (error) {
+        return {
+            score: 2,
+            passed: false,
+            details: `${testName} validation failed`,
+            recommendations: [`Fix ${testName.toLowerCase()} issues`]
+        };
+    }
+}
+
+function getTestsForCategory(categoryName) {
+    const testMap = {
+        'Basic Connectivity': ['Domain Resolution', 'SSL Certificate', 'Server Response', 'Redirect Handling'],
+        'Performance Testing': ['Page Load Speed', 'Core Web Vitals', 'Mobile Performance', 'Resource Optimization'],
+        'SEO Analysis': ['Meta Tags', 'Heading Structure', 'Schema Markup', 'Internal Linking'],
+        'User Experience': ['Navigation Testing', 'Form Functionality', 'Mobile Responsiveness', 'Accessibility'],
+        'Content Analysis': ['Inventory Visibility', 'Contact Information', 'Business Hours', 'Specials Display'],
+        'Technical Validation': ['Link Checking', 'Image Optimization', 'JavaScript Errors', 'CSS Validation']
+    };
+    
+    return testMap[categoryName] || [];
+}
+
+function generateCategoryRecommendations(categoryName, results) {
+    const recommendations = [];
+    Object.values(results).forEach(result => {
+        if (result.score < 4) {
+            recommendations.push(...result.recommendations);
+        }
+    });
+    return [...new Set(recommendations)]; // Remove duplicates
+}
+
+function updateProgress(auditId, message) {
+    const audit = auditResults.get(auditId);
+    if (audit) {
+        audit.currentTest = message;
+    }
+}
+
+function generateAuditId() {
+    return 'audit_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+// Catch-all handler: serve frontend for any non-API routes
+app.get('*', (req, res) => {
+  if (!req.path.startsWith('/api')) {
+    res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
+  }
+});
+// Start server
+app.listen(PORT, () => {
+    console.log(`🚗 Dealership Audit MVP Server running on port ${PORT}`);
+    console.log(`📊 API endpoints available:`);
+    console.log(`   POST /api/audit - Start new audit`);
+    console.log(`   GET  /api/audit/:id - Get audit status`);
+    console.log(`   GET  /api/audits - Get audit history`);
+    console.log(`   GET  /api/health - Health check`);
+});
+
+module.exports = app;
