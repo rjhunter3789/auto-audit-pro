@@ -37,9 +37,9 @@ app.use((req, res, next) => {
         'Content-Security-Policy',
         "default-src 'self'; " +
         "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; " +
-        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; " +
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
         "img-src 'self' data: https: http:; " +
-        "font-src 'self' data: https://cdn.jsdelivr.net; " +
+        "font-src 'self' data: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
         "connect-src 'self' https: http:; " +
         "frame-src 'none'; " +
         "object-src 'none'"
