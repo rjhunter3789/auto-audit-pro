@@ -282,19 +282,53 @@
             <% }); %>
         </div>
 
-        <!-- Detailed Results -->
+        <!-- Summary Section -->
         <div class="issues-section">
             <h2 class="issues-header">
-                <i class="fas fa-chart-line"></i> Detailed Analysis
+                <i class="fas fa-info-circle"></i> Analysis Summary
             </h2>
             
-            <div class="mb-4">
-                <h4>Website: <a href="<%= results.url %>" target="_blank"><%= results.domain %></a></h4>
-                <p class="text-muted">Analysis completed on <%= results.timestamp %></p>
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Website Details</h5>
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>Domain:</strong></td>
+                            <td><a href="<%= results.url %>" target="_blank"><%= results.domain %></a></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Brand:</strong></td>
+                            <td><%= results.brand %></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Analysis Date:</strong></td>
+                            <td><%= results.timestamp %></td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h5>Key Findings</h5>
+                    <ul>
+                        <li><strong><%= results.categories.filter(c => c.score >= 4).length %></strong> categories performing well</li>
+                        <li><strong><%= results.categories.filter(c => c.score <= 2).length %></strong> categories need improvement</li>
+                        <li><strong><%= results.issues.filter(i => i.priority === 'high').length %></strong> high priority issues found</li>
+                        <li><strong><%= results.issues.filter(i => i.priority === 'medium').length %></strong> medium priority issues found</li>
+                    </ul>
+                </div>
             </div>
-
-            <% if (results.detailedResults) { %>
-                <pre class="bg-light p-3 rounded"><%= JSON.stringify(results.detailedResults, null, 2) %></pre>
+            
+            <% if (results.pagesFound) { %>
+            <div class="mt-4">
+                <h5>Pages Discovered</h5>
+                <table class="table table-sm">
+                    <% Object.entries(results.pagesFound).forEach(([pageType, url]) => { %>
+                        <tr>
+                            <td><strong><%= pageType.charAt(0).toUpperCase() + pageType.slice(1) %>:</strong></td>
+                            <td><a href="<%= url %>" target="_blank" class="text-truncate" style="max-width: 400px; display: inline-block;"><%= url %></a></td>
+                        </tr>
+                    <% }); %>
+                </table>
+            </div>
             <% } %>
         </div>
     </div>

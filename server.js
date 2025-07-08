@@ -1778,6 +1778,39 @@ app.post('/audit', async (req, res) => {
         // Run comprehensive audit
         const auditResults = await runComprehensiveAudit(siteUrl, homepageSoup);
         
+        // Add discovered pages to results
+        auditResults.pagesFound = discoveredPages;
+        
+        // If contact page found, check it for business hours and contact info
+        if (discoveredPages.contact) {
+            try {
+                const contactPageSoup = await getSoup(discoveredPages.contact);
+                const contactText = contactPageSoup('body').text();
+                
+                // Check for business hours on contact page
+                const hoursPattern = /(\d{1,2}:\d{2}\s*(am|pm|AM|PM))|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday/gi;
+                if (hoursPattern.test(contactText)) {
+                    // Remove business hours issue if found on contact page
+                    auditResults.issues = auditResults.issues.filter(issue => 
+                        !issue.title.includes('Business hours')
+                    );
+                    // Update the content analysis score
+                    const contentCat = auditResults.categories.find(cat => cat.name === 'Content Analysis');
+                    if (contentCat && contentCat.score < 5) {
+                        contentCat.score = Math.min(5, contentCat.score + 1);
+                        // Recalculate overall score
+                        let totalScore = 0;
+                        auditResults.categories.forEach(cat => {
+                            totalScore += (cat.score / 5) * cat.weight * 100;
+                        });
+                        auditResults.overallScore = Math.round(totalScore);
+                    }
+                }
+            } catch (e) {
+                console.log('Could not check contact page:', e.message);
+            }
+        }
+        
         // Render new comprehensive report
         res.render('reports-new.html', { results: auditResults });
 
