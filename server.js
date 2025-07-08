@@ -31,6 +31,22 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // This lets our server understand the form data
 
+// Add proper CSP headers for the app
+app.use((req, res, next) => {
+    res.setHeader(
+        'Content-Security-Policy',
+        "default-src 'self'; " +
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; " +
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; " +
+        "img-src 'self' data: https: http:; " +
+        "font-src 'self' data: https://cdn.jsdelivr.net; " +
+        "connect-src 'self' https: http:; " +
+        "frame-src 'none'; " +
+        "object-src 'none'"
+    );
+    next();
+})
+
 // app.use(express.static('frontend')); // We turn this off because EJS will handle our HTML now
 
 // --- Setup for EJS Templates ---
