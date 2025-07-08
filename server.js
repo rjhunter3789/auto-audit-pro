@@ -59,12 +59,22 @@ let auditResults = new Map();
 let auditHistory = [];
 
 // Configure Chrome options for Selenium
-const chromeOptions = new chrome.Options();
-chromeOptions.addArguments('--headless');
-chromeOptions.addArguments('--no-sandbox');
-chromeOptions.addArguments('--disable-dev-shm-usage');
-chromeOptions.addArguments('--disable-gpu');
-chromeOptions.addArguments('--window-size=1920,1080');
+function getChromeOptions() {
+    const options = new chrome.Options();
+    options.addArguments('--headless');
+    options.addArguments('--no-sandbox');
+    options.addArguments('--disable-dev-shm-usage');
+    options.addArguments('--disable-gpu');
+    options.addArguments('--disable-features=VizDisplayCompositor');
+    options.addArguments('--window-size=1920,1080');
+    
+    // For Railway/Linux environments
+    if (process.env.CHROME_BIN) {
+        options.setChromeBinaryPath(process.env.CHROME_BIN);
+    }
+    
+    return options;
+}
 // --- New, Fast Audit Logic Functions ---
 const KNOWN_BRANDS = ['ford', 'toyota', 'honda', 'chevrolet', 'nissan', 'bmw', 'mercedes-benz', 'lexus', 'audi', 'jeep', 'hyundai', 'kia'];
 const PAGE_KEYWORDS = {
@@ -74,34 +84,72 @@ const PAGE_KEYWORDS = {
     contact: ['/contact', '/about-us/', '/hours-directions/']
 };
 
-const getSoup = async (pageUrl) => {
-    const headers = { 
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1'
-    };
+// Use Selenium for better website access
+const getPageWithSelenium = async (pageUrl) => {
+    let driver = null;
     try {
-        const response = await axios.get(pageUrl, { 
-            headers, 
-            timeout: 30000,
-            maxRedirects: 5,
-            validateStatus: function (status) {
-                return status >= 200 && status < 400; // Accept redirects
-            }
-        });
-        return cheerio.load(response.data);
+        // Build Chrome driver with options
+        driver = await new Builder()
+            .forBrowser('chrome')
+            .setChromeOptions(getChromeOptions())
+            .build();
+        
+        // Navigate to the page
+        await driver.get(pageUrl);
+        
+        // Wait for the page to load
+        await driver.wait(until.elementLocated(By.tagName('body')), 10000);
+        
+        // Get the page source
+        const pageSource = await driver.getPageSource();
+        
+        // Close the driver
+        await driver.quit();
+        
+        return cheerio.load(pageSource);
     } catch (error) {
-        if (error.code === 'ECONNABORTED') {
+        if (driver) {
+            await driver.quit();
+        }
+        
+        if (error.message.includes('timeout')) {
             throw new Error('Website took too long to respond. Please try again.');
-        } else if (error.response && error.response.status === 403) {
-            throw new Error('Website is blocking automated access. Try a different website.');
-        } else if (error.response && error.response.status === 404) {
+        } else if (error.message.includes('ERR_NAME_NOT_RESOLVED')) {
             throw new Error('Website not found. Please check the URL.');
         } else {
             throw new Error(`Unable to access website: ${error.message}`);
+        }
+    }
+};
+
+// Fallback to axios if Selenium fails
+const getSoup = async (pageUrl) => {
+    try {
+        // Try Selenium first
+        return await getPageWithSelenium(pageUrl);
+    } catch (seleniumError) {
+        console.log('Selenium failed, trying direct HTTP request...');
+        // Fallback to axios
+        const headers = { 
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1'
+        };
+        try {
+            const response = await axios.get(pageUrl, { 
+                headers, 
+                timeout: 30000,
+                maxRedirects: 5,
+                validateStatus: function (status) {
+                    return status >= 200 && status < 400;
+                }
+            });
+            return cheerio.load(response.data);
+        } catch (error) {
+            throw seleniumError; // Throw the original Selenium error
         }
     }
 };
@@ -1616,6 +1664,40 @@ app.post('/audit', async (req, res) => {
     let siteUrl = req.body.url;
     if (!siteUrl) { return res.redirect('/'); }
     if (!siteUrl.startsWith('http')) { siteUrl = 'https://' + siteUrl; }
+    
+    // Test mode for demo purposes
+    if (siteUrl.includes('test') || siteUrl.includes('demo')) {
+        const demoResults = {
+            url: siteUrl,
+            domain: 'demo-dealership.com',
+            brand: 'Ford',
+            timestamp: new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' }),
+            pages_found: {
+                homepage: siteUrl,
+                inventory: siteUrl + '/inventory',
+                vdp: siteUrl + '/vehicle-details',
+                service: siteUrl + '/service',
+                contact: siteUrl + '/contact'
+            },
+            audit: {
+                vdp: {
+                    score: 80,
+                    findings: [
+                        'MSRP is clearly displayed',
+                        'Multiple vehicle images present',
+                        'Lead capture form is available',
+                        'Pricing disclaimers are present'
+                    ],
+                    recommendations: [
+                        'Add 360-degree vehicle view',
+                        'Include video walkaround',
+                        'Add live chat feature'
+                    ]
+                }
+            }
+        };
+        return res.render('reports.html', { results: demoResults });
+    }
 
     try {
         const homepageSoup = await getSoup(siteUrl);
@@ -1672,10 +1754,11 @@ app.post('/audit', async (req, res) => {
                         </ul>
                         <h5>Try These Test Sites:</h5>
                         <ul>
-                            <li>example.com</li>
-                            <li>wikipedia.org</li>
-                            <li>github.com</li>
+                            <li>test.com (Demo mode)</li>
+                            <li>demo.dealership.com (Demo mode)</li>
+                            <li>Any URL with 'test' or 'demo' in it</li>
                         </ul>
+                        <p class="mt-3"><strong>Note:</strong> Many websites block automated tools for security. For a live demo, try any URL containing 'test' or 'demo'.</p>
                     </div>
                 </div>
             </body>

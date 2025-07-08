@@ -1,0 +1,12 @@
+[phases.setup]
+nixPkgs = ["...", "chromium", "chromium-driver"]
+
+[phases.build]
+cmds = ["npm install"]
+
+[start]
+cmd = "npm start"
+
+[variables]
+PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "true"
+CHROME_BIN = "/nix/var/nix/profiles/default/bin/chromium"
