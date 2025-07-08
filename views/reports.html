@@ -16,8 +16,7 @@
 </head>
 <body>
     <div class="report-header text-center mb-5">
-        <div style="font-size: 3rem;">🚗</div>
-        <h1>Auto Audit Pro Report</h1>
+        <h2 class="mb-0">Auto Audit Pro Report</h2>
         <h4 class="fw-normal">Comprehensive Digital Expertise for <strong class="text-warning"><%= results.brand %></strong> Dealerships</h4>
         <p class="lead mt-3">Audit for: <a href="<%= results.url %>" target="_blank" class="text-white"><%= results.url %></a></p>
         <p class="text-white-50">Generated on: <%= results.timestamp %></p>
@@ -27,16 +26,16 @@
             <a href="/" class="btn btn-secondary btn-lg">Run New Audit</a>
         </div>
         <div class="card mb-4">
-            <div class="card-header">📊 Overall Status Overview</div>
+            <div class="card-header">Overall Status Overview</div>
             <div class="card-body">
                 <table class="table table-bordered">
                     <tbody>
                         <tr>
-                            <td><strong>🔥 Brand Detection</strong></td>
+                            <td><strong>Brand Detection</strong></td>
                             <td><span class="badge bg-success">SUCCESS</span> - Identified as <strong><%= results.brand %></strong></td>
                         </tr>
                         <tr>
-                            <td><strong>🎯 VDP Analysis</strong></td>
+                            <td><strong>VDP Analysis</strong></td>
                             <% if (results.audit.vdp && !results.audit.vdp.error) { %>
                                 <td><span class="badge bg-info">COMPLETE</span> - <%= results.audit.vdp.score %> / 100</td>
                             <% } else { %>
@@ -47,9 +46,27 @@
                 </table>
             </div>
         </div>
+        
+        <!-- Pages Found Section -->
+        <div class="card mb-4">
+            <div class="card-header">Pages Discovered</div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tbody>
+                        <% Object.entries(results.pages_found).forEach(([pageType, url]) => { %>
+                            <tr>
+                                <td><strong><%= pageType.toUpperCase() %></strong></td>
+                                <td><a href="<%= url %>" target="_blank"><%= url %></a></td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
         <% if (results.audit.vdp && !results.audit.vdp.error) { %>
         <div class="card mb-4">
-            <div class="card-header">🚗 VDP Expertise Analysis</div>
+            <div class="card-header">VDP Expertise Analysis</div>
             <div class="card-body">
                 <ul class="list-group list-group-flush">
                     <% results.audit.vdp.findings.forEach(finding => { %>

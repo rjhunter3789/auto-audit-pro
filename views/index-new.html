@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Audit Pro - Comprehensive Automotive Dealership Website Analysis Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary-purple: #6B46C1;
+            --secondary-purple: #9333EA;
+            --light-purple: #E9D5FF;
+            --dark-bg: #1F2937;
+            --card-bg: #FFFFFF;
+            --text-primary: #1F2937;
+            --text-secondary: #6B7280;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header-section {
+            background: rgba(31, 41, 55, 0.95);
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+            color: white;
+            margin-bottom: 3rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .header-section h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .header-section p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .feature-card i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .feature-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .audit-form-section {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .audit-form-section h2 {
+            text-align: center;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .form-label {
+            color: var(--text-primary);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            border: 2px solid #E5E7EB;
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-purple);
+            box-shadow: 0 0 0 3px rgba(107, 70, 193, 0.1);
+        }
+
+        .btn-audit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            width: 100%;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .btn-audit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(107, 70, 193, 0.3);
+            color: white;
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            border-width: 0.3rem;
+            color: var(--primary-purple);
+        }
+
+        @media (max-width: 768px) {
+            .header-section h1 {
+                font-size: 2rem;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Header Section -->
+        <div class="header-section">
+            <h1>Auto Audit Pro</h1>
+            <p>Comprehensive Automotive Dealership Website Analysis Platform</p>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="features-grid">
+            <div class="feature-card">
+                <i class="fas fa-tachometer-alt"></i>
+                <h3>Performance</h3>
+                <p>Speed, Core Web Vitals, Mobile optimization</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-heartbeat"></i>
+                <h3>Technical Health</h3>
+                <p>Broken links, SSL, server response, redirects</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-users"></i>
+                <h3>User Experience</h3>
+                <p>Navigation, forms, accessibility, mobile UX</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-search"></i>
+                <h3>SEO & Search</h3>
+                <p>Meta tags, schema, local search, structure</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-file-alt"></i>
+                <h3>Content Quality</h3>
+                <p>Inventory accuracy, contact info, freshness</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-plug"></i>
+                <h3>Integration Check</h3>
+                <p>CRM, analytics, chat widgets, social media</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-award"></i>
+                <h3>Brand Compliance</h3>
+                <p>Manufacturer guidelines, legal requirements</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-bullseye"></i>
+                <h3>Lead Generation</h3>
+                <p>Forms, calls-to-action, conversion optimization</p>
+            </div>
+        </div>
+
+        <!-- Audit Form Section -->
+        <div class="audit-form-section">
+            <h2>Complete Website Health Analysis</h2>
+            <form id="audit-form" action="/audit" method="post">
+                <div class="mb-3">
+                    <label for="url" class="form-label">
+                        <i class="fas fa-globe"></i> Dealership Website URL:
+                    </label>
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        id="url" 
+                        name="url" 
+                        placeholder="Enter dealership domain (e.g., smithford.com)" 
+                        required
+                    >
+                </div>
+                <button type="submit" class="btn btn-audit">
+                    <i class="fas fa-chart-line"></i> Start Comprehensive Analysis
+                </button>
+            </form>
+            
+            <div class="loading-spinner" id="loadingSpinner">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3 text-muted">Analyzing website... This may take a few moments.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('audit-form').addEventListener('submit', function(e) {
+            document.getElementById('loadingSpinner').style.display = 'block';
+            document.querySelector('.btn-audit').disabled = true;
+            document.querySelector('.btn-audit').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+        });
+    </script>
+</body>
+</html>

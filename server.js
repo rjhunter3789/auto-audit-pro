@@ -78,10 +78,27 @@ function getChromeOptions() {
 // --- New, Fast Audit Logic Functions ---
 const KNOWN_BRANDS = ['ford', 'toyota', 'honda', 'chevrolet', 'nissan', 'bmw', 'mercedes-benz', 'lexus', 'audi', 'jeep', 'hyundai', 'kia'];
 const PAGE_KEYWORDS = {
-    vdp: ['/detail/', '/vehicle/', '/new-vehicle/', '/used-vehicle/', 'vin='],
-    inventory: ['/inventory/', '/new-vehicles/', '/used-cars/', '/all-inventory/'],
-    service: ['/service/', '/schedule-service/', '/service-center/'],
-    contact: ['/contact', '/about-us/', '/hours-directions/']
+    vdp: [
+        '/detail/', '/vehicle/', '/new-vehicle/', '/used-vehicle/', 'vin=',
+        '/vehicledetails/', '/vehicle-details/', '/vdp/', '/car-details/',
+        '/inventory/new/', '/inventory/used/', '/vehicles/',
+        'stock=', 'stocknumber=', 'model='
+    ],
+    inventory: [
+        '/inventory/', '/new-vehicles/', '/used-cars/', '/all-inventory/',
+        '/new-inventory/', '/used-inventory/', '/certified/', '/pre-owned/',
+        '/showroom/', '/vehicles/', '/browse/', '/search-inventory/'
+    ],
+    service: [
+        '/service/', '/schedule-service/', '/service-center/',
+        '/auto-service/', '/maintenance/', '/repairs/', '/service-department/',
+        '/service-appointment/', '/book-service/'
+    ],
+    contact: [
+        '/contact', '/about-us/', '/hours-directions/',
+        '/contact-us/', '/dealership-info/', '/location/', '/directions/',
+        '/about/', '/meet-our-team/', '/staff/'
+    ]
 };
 
 // Use Selenium for better website access
@@ -168,16 +185,49 @@ const detectBrand = ($, pageUrl) => {
 const discoverPages = ($, startUrl) => {
     const foundPages = { homepage: startUrl };
     const baseUrl = new url.URL(startUrl).origin;
+    const foundUrls = new Set();
+    
+    // First, collect all internal links
     $('a[href]').each((i, el) => {
         const href = $(el).attr('href');
         if (!href) return;
-        for (const [pageType, keywords] of Object.entries(PAGE_KEYWORDS)) {
-            if (!foundPages[pageType] && keywords.some(kw => href.toLowerCase().includes(kw))) {
-                const fullUrl = new url.URL(href, baseUrl).href;
-                foundPages[pageType] = fullUrl;
+        
+        try {
+            const fullUrl = new url.URL(href, baseUrl).href;
+            // Only consider internal links
+            if (fullUrl.startsWith(baseUrl)) {
+                foundUrls.add(fullUrl);
             }
+        } catch (e) {
+            // Invalid URL, skip
         }
     });
+    
+    // Then categorize them
+    for (const urlStr of foundUrls) {
+        const lowerUrl = urlStr.toLowerCase();
+        for (const [pageType, keywords] of Object.entries(PAGE_KEYWORDS)) {
+            if (!foundPages[pageType] && keywords.some(kw => lowerUrl.includes(kw))) {
+                foundPages[pageType] = urlStr;
+                break; // Found a match for this URL
+            }
+        }
+    }
+    
+    // If no VDP found, try to find any link that looks like a specific vehicle
+    if (!foundPages.vdp) {
+        for (const urlStr of foundUrls) {
+            // Look for patterns like year-make-model or URLs with many hyphens
+            if (urlStr.match(/\/\d{4}-\w+-\w+/) || 
+                urlStr.match(/\/[a-z]+-[a-z]+-[a-z]+-[a-z]+/) ||
+                urlStr.includes('/dealer-inspire/') ||
+                urlStr.includes('/window-sticker/')) {
+                foundPages.vdp = urlStr;
+                break;
+            }
+        }
+    }
+    
     return foundPages;
 };
 
@@ -1654,9 +1704,12 @@ app.get('/api/health', (req, res) => {
 
 // --- Website Routes ---
 
+// Import comprehensive audit tests
+const { runComprehensiveAudit } = require('./lib/audit-tests');
+
 // This shows the main page with the form (index.html)
 app.get('/', (req, res) => {
-    res.render('index.html');
+    res.render('index-new.html');
 });
 
 // This runs the audit when the user submits the form
@@ -1722,8 +1775,11 @@ app.post('/audit', async (req, res) => {
             }
         }
 
-        // This sends the data to reports.html and displays it
-        res.render('reports.html', { results: fullResults });
+        // Run comprehensive audit
+        const auditResults = await runComprehensiveAudit(siteUrl, homepageSoup);
+        
+        // Render new comprehensive report
+        res.render('reports-new.html', { results: auditResults });
 
     } catch (error) {
         console.error("Audit Error:", error.message);
@@ -1770,13 +1826,13 @@ app.post('/audit', async (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-    console.log(`🚗 Auto Audit Pro Server v2.0 running on port ${PORT}`);
-    console.log(`📊 Features:`);
-    console.log(`   ✅ 8-Category Testing System`);
-    console.log(`   ✅ Real Google PageSpeed API Integration`);
-    console.log(`   ✅ Professional Content Analysis`);
-    console.log(`   ✅ Brand Compliance & Lead Generation Tests`);
-    console.log(`📊 API endpoints available:`);
+    console.log(`Auto Audit Pro Server v2.0 running on port ${PORT}`);
+    console.log(`Features:`);
+    console.log(`   - 8-Category Testing System`);
+    console.log(`   - Real Google PageSpeed API Integration`);
+    console.log(`   - Professional Content Analysis`);
+    console.log(`   - Brand Compliance & Lead Generation Tests`);
+    console.log(`API endpoints available:`);
     console.log(`   POST /api/audit - Start new audit`);
     console.log(`   GET  /api/audit/:id - Get audit status`);
     console.log(`   GET  /api/audits - Get audit history`);
