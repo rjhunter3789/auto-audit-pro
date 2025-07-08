@@ -75,9 +75,35 @@ const PAGE_KEYWORDS = {
 };
 
 const getSoup = async (pageUrl) => {
-    const headers = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' };
-    const response = await axios.get(pageUrl, { headers, timeout: 15000 });
-    return cheerio.load(response.data);
+    const headers = { 
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1'
+    };
+    try {
+        const response = await axios.get(pageUrl, { 
+            headers, 
+            timeout: 30000,
+            maxRedirects: 5,
+            validateStatus: function (status) {
+                return status >= 200 && status < 400; // Accept redirects
+            }
+        });
+        return cheerio.load(response.data);
+    } catch (error) {
+        if (error.code === 'ECONNABORTED') {
+            throw new Error('Website took too long to respond. Please try again.');
+        } else if (error.response && error.response.status === 403) {
+            throw new Error('Website is blocking automated access. Try a different website.');
+        } else if (error.response && error.response.status === 404) {
+            throw new Error('Website not found. Please check the URL.');
+        } else {
+            throw new Error(`Unable to access website: ${error.message}`);
+        }
+    }
 };
 
 const detectBrand = ($, pageUrl) => {
@@ -1619,7 +1645,42 @@ app.post('/audit', async (req, res) => {
 
     } catch (error) {
         console.error("Audit Error:", error.message);
-        res.status(500).send(`Could not audit the site. It may be down or blocking automated tools. Error: ${error.message}`);
+        // Send a user-friendly error page
+        res.status(500).send(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Audit Error - Auto Audit Pro</title>
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+            </head>
+            <body>
+                <div class="container mt-5">
+                    <div class="alert alert-danger" role="alert">
+                        <h4 class="alert-heading">Unable to Audit Website</h4>
+                        <p>${error.message}</p>
+                        <hr>
+                        <p class="mb-0">
+                            <a href="/" class="btn btn-primary">Try Another Website</a>
+                        </p>
+                    </div>
+                    <div class="mt-4">
+                        <h5>Common Issues:</h5>
+                        <ul>
+                            <li>Some websites block automated tools</li>
+                            <li>The website may be temporarily down</li>
+                            <li>The URL might be incorrect</li>
+                        </ul>
+                        <h5>Try These Test Sites:</h5>
+                        <ul>
+                            <li>example.com</li>
+                            <li>wikipedia.org</li>
+                            <li>github.com</li>
+                        </ul>
+                    </div>
+                </div>
+            </body>
+            </html>
+        `);
     }
 });
 
