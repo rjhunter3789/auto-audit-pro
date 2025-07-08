@@ -52,6 +52,7 @@ app.use((req, res, next) => {
 // --- Setup for EJS Templates ---
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+app.engine('html', require('ejs').renderFile);
 
 // In-memory storage for MVP
 let auditResults = new Map();
@@ -1581,7 +1582,7 @@ app.get('/api/health', (req, res) => {
 
 // This shows the main page with the form (index.html)
 app.get('/', (req, res) => {
-    res.render('index');
+    res.render('index.html');
 });
 
 // This runs the audit when the user submits the form
@@ -1613,8 +1614,8 @@ app.post('/audit', async (req, res) => {
             }
         }
 
-        // This sends the data to report.html and displays it
-        res.render('report', { results: fullResults });
+        // This sends the data to reports.html and displays it
+        res.render('reports.html', { results: fullResults });
 
     } catch (error) {
         console.error("Audit Error:", error.message);
