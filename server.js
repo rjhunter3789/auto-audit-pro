@@ -94,6 +94,12 @@ const PAGE_KEYWORDS = {
         '/auto-service/', '/maintenance/', '/repairs/', '/service-department/',
         '/service-appointment/', '/book-service/'
     ],
+    specials: [
+        '/specials/', '/offers/', '/deals/', '/promotions/',
+        '/incentives/', '/lease-specials/', '/finance-specials/',
+        '/new-specials/', '/used-specials/', '/service-specials/',
+        '/coupons/', '/savings/'
+    ],
     contact: [
         '/contact', '/about-us/', '/hours-directions/',
         '/contact-us/', '/dealership-info/', '/location/', '/directions/',
@@ -1706,15 +1712,24 @@ app.get('/api/health', (req, res) => {
 
 // Import comprehensive audit tests
 const { runComprehensiveAudit } = require('./lib/audit-tests');
+const { auditVDP, auditServicePage, auditInventoryPage, auditSpecialsPage } = require('./lib/page-specific-tests');
 
 // This shows the main page with the form (index.html)
 app.get('/', (req, res) => {
     res.render('index-new.html');
 });
 
+// This shows the definitions page
+app.get('/definitions', (req, res) => {
+    res.render('definitions.html');
+});
+
 // This runs the audit when the user submits the form
 app.post('/audit', async (req, res) => {
     let siteUrl = req.body.url;
+    const auditType = req.body.auditType || 'comprehensive';
+    const customPages = req.body.customPages || [];
+    
     if (!siteUrl) { return res.redirect('/'); }
     if (!siteUrl.startsWith('http')) { siteUrl = 'https://' + siteUrl; }
     
@@ -1780,6 +1795,95 @@ app.post('/audit', async (req, res) => {
         
         // Add discovered pages to results
         auditResults.pagesFound = discoveredPages;
+        
+        // Run page-specific tests based on audit type
+        auditResults.pageSpecificResults = {};
+        
+        if (auditType === 'comprehensive' || (auditType === 'custom' && customPages.includes('vdp'))) {
+            if (discoveredPages.vdp) {
+                try {
+                    const vdpSoup = await getSoup(discoveredPages.vdp);
+                    const vdpAuditResult = await auditVDP(vdpSoup, discoveredPages.vdp);
+                    auditResults.pageSpecificResults.vdp = vdpAuditResult;
+                    
+                    // Add VDP issues to main issues list
+                    if (vdpAuditResult.issues) {
+                        auditResults.issues.push(...vdpAuditResult.issues);
+                    }
+                } catch (e) {
+                    console.log('VDP audit error:', e.message);
+                }
+            }
+        }
+        
+        if (auditType === 'comprehensive' || (auditType === 'custom' && customPages.includes('service'))) {
+            if (discoveredPages.service) {
+                try {
+                    const serviceSoup = await getSoup(discoveredPages.service);
+                    const serviceAuditResult = await auditServicePage(serviceSoup, discoveredPages.service);
+                    auditResults.pageSpecificResults.service = serviceAuditResult;
+                    
+                    // Add service issues to main issues list
+                    if (serviceAuditResult.issues) {
+                        auditResults.issues.push(...serviceAuditResult.issues);
+                    }
+                } catch (e) {
+                    console.log('Service page audit error:', e.message);
+                }
+            }
+        }
+        
+        if (auditType === 'comprehensive' || (auditType === 'custom' && customPages.includes('inventory'))) {
+            if (discoveredPages.inventory) {
+                try {
+                    const inventorySoup = await getSoup(discoveredPages.inventory);
+                    const inventoryAuditResult = await auditInventoryPage(inventorySoup, discoveredPages.inventory);
+                    auditResults.pageSpecificResults.inventory = inventoryAuditResult;
+                    
+                    // Add inventory issues to main issues list
+                    if (inventoryAuditResult.issues) {
+                        auditResults.issues.push(...inventoryAuditResult.issues);
+                    }
+                } catch (e) {
+                    console.log('Inventory page audit error:', e.message);
+                }
+            }
+        }
+        
+        if (auditType === 'comprehensive' || (auditType === 'custom' && customPages.includes('specials'))) {
+            if (discoveredPages.specials) {
+                try {
+                    const specialsSoup = await getSoup(discoveredPages.specials);
+                    const specialsAuditResult = await auditSpecialsPage(specialsSoup, discoveredPages.specials);
+                    auditResults.pageSpecificResults.specials = specialsAuditResult;
+                    
+                    // Add specials issues to main issues list
+                    if (specialsAuditResult.issues) {
+                        auditResults.issues.push(...specialsAuditResult.issues);
+                    }
+                } catch (e) {
+                    console.log('Specials page audit error:', e.message);
+                }
+            }
+        }
+        
+        // Store audit type for reporting
+        auditResults.auditType = auditType;
+        auditResults.auditDepth = auditType === 'quick' ? 'Homepage Only' : 
+                                  auditType === 'comprehensive' ? 'Homepage + VDP + Service + Inventory' : 
+                                  `Homepage + ${customPages.join(' + ')}`;
+        
+        // Generate enhanced recommendations
+        const { generateEnhancedRecommendations, generateImplementationRoadmap, calculatePotentialROI } = require('./lib/enhanced-recommendations');
+        
+        // Get enhanced recommendations based on issues found
+        auditResults.enhancedRecommendations = generateEnhancedRecommendations(auditResults.issues);
+        
+        // Generate implementation roadmap
+        auditResults.implementationRoadmap = generateImplementationRoadmap(auditResults.enhancedRecommendations);
+        
+        // Calculate potential ROI
+        auditResults.potentialROI = calculatePotentialROI(auditResults.enhancedRecommendations);
         
         // If contact page found, check it for business hours and contact info
         if (discoveredPages.contact) {
