@@ -1,8 +1,8 @@
 /*
  * Auto Audit Pro - Professional Dealership Website Analysis Platform
- * © 2025 Jeffrey Lee Robinson. All Rights Reserved.
+ * © 2025 JL Robinson. All Rights Reserved.
  * 
- * Author: Jeffrey Lee Robinson
+ * Author: JL Robinson
  * Contact: nakapaahu@gmail.com
  * Technology: Node.js + Express + Selenium WebDriver + Real Performance APIs
  * 

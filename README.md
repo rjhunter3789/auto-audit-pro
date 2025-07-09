@@ -1,6 +1,13 @@
 # Auto Audit Pro - Professional Dealership Website Analysis Platform
 
+© 2025 JL Robinson. All Rights Reserved.
+
 A comprehensive web application for analyzing automotive dealership websites using Selenium WebDriver and Google PageSpeed API.
+
+**Author:** JL Robinson  
+**Contact:** nakapaahu@gmail.com  
+
+This software is protected by copyright law. Unauthorized reproduction or distribution is prohibited.
 
 ## Features
 
@@ -116,7 +123,7 @@ docker run -p 3002:3002 auto-audit-pro
 
 ## License
 
-Copyright © 2025 Jeffrey Lee Robinson. All Rights Reserved.
+Copyright © 2025 JL Robinson. All Rights Reserved.
 
 ## Contact
 
