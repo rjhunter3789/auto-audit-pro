@@ -347,7 +347,7 @@
                 <h3>Upload Dealer Lead Data</h3>
                 <p>Drag & drop your Excel/CSV file here or click to browse</p>
                 <p class="text-muted small">Supports .xlsx, .xlsm, .xls, and .csv files</p>
-                <p class="text-info small mt-2"><i class="fas fa-info-circle"></i> For network reports: Upload file with multiple dealers listed in Column A</p>
+                <p class="text-info small mt-2"><i class="fas fa-info-circle"></i> Multi-worksheet files will be processed as network reports</p>
                 <input type="file" id="fileInput" accept=".csv,.xlsx,.xlsm,.xls" onchange="handleFileSelect(event)">
             </div>
 
@@ -402,6 +402,71 @@
                 </div>
             </div>
 
+            <!-- Response Time Breakdown -->
+            <div class="chart-container">
+                <h3>Response Time Distribution</h3>
+                <div class="row">
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="metric-card text-center">
+                            <h4 class="text-success">0-15 Minutes</h4>
+                            <p class="metric-value" id="response15min">-</p>
+                            <p class="text-muted small">Target: 40%+</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="metric-card text-center">
+                            <h4 class="text-info">16-30 Minutes</h4>
+                            <p class="metric-value" id="response30min">-</p>
+                            <p class="text-muted small">Acceptable</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="metric-card text-center">
+                            <h4 class="text-warning">31-60 Minutes</h4>
+                            <p class="metric-value" id="response60min">-</p>
+                            <p class="text-muted small">Needs Improvement</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="metric-card text-center">
+                            <h4 class="text-danger">60+ Minutes</h4>
+                            <p class="metric-value" id="response60plus">-</p>
+                            <p class="text-muted small">Critical</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="metric-card text-center">
+                            <h4 class="text-primary">1-24 Hours</h4>
+                            <p class="metric-value" id="response24hr">-</p>
+                            <p class="text-muted small">Follow-up</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="metric-card text-center">
+                            <h4 class="text-secondary">24+ Hours</h4>
+                            <p class="metric-value" id="response24plus">-</p>
+                            <p class="text-muted small">Too Late</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="metric-card text-center bg-danger text-white">
+                            <h4>No Response</h4>
+                            <p class="metric-value" id="responseNone">-</p>
+                            <p class="small">Lost Opportunities</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="metric-card text-center">
+                            <h4 class="text-success">Total Responded</h4>
+                            <p class="metric-value" id="responseTotal">-</p>
+                            <p class="text-muted small">Response Rate</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Charts -->
             <div class="row">
                 <div class="col-md-6">
@@ -412,7 +477,7 @@
                 </div>
                 <div class="col-md-6">
                     <div class="chart-container">
-                        <h3>Response Time Distribution</h3>
+                        <h3>Response Time Pie Chart</h3>
                         <canvas id="responseChart"></canvas>
                     </div>
                 </div>

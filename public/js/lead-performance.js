@@ -314,6 +314,11 @@ function processUploadedData(data, filename = '') {
         responded: 0,
         noResponse: 0,
         responseTime15min: 0,
+        responseTime30min: 0,
+        responseTime60min: 0,
+        responseTime60plus: 0,
+        responseTime24hr: 0,
+        responseTime24plus: 0,
         leadSources: {}
     };
     
@@ -448,9 +453,23 @@ function processUploadedData(data, filename = '') {
                 const responseTime = new Date(responseDate);
                 const diffMinutes = Math.floor((responseTime - actionableTime) / (1000 * 60));
                 
-                // Track 15-minute responses
-                if (diffMinutes >= 0 && diffMinutes <= 15) {
-                    currentDealerData.responseTime15min += 1;
+                // Categorize response times
+                if (diffMinutes >= 0) {
+                    if (diffMinutes <= 15) {
+                        currentDealerData.responseTime15min += 1;
+                    } else if (diffMinutes <= 30) {
+                        currentDealerData.responseTime30min += 1;
+                    } else if (diffMinutes <= 60) {
+                        currentDealerData.responseTime60min += 1;
+                    } else if (diffMinutes <= 1440) { // 24 hours
+                        if (diffMinutes <= 240) { // 4 hours
+                            currentDealerData.responseTime60plus += 1;
+                        } else {
+                            currentDealerData.responseTime24hr += 1;
+                        }
+                    } else {
+                        currentDealerData.responseTime24plus += 1;
+                    }
                 }
                 
                 // Log for debugging
@@ -539,9 +558,29 @@ function processUploadedData(data, filename = '') {
     // Calculate response metrics
     let totalResponded = 0;
     let total15MinResponses = 0;
+    let responseDistribution = {
+        time15min: 0,
+        time30min: 0,
+        time60min: 0,
+        time60plus: 0,
+        time24hr: 0,
+        time24plus: 0,
+        noResponse: 0,
+        responded: 0,
+        total: totalNetworkLeads
+    };
+    
     Object.values(dealers).forEach(dealer => {
         totalResponded += dealer.responded || 0;
         total15MinResponses += dealer.responseTime15min || 0;
+        responseDistribution.time15min += dealer.responseTime15min || 0;
+        responseDistribution.time30min += dealer.responseTime30min || 0;
+        responseDistribution.time60min += dealer.responseTime60min || 0;
+        responseDistribution.time60plus += dealer.responseTime60plus || 0;
+        responseDistribution.time24hr += dealer.responseTime24hr || 0;
+        responseDistribution.time24plus += dealer.responseTime24plus || 0;
+        responseDistribution.noResponse += dealer.noResponse || 0;
+        responseDistribution.responded += dealer.responded || 0;
     });
     
     const responseRate = totalNetworkLeads > 0 ? 
@@ -559,7 +598,8 @@ function processUploadedData(data, filename = '') {
         noResponseRate: noResponseRate,
         quickResponseRate: quickResponseRate,
         dealerCount: Object.keys(dealers).length,
-        dealerName: isNetworkReport ? 'Network Report' : dealerName
+        dealerName: isNetworkReport ? 'Network Report' : dealerName,
+        responseDistribution: responseDistribution
     });
     
     // Update dealer dropdown
@@ -580,6 +620,29 @@ function updateDashboard(metrics) {
     }
     if (document.getElementById('quickResponseRate')) {
         document.getElementById('quickResponseRate').textContent = metrics.quickResponseRate + '%';
+    }
+    
+    // Update response time distribution if we have the data
+    if (metrics.responseDistribution) {
+        const dist = metrics.responseDistribution;
+        const total = dist.total || 1; // Avoid division by zero
+        
+        document.getElementById('response15min').textContent = 
+            `${dist.time15min} (${((dist.time15min / total) * 100).toFixed(1)}%)`;
+        document.getElementById('response30min').textContent = 
+            `${dist.time30min} (${((dist.time30min / total) * 100).toFixed(1)}%)`;
+        document.getElementById('response60min').textContent = 
+            `${dist.time60min} (${((dist.time60min / total) * 100).toFixed(1)}%)`;
+        document.getElementById('response60plus').textContent = 
+            `${dist.time60plus} (${((dist.time60plus / total) * 100).toFixed(1)}%)`;
+        document.getElementById('response24hr').textContent = 
+            `${dist.time24hr} (${((dist.time24hr / total) * 100).toFixed(1)}%)`;
+        document.getElementById('response24plus').textContent = 
+            `${dist.time24plus} (${((dist.time24plus / total) * 100).toFixed(1)}%)`;
+        document.getElementById('responseNone').textContent = 
+            `${dist.noResponse} (${((dist.noResponse / total) * 100).toFixed(1)}%)`;
+        document.getElementById('responseTotal').textContent = 
+            `${dist.responded} (${((dist.responded / total) * 100).toFixed(1)}%)`;
     }
     
     // Calculate performance tiers
@@ -902,6 +965,11 @@ function processMultiWorksheetFile(workbook, filename) {
             responded: 0,
             noResponse: 0,
             responseTime15min: 0,
+            responseTime30min: 0,
+            responseTime60min: 0,
+            responseTime60plus: 0,
+            responseTime24hr: 0,
+            responseTime24plus: 0,
             leadSources: {}
         };
         
@@ -943,8 +1011,23 @@ function processMultiWorksheetFile(workbook, filename) {
                     const responseTime = new Date(responseDate);
                     const diffMinutes = Math.floor((responseTime - actionableTime) / (1000 * 60));
                     
-                    if (diffMinutes >= 0 && diffMinutes <= 15) {
-                        dealerData.responseTime15min += 1;
+                    // Categorize response times
+                    if (diffMinutes >= 0) {
+                        if (diffMinutes <= 15) {
+                            dealerData.responseTime15min += 1;
+                        } else if (diffMinutes <= 30) {
+                            dealerData.responseTime30min += 1;
+                        } else if (diffMinutes <= 60) {
+                            dealerData.responseTime60min += 1;
+                        } else if (diffMinutes <= 1440) { // 24 hours
+                            if (diffMinutes <= 240) { // 4 hours
+                                dealerData.responseTime60plus += 1;
+                            } else {
+                                dealerData.responseTime24hr += 1;
+                            }
+                        } else {
+                            dealerData.responseTime24plus += 1;
+                        }
                     }
                 } catch (e) {
                     // Date parsing error
