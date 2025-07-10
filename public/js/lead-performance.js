@@ -485,16 +485,26 @@ function processUploadedData(data, filename = '') {
         // Debug first few rows
         if (processedRows < 3) {
             console.log(`Row ${i+1} - Response Date (Col H): "${responseDate}", Response Time (Col G): "${responseTimeText}"`);
+            console.log(`  Type of responseDate: ${typeof responseDate}, Type of responseTimeText: ${typeof responseTimeText}`);
         }
         
         // Check if there was a response (Column H not "N/A")
-        if (responseDate === 'N/A' || responseDate === '' || !responseDate) {
+        // Also check for case variations and trimmed strings
+        const trimmedResponseDate = responseDate ? responseDate.toString().trim() : '';
+        if (trimmedResponseDate === 'N/A' || trimmedResponseDate === 'n/a' || trimmedResponseDate === 'N/a' || 
+            trimmedResponseDate === '' || !trimmedResponseDate) {
             // No response
             currentDealerData.noResponse += 1;
+            if (processedRows < 3) {
+                console.log('  -> Counted as NO RESPONSE');
+            }
         } else {
             // There was a response
             currentDealerData.responded += 1;
             currentDealerData.leadSources[leadSource].appointments += 1;
+            if (processedRows < 3) {
+                console.log('  -> Counted as RESPONDED');
+            }
             
             // Parse response time from Column G
             if (responseTimeText && responseTimeText !== 'N/A' && responseTimeText !== '') {
@@ -706,9 +716,19 @@ function processUploadedData(data, filename = '') {
 function updateDashboard(metrics) {
     console.log('updateDashboard called with metrics:', metrics);
     
+    // Calculate monthly average (6 months of data: Q1 + Q2)
+    // Extrapolate to annual (multiply by 2) then divide by 12 for monthly average
+    const monthlyAverage = Math.round((metrics.totalLeads * 2) / 12);
+    
     // Update metric cards
-    document.getElementById('totalLeads').textContent = metrics.totalLeads.toLocaleString();
+    document.getElementById('totalLeads').textContent = monthlyAverage.toLocaleString();
     document.getElementById('conversionRate').textContent = metrics.conversionRate + '%';
+    
+    // Update the period text to show what data we're using
+    const periodElem = document.getElementById('leadPeriod');
+    if (periodElem) {
+        periodElem.textContent = `Based on ${metrics.totalLeads.toLocaleString()} leads (Q1-Q2)`;
+    }
     
     // Update response metrics
     if (document.getElementById('noResponseRate')) {
@@ -1424,15 +1444,24 @@ function processMultiWorksheetFile(workbook, filename) {
             if (index === 0 && i === 11) {
                 console.log(`First data row - Col G (Response Time): "${responseTimeText}", Col H (Response Date): "${responseDate}"`);
                 console.log('Full row data:', row);
+                console.log(`  Type of responseDate: ${typeof responseDate}, Type of responseTimeText: ${typeof responseTimeText}`);
             }
             
             // Check if there was a response
-            if (responseDate === 'N/A' || responseDate === '' || !responseDate) {
+            const trimmedResponseDate = responseDate ? responseDate.toString().trim() : '';
+            if (trimmedResponseDate === 'N/A' || trimmedResponseDate === 'n/a' || trimmedResponseDate === 'N/a' || 
+                trimmedResponseDate === '' || !trimmedResponseDate) {
                 // No response
                 dealerData.noResponse += 1;
+                if (index === 0 && i === 11) {
+                    console.log('  -> Counted as NO RESPONSE');
+                }
             } else {
                 // There was a response
                 dealerData.responded += 1;
+                if (index === 0 && i === 11) {
+                    console.log('  -> Counted as RESPONDED');
+                }
                 
                 // Now categorize the response time from Column G
                 if (responseTimeText && responseTimeText !== 'N/A' && responseTimeText !== '') {
