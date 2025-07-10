@@ -392,7 +392,13 @@ function processUploadedData(data, filename = '') {
         // Column A: Date/Time
         // Column B: Lead Source
         // Column C: Lead Type (Chat/Form)
-        // We need to count leads by source
+        // IMPORTANT: Only count Form leads, not Chat or others
+        
+        const leadType = row[2]; // Column C - Lead Type
+        if (!leadType || leadType !== 'Form') {
+            skippedRows++;
+            continue; // Skip non-Form leads
+        }
         
         if (!currentDealerData.leadSources[leadSource]) {
             currentDealerData.leadSources[leadSource] = {
@@ -404,7 +410,7 @@ function processUploadedData(data, filename = '') {
             };
         }
         
-        // Count this lead
+        // Count this Form lead
         currentDealerData.leadSources[leadSource].leads += 1;
         currentDealerData.leads += 1;
         processedRows++;
@@ -433,7 +439,7 @@ function processUploadedData(data, filename = '') {
     console.log('Processed dealer data:', dealers);
     console.log('Is network report:', isNetworkReport);
     console.log('Number of dealers found:', Object.keys(dealers).length);
-    console.log(`Processed ${processedRows} lead rows, skipped ${skippedRows} empty/invalid rows`);
+    console.log(`Processed ${processedRows} Form leads, skipped ${skippedRows} non-Form/invalid rows`);
     
     // If no dealers found, try to help debug
     if (Object.keys(dealers).length === 0) {
