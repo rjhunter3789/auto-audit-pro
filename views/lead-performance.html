@@ -219,9 +219,23 @@
         
         /* ROI Calculator specific override */
         #calculator .chart-container {
-            height: auto;
+            height: auto !important;
+            min-height: auto !important;
+            display: block !important;
+            max-height: none !important;
+            overflow: visible !important;
+        }
+        
+        /* Ensure calculator section expands */
+        #calculator {
             min-height: auto;
-            display: block;
+            padding-bottom: 2rem;
+        }
+        
+        /* Fix main container to ensure proper expansion */
+        .main-container {
+            min-height: calc(100vh - 200px);
+            padding-bottom: 150px !important;
         }
         
         /* Auto height for dealer analysis containers */
@@ -523,7 +537,7 @@
 
         <!-- ROI Calculator Section -->
         <section id="calculator" class="content-section">
-            <div class="chart-container" style="background: white; padding-bottom: 3rem; margin-bottom: 4rem;">
+            <div class="chart-container" style="background: white; padding: 2rem; margin-bottom: 6rem; height: auto; overflow: visible;">
                 <h3>ROI Calculator</h3>
                 <p>See how improving your conversion rate impacts revenue</p>
                 
