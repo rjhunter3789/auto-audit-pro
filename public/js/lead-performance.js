@@ -471,6 +471,11 @@ function processUploadedData(data, filename = '') {
         const responseDate = row[7]; // Column H - Response Date
         const responseTimeText = row[6]; // Column G - Response Time in "0h 30m" format
         
+        // Debug first few rows
+        if (processedRows < 3) {
+            console.log(`Row ${i+1} - Response Date (Col H): "${responseDate}", Response Time (Col G): "${responseTimeText}"`);
+        }
+        
         // Check if there was a response (Column H not "N/A")
         if (responseDate === 'N/A' || responseDate === '' || !responseDate) {
             // No response
@@ -659,6 +664,8 @@ function processUploadedData(data, filename = '') {
 }
 
 function updateDashboard(metrics) {
+    console.log('updateDashboard called with metrics:', metrics);
+    
     // Update metric cards
     document.getElementById('totalLeads').textContent = metrics.totalLeads.toLocaleString();
     document.getElementById('conversionRate').textContent = metrics.conversionRate + '%';
@@ -673,6 +680,7 @@ function updateDashboard(metrics) {
     
     // Update response time distribution if we have the data
     if (metrics.responseDistribution) {
+        console.log('Updating response distribution display:', metrics.responseDistribution);
         const dist = metrics.responseDistribution;
         const total = dist.total || 1; // Avoid division by zero
         
@@ -692,6 +700,8 @@ function updateDashboard(metrics) {
             `${dist.noResponse} (${((dist.noResponse / total) * 100).toFixed(1)}%)`;
         document.getElementById('responseTotal').textContent = 
             `${dist.responded} (${((dist.responded / total) * 100).toFixed(1)}%)`;
+    } else {
+        console.warn('No responseDistribution data in metrics!', metrics);
     }
     
     // Calculate performance tiers
