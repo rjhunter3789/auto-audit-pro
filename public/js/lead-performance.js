@@ -500,13 +500,13 @@ function processUploadedData(data, filename = '') {
         currentDealerData.leadSources[leadSource].leads += 1;
         currentDealerData.leads += 1;
         
-        // Check response - Column H contains Response Date, Column G contains Response Time
-        const responseDate = row[7]; // Column H - Response Date
-        const responseTimeText = row[6]; // Column G - Response Time in "0h 30m" format
+        // Check response - Column G contains Response Date, Column H contains Response Time
+        const responseDate = row[6]; // Column G - Response Date
+        const responseTimeText = row[7]; // Column H - Response Time in "0h 30m" format
         
         // Debug first few rows
         if (processedRows < 3) {
-            console.log(`Row ${i+1} - Response Date (Col H): "${responseDate}", Response Time (Col G): "${responseTimeText}"`);
+            console.log(`Row ${i+1} - Response Date (Col G): "${responseDate}", Response Time (Col H): "${responseTimeText}"`);
             console.log(`  Type of responseDate: ${typeof responseDate}, Type of responseTimeText: ${typeof responseTimeText}`);
         }
         
@@ -1473,13 +1473,13 @@ function processMultiWorksheetFile(workbook, filename) {
             dealerData.leadSources[leadSource].leads += 1;
             dealerData.leads += 1;
             
-            // Check response - Column H contains Response Date, Column G contains Response Time
-            const responseDate = row[7]; // Column H - Response Date
-            const responseTimeText = row[6]; // Column G - Response Time in "0h 30m" format
+            // Check response - Column G contains Response Date, Column H contains Response Time
+            const responseDate = row[6]; // Column G - Response Date
+            const responseTimeText = row[7]; // Column H - Response Time in "0h 30m" format
             
             // Debug first row of first dealer
             if (index === 0 && i === 11) {
-                console.log(`First data row - Col G (Response Time): "${responseTimeText}", Col H (Response Date): "${responseDate}"`);
+                console.log(`First data row - Col G (Response Date): "${responseDate}", Col H (Response Time): "${responseTimeText}"`);
                 console.log('Full row data:', row);
                 console.log(`  Type of responseDate: ${typeof responseDate}, Type of responseTimeText: ${typeof responseTimeText}`);
             }
