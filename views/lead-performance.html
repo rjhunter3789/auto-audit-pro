@@ -597,7 +597,7 @@
                         <!-- Results -->
                         <div id="roiResultsPanel" class="mt-4" style="display: none;">
                             <div class="alert alert-success">
-                                <h5 class="mb-3">Projected Revenue Impact</h5>
+                                <h5 class="mb-3"><i class="fas fa-chart-line"></i> Projected Revenue Impact</h5>
                                 <div class="row">
                                     <div class="col-6">
                                         <small class="text-muted">New Conversion Rate</small>
@@ -622,7 +622,10 @@
                                 <hr>
                                 <div class="text-center">
                                     <small class="text-muted">Additional Annual Revenue</small>
-                                    <div class="h3 text-success mb-0" id="roiAnnualRevenue">-</div>
+                                    <div class="h3 mb-2" id="roiAnnualRevenue">-</div>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="generateROIReport()">
+                                        <i class="fas fa-download"></i> Download ROI Report
+                                    </button>
                                 </div>
                             </div>
                         </div>

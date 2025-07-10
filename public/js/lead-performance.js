@@ -1738,6 +1738,12 @@ function calculateROIToTarget(targetRate) {
         return;
     }
     
+    // Validate target rate
+    if (targetRate < currentRate) {
+        alert('Target rate must be higher than current rate.');
+        return;
+    }
+    
     // Calculate current and target sales
     const currentMonthlySales = leads * (currentRate / 100);
     const targetMonthlySales = leads * (targetRate / 100);
@@ -1745,15 +1751,36 @@ function calculateROIToTarget(targetRate) {
     const additionalAnnualSales = additionalMonthlySales * 12;
     const additionalAnnualRevenue = additionalAnnualSales * revenuePerSale;
     
-    // Update results
+    // Calculate percentage increase
+    const percentageIncrease = currentMonthlySales > 0 ? 
+        ((additionalMonthlySales / currentMonthlySales) * 100).toFixed(1) : 0;
+    
+    // Update results with better formatting
     document.getElementById('roiNewRate').textContent = targetRate.toFixed(2) + '%';
-    document.getElementById('roiImprovement').textContent = '+' + (targetRate - currentRate).toFixed(2) + '%';
-    document.getElementById('roiMonthlyIncrease').textContent = '+' + additionalMonthlySales.toFixed(1);
-    document.getElementById('roiAnnualIncrease').textContent = '+' + additionalAnnualSales.toFixed(0);
+    document.getElementById('roiImprovement').textContent = '+' + (targetRate - currentRate).toFixed(2) + ' points';
+    document.getElementById('roiMonthlyIncrease').textContent = '+' + additionalMonthlySales.toFixed(1) + ' sales';
+    document.getElementById('roiAnnualIncrease').textContent = '+' + additionalAnnualSales.toFixed(0) + ' sales';
     document.getElementById('roiAnnualRevenue').textContent = '$' + additionalAnnualRevenue.toLocaleString();
     
-    // Show results panel
-    document.getElementById('roiResultsPanel').style.display = 'block';
+    // Update results panel class based on improvement level
+    const resultsPanel = document.getElementById('roiResultsPanel');
+    const alertDiv = resultsPanel.querySelector('.alert');
+    
+    // Remove existing classes
+    alertDiv.classList.remove('alert-success', 'alert-warning', 'alert-info');
+    
+    // Add appropriate class based on improvement
+    if (targetRate - currentRate >= 5) {
+        alertDiv.classList.add('alert-success');
+    } else if (targetRate - currentRate >= 2) {
+        alertDiv.classList.add('alert-info');
+    } else {
+        alertDiv.classList.add('alert-warning');
+    }
+    
+    // Show results panel with animation
+    resultsPanel.style.display = 'block';
+    resultsPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function calculateROICustom() {
@@ -1768,17 +1795,29 @@ function calculateROICustom() {
 // Auto-populate ROI calculator when a dealer is selected
 function populateROIFromDealer() {
     const dealerName = document.getElementById('roiDealerSelect').value;
-    if (!dealerName || !uploadedDealerData[dealerName]) return;
+    if (!dealerName || !uploadedDealerData[dealerName]) {
+        // Clear fields if no dealer selected
+        document.getElementById('roiMonthlyLeads').value = '';
+        document.getElementById('roiCurrentConversion').value = '';
+        document.getElementById('currentMonthlySales').textContent = '-';
+        document.getElementById('roiResultsPanel').style.display = 'none';
+        return;
+    }
     
     const dealer = uploadedDealerData[dealerName];
     
-    // Calculate monthly average (assuming data might be for multiple months)
-    // For now, just use the total as monthly
-    document.getElementById('roiMonthlyLeads').value = dealer.leads;
-    document.getElementById('roiCurrentConversion').value = dealer.conversionRate;
+    // Calculate monthly average from 6 months of data
+    // Extrapolate to annual (multiply by 2) then divide by 12 for monthly
+    const monthlyAverage = Math.round((dealer.leads * 2) / 12);
+    
+    document.getElementById('roiMonthlyLeads').value = monthlyAverage;
+    document.getElementById('roiCurrentConversion').value = dealer.conversionRate || 0;
     
     // Update current sales display
     updateCurrentSales();
+    
+    // Clear previous results
+    document.getElementById('roiResultsPanel').style.display = 'none';
 }
 
 // Populate dealer select dropdown
@@ -1834,18 +1873,165 @@ function generateResponseReport() {
     alert('Response time report generation coming soon!');
 }
 
-// Update current sales display
-function updateCurrentSales() {
-    const leads = parseFloat(document.getElementById('roiMonthlyLeads').value) || 0;
-    const conversionRate = parseFloat(document.getElementById('roiCurrentConversion').value) || 0;
+// Generate ROI Report
+function generateROIReport() {
+    // Get current values
+    const dealerName = document.getElementById('roiDealerSelect').value || 'Your Dealership';
+    const monthlyLeads = parseFloat(document.getElementById('roiMonthlyLeads').value) || 0;
+    const currentRate = parseFloat(document.getElementById('roiCurrentConversion').value) || 0;
+    const newRate = document.getElementById('roiNewRate').textContent;
+    const improvement = document.getElementById('roiImprovement').textContent;
+    const monthlyIncrease = document.getElementById('roiMonthlyIncrease').textContent;
+    const annualIncrease = document.getElementById('roiAnnualIncrease').textContent;
+    const annualRevenue = document.getElementById('roiAnnualRevenue').textContent;
+    const revenuePerSale = parseFloat(document.getElementById('roiRevenuePerSale').value) || 45000;
     
-    if (leads && conversionRate) {
-        const currentSales = leads * (conversionRate / 100);
-        document.getElementById('currentMonthlySales').textContent = currentSales.toFixed(1);
-    } else {
-        document.getElementById('currentMonthlySales').textContent = '-';
-    }
+    // Create print window
+    const printWindow = window.open('', '_blank');
+    
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>ROI Projection Report - ${dealerName}</title>
+            <style>
+                body { 
+                    font-family: Arial, sans-serif; 
+                    line-height: 1.6; 
+                    color: #333; 
+                    max-width: 800px; 
+                    margin: 0 auto; 
+                    padding: 40px; 
+                }
+                h1 { 
+                    color: #6B46C1; 
+                    border-bottom: 3px solid #6B46C1; 
+                    padding-bottom: 10px; 
+                }
+                h2 { 
+                    color: #9333EA; 
+                    margin-top: 30px; 
+                }
+                .metric { 
+                    margin: 20px 0; 
+                    padding: 15px;
+                    background: #f8f9fa;
+                    border-radius: 8px;
+                }
+                .metric-label { 
+                    font-weight: bold; 
+                    color: #666; 
+                    display: block;
+                    margin-bottom: 5px;
+                }
+                .metric-value { 
+                    font-size: 1.5em; 
+                    color: #6B46C1; 
+                }
+                .highlight {
+                    background: #e8f5e9;
+                    padding: 20px;
+                    border-radius: 8px;
+                    margin: 30px 0;
+                    border-left: 4px solid #10B981;
+                }
+                table { 
+                    width: 100%; 
+                    border-collapse: collapse; 
+                    margin: 20px 0; 
+                }
+                th, td { 
+                    padding: 12px; 
+                    text-align: left; 
+                    border-bottom: 1px solid #ddd; 
+                }
+                th { 
+                    background-color: #f5f5f5; 
+                    font-weight: bold; 
+                }
+                .footer {
+                    margin-top: 50px;
+                    padding-top: 20px;
+                    border-top: 1px solid #ddd;
+                    font-size: 0.9em;
+                    color: #666;
+                }
+                @media print { 
+                    body { padding: 20px; }
+                    .no-print { display: none; }
+                }
+            </style>
+        </head>
+        <body>
+            <h1>ROI Projection Report</h1>
+            <p><strong>Dealership:</strong> ${dealerName}</p>
+            <p><strong>Report Date:</strong> ${new Date().toLocaleDateString()}</p>
+            
+            <h2>Current Performance</h2>
+            <div class="metric">
+                <span class="metric-label">Monthly Lead Volume</span>
+                <span class="metric-value">${monthlyLeads.toLocaleString()}</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Current Conversion Rate</span>
+                <span class="metric-value">${currentRate.toFixed(2)}%</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Average Revenue per Sale</span>
+                <span class="metric-value">$${revenuePerSale.toLocaleString()}</span>
+            </div>
+            
+            <h2>Projected Improvements</h2>
+            <table>
+                <tr>
+                    <th>Metric</th>
+                    <th>Value</th>
+                </tr>
+                <tr>
+                    <td>New Conversion Rate</td>
+                    <td><strong>${newRate}</strong></td>
+                </tr>
+                <tr>
+                    <td>Conversion Rate Improvement</td>
+                    <td><strong>${improvement}</strong></td>
+                </tr>
+                <tr>
+                    <td>Additional Monthly Sales</td>
+                    <td><strong>${monthlyIncrease}</strong></td>
+                </tr>
+                <tr>
+                    <td>Additional Annual Sales</td>
+                    <td><strong>${annualIncrease}</strong></td>
+                </tr>
+            </table>
+            
+            <div class="highlight">
+                <h3 style="margin-top: 0;">Projected Annual Revenue Increase</h3>
+                <div style="font-size: 2em; color: #10B981; font-weight: bold;">
+                    ${annualRevenue}
+                </div>
+            </div>
+            
+            
+            <div class="footer">
+                <p>Generated by Auto Audit Pro Suite - Lead Performance Intelligence</p>
+                <p>${new Date().toLocaleString()}</p>
+            </div>
+        </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    
+    // Wait for content to load then trigger print
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.onafterprint = function() {
+            printWindow.close();
+        };
+    }, 250);
 }
+
 
 // Debug function to check stored dealer data
 function checkStoredDealerData() {
@@ -1884,7 +2070,6 @@ window.checkStoredDealerData = checkStoredDealerData;
 window.showSection = showSection;
 window.handleFileSelect = handleFileSelect;
 window.updateDealerAnalysis = updateDealerAnalysis;
-window.calculateROI = calculateROI;
 window.calculateROIImprovement = calculateROIImprovement;
 window.calculateROIToTarget = calculateROIToTarget;
 window.calculateROICustom = calculateROICustom;
@@ -1896,6 +2081,7 @@ window.clearStoredData = clearStoredData;
 window.generateNetworkReport = generateNetworkReport;
 window.generateDealerReport = generateDealerReport;
 window.generateResponseReport = generateResponseReport;
+window.generateROIReport = generateROIReport;
 
 // Debug function to test response time display
 function testResponseTimeDisplay() {
