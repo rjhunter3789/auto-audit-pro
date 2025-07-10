@@ -23,7 +23,41 @@ let responseChart = null;
 document.addEventListener('DOMContentLoaded', function() {
     initializeCharts();
     loadStoredData();
+    setupDragAndDrop();
 });
+
+// Setup drag and drop
+function setupDragAndDrop() {
+    const uploadCard = document.querySelector('.upload-card');
+    if (!uploadCard) return;
+    
+    uploadCard.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadCard.style.backgroundColor = '#F9FAFB';
+        uploadCard.style.borderColor = '#6B46C1';
+    });
+    
+    uploadCard.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        uploadCard.style.backgroundColor = '';
+        uploadCard.style.borderColor = '';
+    });
+    
+    uploadCard.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadCard.style.backgroundColor = '';
+        uploadCard.style.borderColor = '';
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            const file = files[0];
+            console.log('File dropped:', file.name);
+            // Manually trigger the file select handler
+            const event = { target: { files: [file] } };
+            handleFileSelect(event);
+        }
+    });
+}
 
 // Tab navigation
 function showSection(sectionId) {
@@ -51,13 +85,36 @@ function showSection(sectionId) {
 
 // File upload functionality
 function uploadFile() {
-    document.getElementById('fileInput').click();
+    const fileInput = document.getElementById('fileInput');
+    if (fileInput) {
+        fileInput.click();
+    } else {
+        console.error('File input element not found!');
+        alert('Error: File upload element not found. Please refresh the page.');
+    }
 }
 
 function handleFileSelect(event) {
+    console.log('File select triggered');
     const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
+    
+    if (!file) {
+        console.log('No file selected');
+        return;
+    }
+    
+    console.log('File selected:', file.name, 'Type:', file.type, 'Size:', file.size);
+    
+    // Check file type
+    const validTypes = ['.csv', '.xlsx', '.xls'];
+    const fileExtension = file.name.toLowerCase().substr(file.name.lastIndexOf('.'));
+    
+    if (!validTypes.includes(fileExtension)) {
+        alert('Please upload a valid Excel (.xlsx, .xls) or CSV file.');
+        return;
+    }
+    
+    const reader = new FileReader();
         reader.onload = function(e) {
             try {
                 let data;
