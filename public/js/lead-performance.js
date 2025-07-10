@@ -1011,10 +1011,6 @@ function processMultiWorksheetFile(workbook, filename) {
             // Check response
             const responseDate = row[7]; // Column H
             
-            // Debug first few rows
-            if (i < 15 && dealerData.leads < 5) {
-                console.log(`Row ${i} - Response Date: "${responseDate}", Actionable: "${row[5]}"`);
-            }
             
             if (responseDate && responseDate !== 'N/A' && responseDate !== '') {
                 dealerData.responded += 1;
@@ -1027,8 +1023,7 @@ function processMultiWorksheetFile(workbook, filename) {
                     
                     // Check if dates are valid
                     if (isNaN(actionableTime.getTime()) || isNaN(responseTime.getTime())) {
-                        console.log(`Invalid date format - Actionable: ${dateTimeActionable}, Response: ${responseDate}`);
-                        // Try parsing the "0h 30m" format from Column G instead
+                        // Response date is likely in "0h 30m" format - use Column G instead
                         const responseTimeText = row[6]; // Column G
                         if (responseTimeText && responseTimeText !== 'N/A' && responseTimeText !== '0h 0m') {
                             const match = responseTimeText.match(/(\d+)h (\d+)m/);
@@ -1286,6 +1281,23 @@ function populateROIFromDealer() {
     
     // Update current sales display
     updateCurrentSales();
+}
+
+// Populate dealer select dropdown
+function populateDealerSelect() {
+    const select = document.getElementById('dealerSelect');
+    if (!select) return;
+    
+    // Clear existing options
+    select.innerHTML = '<option value="">Choose a dealer...</option>';
+    
+    // Add dealer options
+    Object.keys(uploadedDealerData).sort().forEach(dealerName => {
+        const option = document.createElement('option');
+        option.value = dealerName;
+        option.textContent = dealerName;
+        select.appendChild(option);
+    });
 }
 
 // Populate dealer dropdowns including ROI calculator
