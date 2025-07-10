@@ -1008,68 +1008,39 @@ function processMultiWorksheetFile(workbook, filename) {
             dealerData.leadSources[leadSource].leads += 1;
             dealerData.leads += 1;
             
-            // Check response
-            const responseDate = row[7]; // Column H
+            // Check response - Column H contains response time in "0h 30m" format
+            const responseTimeText = row[7]; // Column H - Response Time
             
-            
-            if (responseDate && responseDate !== 'N/A' && responseDate !== '') {
-                dealerData.responded += 1;
-                
-                // Check response time calculation
-                const dateTimeActionable = row[5]; // Column F
-                try {
-                    const actionableTime = new Date(dateTimeActionable);
-                    const responseTime = new Date(responseDate);
+            if (responseTimeText && responseTimeText !== 'N/A' && responseTimeText !== '') {
+                // Parse the "0h 30m" format directly from Column H
+                const match = responseTimeText.match(/(\d+)h (\d+)m/);
+                if (match) {
+                    const totalMinutes = parseInt(match[1]) * 60 + parseInt(match[2]);
                     
-                    // Check if dates are valid
-                    if (isNaN(actionableTime.getTime()) || isNaN(responseTime.getTime())) {
-                        // Response date is likely in "0h 30m" format - use Column G instead
-                        const responseTimeText = row[6]; // Column G
-                        if (responseTimeText && responseTimeText !== 'N/A' && responseTimeText !== '0h 0m') {
-                            const match = responseTimeText.match(/(\d+)h (\d+)m/);
-                            if (match) {
-                                const totalMinutes = parseInt(match[1]) * 60 + parseInt(match[2]);
-                                
-                                // Categorize based on text format
-                                if (totalMinutes <= 15) {
-                                    dealerData.responseTime15min += 1;
-                                } else if (totalMinutes <= 30) {
-                                    dealerData.responseTime30min += 1;
-                                } else if (totalMinutes <= 60) {
-                                    dealerData.responseTime60min += 1;
-                                } else if (totalMinutes <= 240) { // 4 hours
-                                    dealerData.responseTime60plus += 1;
-                                } else if (totalMinutes <= 1440) { // 24 hours
-                                    dealerData.responseTime24hr += 1;
-                                } else {
-                                    dealerData.responseTime24plus += 1;
-                                }
-                            }
+                    // Only count as responded if there's actual response time > 0
+                    if (totalMinutes > 0 || responseTimeText === '0h 0m') {
+                        dealerData.responded += 1;
+                        
+                        // Categorize based on minutes
+                        if (totalMinutes <= 15) {
+                            dealerData.responseTime15min += 1;
+                        } else if (totalMinutes <= 30) {
+                            dealerData.responseTime30min += 1;
+                        } else if (totalMinutes <= 60) {
+                            dealerData.responseTime60min += 1;
+                        } else if (totalMinutes <= 240) { // 4 hours
+                            dealerData.responseTime60plus += 1;
+                        } else if (totalMinutes <= 1440) { // 24 hours
+                            dealerData.responseTime24hr += 1;
+                        } else {
+                            dealerData.responseTime24plus += 1;
                         }
                     } else {
-                        const diffMinutes = Math.floor((responseTime - actionableTime) / (1000 * 60));
-                        
-                        // Categorize response times
-                        if (diffMinutes >= 0) {
-                            if (diffMinutes <= 15) {
-                                dealerData.responseTime15min += 1;
-                            } else if (diffMinutes <= 30) {
-                                dealerData.responseTime30min += 1;
-                            } else if (diffMinutes <= 60) {
-                                dealerData.responseTime60min += 1;
-                            } else if (diffMinutes <= 1440) { // 24 hours
-                                if (diffMinutes <= 240) { // 4 hours
-                                    dealerData.responseTime60plus += 1;
-                                } else {
-                                    dealerData.responseTime24hr += 1;
-                                }
-                            } else {
-                                dealerData.responseTime24plus += 1;
-                            }
-                        }
+                        dealerData.noResponse += 1;
                     }
-                } catch (e) {
-                    console.error('Date parsing error:', e);
+                } else {
+                    // Can't parse the response time format
+                    dealerData.noResponse += 1;
                 }
             } else {
                 dealerData.noResponse += 1;
@@ -1106,7 +1077,7 @@ function processMultiWorksheetFile(workbook, filename) {
     // Debug: Log response data for first dealer
     const firstDealer = Object.values(networkData)[0];
     if (firstDealer) {
-        console.log('Sample dealer response data:', {
+        console.log('Sample dealer response data:', JSON.stringify({
             name: firstDealer.name,
             leads: firstDealer.leads,
             responded: firstDealer.responded,
@@ -1117,7 +1088,7 @@ function processMultiWorksheetFile(workbook, filename) {
             time60plus: firstDealer.responseTime60plus,
             time24hr: firstDealer.responseTime24hr,
             time24plus: firstDealer.responseTime24plus
-        });
+        }, null, 2));
     }
     
     // Update global data
@@ -1360,6 +1331,7 @@ window.calculateROIToTarget = calculateROIToTarget;
 window.calculateROICustom = calculateROICustom;
 window.updateCurrentSales = updateCurrentSales;
 window.populateROIFromDealer = populateROIFromDealer;
+window.populateDealerSelect = populateDealerSelect;
 window.populateDealerDropdowns = populateDealerDropdowns;
 window.generateNetworkReport = generateNetworkReport;
 window.generateDealerReport = generateDealerReport;
