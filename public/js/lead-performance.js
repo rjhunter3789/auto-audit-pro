@@ -116,8 +116,14 @@ function parseCSV(csvText) {
 
 function processUploadedData(data, filename = '') {
     // Debug: Log the first few rows to understand structure
-    console.log('First 5 rows of data:', data.slice(0, 5));
+    console.log('First 15 rows of data:', data.slice(0, 15));
     console.log('Filename:', filename);
+    console.log('Total rows in file:', data.length);
+    
+    // Log what's in key positions
+    if (data.length > 11) {
+        console.log('Row 11 (data start):', data[11]);
+    }
     
     // Find dealer name - check multiple possible locations
     let dealerName = '';
@@ -258,6 +264,14 @@ function processUploadedData(data, filename = '') {
     
     console.log('Processed dealer data:', dealers);
     console.log('Is network report:', isNetworkReport);
+    console.log('Number of dealers found:', Object.keys(dealers).length);
+    
+    // If no dealers found, try to help debug
+    if (Object.keys(dealers).length === 0) {
+        console.error('No dealers found! Showing data structure for debugging:');
+        console.log('Sample rows 10-15:', data.slice(10, 16));
+        alert('No dealer data found in the file. Please check the browser console for debugging information.');
+    }
     
     uploadedDealerData = dealers;
     
