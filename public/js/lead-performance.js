@@ -325,9 +325,16 @@ function processUploadedData(data, filename = '') {
     }
     
     // Start scanning from row 12 (index 11) where lead data begins
+    console.log(`Processing ${data.length - 11} potential lead rows starting from row 12`);
+    let processedRows = 0;
+    let skippedRows = 0;
+    
     for (let i = 11; i < data.length; i++) {
         const row = data[i];
-        if (!row || row.length < 10) continue;
+        if (!row || !row[0] || !row[1]) {
+            skippedRows++;
+            continue; // Skip empty rows
+        }
         
         const colA = row[0]; // Column A - might be dealer name in network reports
         const colB = row[1]; // Column B - Lead Source or dealer name
@@ -370,7 +377,16 @@ function processUploadedData(data, filename = '') {
         
         // Process lead source data
         const leadSource = colB;
-        if (!leadSource || leadSource === 'Grand Total' || leadSource.toLowerCase().includes('total')) continue;
+        if (!leadSource || leadSource === 'Grand Total' || leadSource.toLowerCase().includes('total')) {
+            continue;
+        }
+        
+        // Skip header rows that might appear in data
+        if (leadSource.toLowerCase().includes('lead source') || 
+            leadSource.toLowerCase().includes('dealer') ||
+            colA.toLowerCase().includes('request date')) {
+            continue;
+        }
         
         // This appears to be a different Excel format - each row is one lead
         // Column A: Date/Time
@@ -391,6 +407,7 @@ function processUploadedData(data, filename = '') {
         // Count this lead
         currentDealerData.leadSources[leadSource].leads += 1;
         currentDealerData.leads += 1;
+        processedRows++;
         
         // Note: This file format appears to be lead data only, no sales data
         // Sales would need to come from a different report or be tracked separately
@@ -416,6 +433,7 @@ function processUploadedData(data, filename = '') {
     console.log('Processed dealer data:', dealers);
     console.log('Is network report:', isNetworkReport);
     console.log('Number of dealers found:', Object.keys(dealers).length);
+    console.log(`Processed ${processedRows} lead rows, skipped ${skippedRows} empty/invalid rows`);
     
     // If no dealers found, try to help debug
     if (Object.keys(dealers).length === 0) {
