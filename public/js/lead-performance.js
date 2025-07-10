@@ -819,10 +819,42 @@ function updateDealerAnalysis() {
                 </div>
                 <div class="metric-card">
                     <h3>No Response</h3>
-                    <p class="metric-value">${dealer.noResponse}</p>
+                    <p class="metric-value">${dealer.noResponse || 0}</p>
                     <p class="metric-change">
-                        ${((dealer.noResponse / dealer.leads) * 100).toFixed(1)}% of leads
+                        ${dealer.leads > 0 ? (((dealer.noResponse || 0) / dealer.leads) * 100).toFixed(1) : 0}% of leads
                     </p>
+                </div>
+            </div>
+            
+            <h4 class="mt-4">Response Time Distribution</h4>
+            <div class="row">
+                <div class="col-md-3 col-6 mb-3">
+                    <div class="metric-card text-center">
+                        <h5 class="text-success">0-15 Min</h5>
+                        <p class="metric-value">${dealer.responseTime15min || 0}</p>
+                        <p class="text-muted small">${dealer.responded > 0 ? (((dealer.responseTime15min || 0) / dealer.responded) * 100).toFixed(1) : 0}%</p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6 mb-3">
+                    <div class="metric-card text-center">
+                        <h5 class="text-info">16-30 Min</h5>
+                        <p class="metric-value">${dealer.responseTime30min || 0}</p>
+                        <p class="text-muted small">${dealer.responded > 0 ? (((dealer.responseTime30min || 0) / dealer.responded) * 100).toFixed(1) : 0}%</p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6 mb-3">
+                    <div class="metric-card text-center">
+                        <h5 class="text-warning">31-60 Min</h5>
+                        <p class="metric-value">${dealer.responseTime60min || 0}</p>
+                        <p class="text-muted small">${dealer.responded > 0 ? (((dealer.responseTime60min || 0) / dealer.responded) * 100).toFixed(1) : 0}%</p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6 mb-3">
+                    <div class="metric-card text-center">
+                        <h5 class="text-danger">60+ Min</h5>
+                        <p class="metric-value">${dealer.responseTime60plus || 0}</p>
+                        <p class="text-muted small">${dealer.responded > 0 ? (((dealer.responseTime60plus || 0) / dealer.responded) * 100).toFixed(1) : 0}%</p>
+                    </div>
                 </div>
             </div>
             
@@ -1040,12 +1072,16 @@ function checkAndLoadStoredData() {
 }
 
 function clearStoredData() {
-    localStorage.removeItem('dealerDataComplete');
-    localStorage.removeItem('dataUploadInfo');
-    localStorage.removeItem('leadPerformanceData');
-    uploadedDealerData = {};
-    showStorageNotification('All stored data cleared', 'info');
-    location.reload();
+    if (confirm('Are you sure you want to clear all stored data?')) {
+        localStorage.removeItem('dealerDataComplete');
+        localStorage.removeItem('dataUploadInfo');
+        localStorage.removeItem('leadPerformanceData');
+        uploadedDealerData = {};
+        showStorageNotification('All stored data cleared', 'info');
+        setTimeout(() => {
+            location.reload();
+        }, 1000);
+    }
 }
 
 function generateChecksum(data) {
@@ -1192,7 +1228,9 @@ function recalculateMetricsFromStoredData() {
 }
 
 function setupSecurityFeatures() {
-    // Auto-clear on inactivity
+    // Auto-clear on inactivity - DISABLED for now to prevent screen flashing
+    // Uncomment to re-enable 30-minute timeout
+    /*
     let inactivityTimer;
     const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 minutes
     
@@ -1211,6 +1249,7 @@ function setupSecurityFeatures() {
     document.addEventListener('scroll', resetInactivityTimer);
     
     resetInactivityTimer();
+    */
 }
 
 // Legacy function for backward compatibility
