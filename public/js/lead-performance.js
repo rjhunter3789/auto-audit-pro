@@ -302,6 +302,9 @@ function processUploadedData(data, filename = '') {
     let currentDealerData = {
         leads: 0,
         sales: 0,
+        responded: 0,
+        noResponse: 0,
+        responseTime15min: 0,
         leadSources: {}
     };
     
@@ -413,10 +416,38 @@ function processUploadedData(data, filename = '') {
         // Count this Form lead
         currentDealerData.leadSources[leadSource].leads += 1;
         currentDealerData.leads += 1;
-        processedRows++;
         
-        // Note: This file format appears to be lead data only, no sales data
-        // Sales would need to come from a different report or be tracked separately
+        // Check response time (Column G)
+        const responseTime = row[6]; // Column G
+        if (responseTime && responseTime !== 'N/A' && responseTime !== '0h 0m') {
+            // Track that this lead got a response
+            currentDealerData.responded += 1;
+            currentDealerData.leadSources[leadSource].appointments += 1; // Using appointments to track responses
+            
+            // Parse response time to check if under 15 minutes
+            const match = responseTime.match(/(\d+)h (\d+)m/);
+            if (match) {
+                const hours = parseInt(match[1]);
+                const minutes = parseInt(match[2]);
+                const totalMinutes = hours * 60 + minutes;
+                
+                if (totalMinutes <= 15) {
+                    currentDealerData.responseTime15min += 1;
+                }
+            }
+        } else {
+            // No response
+            currentDealerData.noResponse += 1;
+        }
+        
+        // Check for sale (Column J)
+        const saleDate = row[9]; // Column J
+        if (saleDate && saleDate !== '' && saleDate !== 'N/A') {
+            currentDealerData.leadSources[leadSource].sales += 1;
+            currentDealerData.sales += 1;
+        }
+        
+        processedRows++;
     }
     
     // Save last dealer
@@ -470,10 +501,28 @@ function processUploadedData(data, filename = '') {
     const avgConversionRate = totalNetworkLeads > 0 ? 
         (totalNetworkSales / totalNetworkLeads * 100).toFixed(2) : 0;
     
+    // Calculate response metrics
+    let totalResponded = 0;
+    let total15MinResponses = 0;
+    Object.values(dealers).forEach(dealer => {
+        totalResponded += dealer.responded || 0;
+        total15MinResponses += dealer.responseTime15min || 0;
+    });
+    
+    const responseRate = totalNetworkLeads > 0 ? 
+        (totalResponded / totalNetworkLeads * 100).toFixed(1) : 0;
+    const noResponseRate = totalNetworkLeads > 0 ? 
+        ((totalNetworkLeads - totalResponded) / totalNetworkLeads * 100).toFixed(1) : 0;
+    const quickResponseRate = totalNetworkLeads > 0 ? 
+        (total15MinResponses / totalNetworkLeads * 100).toFixed(1) : 0;
+    
     // Update dashboard
     updateDashboard({
         totalLeads: totalNetworkLeads,
         conversionRate: avgConversionRate,
+        responseRate: responseRate,
+        noResponseRate: noResponseRate,
+        quickResponseRate: quickResponseRate,
         dealerCount: Object.keys(dealers).length,
         dealerName: isNetworkReport ? 'Network Report' : dealerName
     });
@@ -489,6 +538,14 @@ function updateDashboard(metrics) {
     // Update metric cards
     document.getElementById('totalLeads').textContent = metrics.totalLeads.toLocaleString();
     document.getElementById('conversionRate').textContent = metrics.conversionRate + '%';
+    
+    // Update response metrics
+    if (document.getElementById('noResponseRate')) {
+        document.getElementById('noResponseRate').textContent = metrics.noResponseRate + '%';
+    }
+    if (document.getElementById('quickResponseRate')) {
+        document.getElementById('quickResponseRate').textContent = metrics.quickResponseRate + '%';
+    }
     
     // Calculate performance tiers
     let elite = 0, strong = 0, average = 0, challenge = 0;
