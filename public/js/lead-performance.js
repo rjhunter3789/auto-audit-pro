@@ -250,6 +250,7 @@ function processUploadedData(data, filename = '') {
             }
         }
     }
+    }
     
     // Strategy 2: Try to extract from filename if no dealer name found
     if (!dealerName && filename) {
@@ -647,3 +648,9 @@ function loadStoredData() {
         console.log('Found website audit data:', audit);
     }
 }
+
+// Make functions available globally for onclick handlers
+window.uploadFile = uploadFile;
+window.showSection = showSection;
+window.handleFileSelect = handleFileSelect;
+window.updateDealerAnalysis = updateDealerAnalysis;
