@@ -391,11 +391,15 @@ function processUploadedData(data, filename = '') {
             continue;
         }
         
-        // This appears to be a different Excel format - each row is one lead
-        // Column A: Date/Time
+        // Excel column mapping for Ford lead reports:
+        // Column A: Lead Request Date (when customer submitted)
         // Column B: Lead Source
-        // Column C: Lead Type (Chat/Form)
-        // IMPORTANT: Only count Form leads, not Chat or others
+        // Column C: Lead Type (Chat/Form) - ONLY counting Form leads
+        // Column F: Date/Time Actionable (when business hours start)
+        // Column G: Response Time (pre-calculated)
+        // Column H: Response Date (when dealer actually responded)
+        // Column J: Sale Date (if converted to sale)
+        // IMPORTANT: Response time measured from Column F, not Column A
         
         const leadType = row[2]; // Column C - Lead Type
         if (!leadType || leadType !== 'Form') {
@@ -417,22 +421,44 @@ function processUploadedData(data, filename = '') {
         currentDealerData.leadSources[leadSource].leads += 1;
         currentDealerData.leads += 1;
         
-        // Check response time (Column G)
-        const responseTime = row[6]; // Column G
-        if (responseTime && responseTime !== 'N/A' && responseTime !== '0h 0m') {
+        // Get key dates
+        const leadRequestDate = row[0]; // Column A - Lead Request Date
+        const dateTimeActionable = row[5]; // Column F - Date/Time Actionable (when business opens)
+        const responseDate = row[7]; // Column H - Response Date
+        
+        // Check if there was a response
+        if (responseDate && responseDate !== 'N/A' && responseDate !== '') {
             // Track that this lead got a response
             currentDealerData.responded += 1;
-            currentDealerData.leadSources[leadSource].appointments += 1; // Using appointments to track responses
+            currentDealerData.leadSources[leadSource].appointments += 1;
             
-            // Parse response time to check if under 15 minutes
-            const match = responseTime.match(/(\d+)h (\d+)m/);
-            if (match) {
-                const hours = parseInt(match[1]);
-                const minutes = parseInt(match[2]);
-                const totalMinutes = hours * 60 + minutes;
+            // Calculate response time from Date/Time Actionable (not Lead Request Date)
+            // This accounts for business hours - response time starts when dealership opens
+            try {
+                const actionableTime = new Date(dateTimeActionable);
+                const responseTime = new Date(responseDate);
+                const diffMinutes = Math.floor((responseTime - actionableTime) / (1000 * 60));
                 
-                if (totalMinutes <= 15) {
+                // Track 15-minute responses
+                if (diffMinutes >= 0 && diffMinutes <= 15) {
                     currentDealerData.responseTime15min += 1;
+                }
+                
+                // Log for debugging
+                if (i < 15) { // Log first few for debugging
+                    console.log(`Lead ${i}: Actionable: ${dateTimeActionable}, Response: ${responseDate}, Diff: ${diffMinutes} min`);
+                }
+            } catch (e) {
+                // Date parsing error - fall back to Column G if needed
+                const responseTimeText = row[6]; // Column G as fallback
+                if (responseTimeText && responseTimeText !== 'N/A' && responseTimeText !== '0h 0m') {
+                    const match = responseTimeText.match(/(\d+)h (\d+)m/);
+                    if (match) {
+                        const totalMinutes = parseInt(match[1]) * 60 + parseInt(match[2]);
+                        if (totalMinutes <= 15) {
+                            currentDealerData.responseTime15min += 1;
+                        }
+                    }
                 }
             }
         } else {
