@@ -1156,6 +1156,9 @@ function showDataLoadedUI(info, daysUntilExpiry) {
         </div>
         <input type="file" id="fileInput" accept=".csv,.xlsx,.xlsm,.xls" onchange="handleFileSelect(event)" style="display: none;">
     `;
+    
+    // Re-setup drag and drop on the new upload card
+    setupDragAndDrop();
 }
 
 function recalculateMetricsFromStoredData() {
