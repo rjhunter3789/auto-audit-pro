@@ -136,6 +136,14 @@ function processUploadedData(data, filename = '') {
         [2, 1], // Row 3, Column B
         [1, 0], // Row 2, Column A
         [0, 0], // Row 1, Column A
+        [3, 1], // Row 4, Column B
+        [4, 1], // Row 5, Column B
+        [5, 1], // Row 6, Column B
+        [6, 1], // Row 7, Column B
+        [7, 1], // Row 8, Column B
+        [8, 1], // Row 9, Column B
+        [9, 1], // Row 10, Column B
+        [10, 1], // Row 11, Column B
     ];
     
     for (const [row, col] of possibleLocations) {
@@ -158,11 +166,17 @@ function processUploadedData(data, filename = '') {
     if (!dealerName && filename) {
         // Remove file extension and common report keywords
         let cleanFilename = filename.replace(/\.(xlsx?|csv)$/i, '');
+        
+        // Remove date patterns like 2025-07-02_08680
+        cleanFilename = cleanFilename.replace(/\d{4}-\d{2}-\d{2}_\d+/g, '');
+        
+        // Remove common keywords
         cleanFilename = cleanFilename.replace(/lead|performance|report|summary|data|export/gi, '');
         cleanFilename = cleanFilename.replace(/[_-]+/g, ' ').trim();
         
         if (cleanFilename && cleanFilename.length > 3) {
             dealerName = cleanFilename;
+            console.log('Extracted dealer name from filename:', dealerName);
         }
     }
     
