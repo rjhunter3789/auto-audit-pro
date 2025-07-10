@@ -177,19 +177,54 @@ function processUploadedData(data, filename = '') {
         dealerName = 'Dealership ' + new Date().toLocaleDateString();
     }
     
-    // Skip header rows - data starts at row 12 (0-indexed row 11)
-    const dataStartRow = 11;
+    // Check if this is a multi-dealer file (network report)
+    // Look for dealer names in column A starting around row 11
+    const dealers = {};
+    let isNetworkReport = false;
+    let currentDealer = dealerName;
+    let currentDealerData = {
+        leads: 0,
+        sales: 0,
+        leadSources: {}
+    };
     
-    // Extract lead source data for this dealer
-    const leadSources = {};
-    let totalLeads = 0;
-    let totalSales = 0;
-    
-    for (let i = dataStartRow; i < data.length; i++) {
+    // Start scanning from row 11
+    for (let i = 11; i < data.length; i++) {
         const row = data[i];
         if (!row || row.length < 10) continue;
         
-        const leadSource = row[1]; // Column B - Lead Source
+        const colA = row[0]; // Column A - might be dealer name in network reports
+        const colB = row[1]; // Column B - Lead Source or dealer name
+        
+        // Check if this row is a dealer name (network report format)
+        if (colA && typeof colA === 'string' && colA.trim().length > 3 &&
+            !colA.toLowerCase().includes('total') &&
+            !colA.toLowerCase().includes('lead') &&
+            (i === 11 || (row[2] === undefined || row[2] === ''))) {
+            
+            // Save previous dealer if exists
+            if (currentDealer && currentDealerData.leads > 0) {
+                dealers[currentDealer] = {
+                    name: currentDealer,
+                    ...currentDealerData,
+                    conversionRate: currentDealerData.leads > 0 ? 
+                        (currentDealerData.sales / currentDealerData.leads * 100).toFixed(2) : 0
+                };
+            }
+            
+            // Start new dealer
+            currentDealer = colA.trim();
+            currentDealerData = {
+                leads: 0,
+                sales: 0,
+                leadSources: {}
+            };
+            isNetworkReport = true;
+            continue;
+        }
+        
+        // Process lead source data
+        const leadSource = colB;
         if (!leadSource || leadSource === 'Grand Total' || leadSource.toLowerCase().includes('total')) continue;
         
         const leads = parseInt(row[2]) || 0; // Column C - Leads
@@ -198,7 +233,7 @@ function processUploadedData(data, filename = '') {
         const sales = parseInt(row[8]) || 0; // Column I - Sales
         
         if (leads > 0) {
-            leadSources[leadSource] = {
+            currentDealerData.leadSources[leadSource] = {
                 leads: leads,
                 appointments: appointments,
                 shows: shows,
@@ -206,34 +241,43 @@ function processUploadedData(data, filename = '') {
                 conversionRate: leads > 0 ? (sales / leads * 100).toFixed(2) : 0
             };
             
-            totalLeads += leads;
-            totalSales += sales;
+            currentDealerData.leads += leads;
+            currentDealerData.sales += sales;
         }
     }
     
-    // Create dealer summary
-    const dealers = {};
-    if (dealerName) {
-        dealers[dealerName] = {
-            name: dealerName,
-            leads: totalLeads,
-            sales: totalSales,
-            leadSources: leadSources,
-            conversionRate: totalLeads > 0 ? (totalSales / totalLeads * 100).toFixed(2) : 0
+    // Save last dealer
+    if (currentDealer && currentDealerData.leads > 0) {
+        dealers[currentDealer] = {
+            name: currentDealer,
+            ...currentDealerData,
+            conversionRate: currentDealerData.leads > 0 ? 
+                (currentDealerData.sales / currentDealerData.leads * 100).toFixed(2) : 0
         };
     }
     
     console.log('Processed dealer data:', dealers);
+    console.log('Is network report:', isNetworkReport);
     
-    // For now, just use the single dealer
     uploadedDealerData = dealers;
+    
+    // Calculate totals for dashboard
+    let totalNetworkLeads = 0;
+    let totalNetworkSales = 0;
+    Object.values(dealers).forEach(dealer => {
+        totalNetworkLeads += dealer.leads;
+        totalNetworkSales += dealer.sales;
+    });
+    
+    const avgConversionRate = totalNetworkLeads > 0 ? 
+        (totalNetworkSales / totalNetworkLeads * 100).toFixed(2) : 0;
     
     // Update dashboard
     updateDashboard({
-        totalLeads: totalLeads,
-        conversionRate: dealers[dealerName]?.conversionRate || 0,
+        totalLeads: totalNetworkLeads,
+        conversionRate: avgConversionRate,
         dealerCount: Object.keys(dealers).length,
-        dealerName: dealerName
+        dealerName: isNetworkReport ? 'Network Report' : dealerName
     });
     
     // Update dealer dropdown
