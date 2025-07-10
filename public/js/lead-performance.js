@@ -650,11 +650,24 @@ function updateCharts() {
 
 function showUploadSuccess() {
     const uploadCard = document.querySelector('.upload-card');
+    const dealerCount = Object.keys(uploadedDealerData).length;
+    const reportType = dealerCount > 1 ? 'Network Report' : 'Single Dealer Report';
+    
+    let detailsHTML = '';
+    if (dealerCount === 1) {
+        const dealer = Object.values(uploadedDealerData)[0];
+        detailsHTML = `<p class="mb-2">${dealer.name}: ${dealer.leads} leads</p>`;
+    } else {
+        detailsHTML = `<p class="mb-2">Network Report: ${dealerCount} dealers</p>`;
+    }
+    
     uploadCard.innerHTML = `
         <i class="fas fa-check-circle" style="color: #10B981;"></i>
         <h3>File Uploaded Successfully!</h3>
-        <p>${Object.keys(uploadedDealerData).length} dealers loaded</p>
+        <p class="mb-1"><strong>${reportType}</strong></p>
+        ${detailsHTML}
         <button class="btn btn-primary mt-3" onclick="location.reload()">Upload Another File</button>
+        <p class="text-muted small mt-2">For network reports with multiple dealers, upload a file with dealer names in column A</p>
     `;
 }
 
