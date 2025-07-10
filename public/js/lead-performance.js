@@ -21,6 +21,16 @@ let responseChart = null;
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Lead Performance app initializing...');
+    
+    // Check if XLSX library is loaded
+    if (typeof XLSX === 'undefined') {
+        console.error('XLSX library not loaded! Excel files will not work.');
+        alert('Error: Excel file support not loaded. Please refresh the page.');
+    } else {
+        console.log('XLSX library loaded successfully');
+    }
+    
     initializeCharts();
     loadStoredData();
     setupDragAndDrop();
@@ -29,7 +39,18 @@ document.addEventListener('DOMContentLoaded', function() {
 // Setup drag and drop
 function setupDragAndDrop() {
     const uploadCard = document.querySelector('.upload-card');
-    if (!uploadCard) return;
+    if (!uploadCard) {
+        console.error('Upload card not found!');
+        return;
+    }
+    
+    // Test if file input exists
+    const fileInput = document.getElementById('fileInput');
+    if (!fileInput) {
+        console.error('File input element not found!');
+    } else {
+        console.log('File input found and ready');
+    }
     
     uploadCard.addEventListener('dragover', (e) => {
         e.preventDefault();
@@ -116,15 +137,20 @@ function handleFileSelect(event) {
     
     const reader = new FileReader();
         reader.onload = function(e) {
+            console.log('FileReader onload triggered');
             try {
                 let data;
                 if (file.name.endsWith('.csv')) {
+                    console.log('Processing CSV file');
                     data = parseCSV(e.target.result);
                 } else {
+                    console.log('Processing Excel file');
                     const workbook = XLSX.read(e.target.result, { type: 'binary' });
+                    console.log('Workbook sheets:', workbook.SheetNames);
                     const sheetName = workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[sheetName];
                     data = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    console.log('Data extracted, rows:', data.length);
                 }
                 
                 // Pass filename to help identify dealer
@@ -143,7 +169,8 @@ function handleFileSelect(event) {
                 
             } catch (error) {
                 console.error('Error processing file:', error);
-                alert('Error processing file. Please ensure it\'s a valid Excel or CSV file.');
+                console.error('Error stack:', error.stack);
+                alert('Error processing file: ' + error.message);
             }
         };
         
