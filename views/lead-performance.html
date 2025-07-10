@@ -501,39 +501,113 @@
         <!-- ROI Calculator Section -->
         <section id="calculator" class="content-section">
             <div class="chart-container">
-                <h3>ROI Calculator</h3>
-                <p>Calculate potential return on investment from lead performance improvements</p>
+                <h3>Revenue Impact Calculator</h3>
+                <p>See how improving your conversion rate impacts revenue</p>
                 
                 <div class="row mt-4">
-                    <div class="col-md-6">
-                        <h5>Current Performance</h5>
-                        <div class="mb-3">
-                            <label class="form-label">Monthly Form Leads</label>
-                            <input type="number" id="roiLeads" class="form-control" placeholder="Enter monthly leads">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Current Conversion Rate (%)</label>
-                            <input type="number" id="roiCurrentRate" class="form-control" step="0.1" placeholder="e.g. 16.5">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Average Vehicle Sale Price</label>
-                            <input type="number" id="roiSalePrice" class="form-control" value="45000">
+                    <div class="col-md-5">
+                        <div class="bg-light p-4 rounded">
+                            <h5 class="mb-4">Current Performance</h5>
+                            
+                            <!-- Dealer Selector -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Select Dealer (optional)</label>
+                                <select id="roiDealerSelect" class="form-control form-control-lg" onchange="populateROIFromDealer()">
+                                    <option value="">Enter manually or choose a dealer...</option>
+                                </select>
+                                <small class="text-muted">Auto-populate from uploaded data</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Current Monthly Leads</label>
+                                <input type="number" id="roiMonthlyLeads" class="form-control form-control-lg" placeholder="e.g. 150" value="" onchange="updateCurrentSales()">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Current Conversion Rate (%)</label>
+                                <input type="number" id="roiCurrentConversion" class="form-control form-control-lg" step="0.1" placeholder="e.g. 12.5" value="" onchange="updateCurrentSales()">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Average Revenue per Sale</label>
+                                <input type="number" id="roiRevenuePerSale" class="form-control form-control-lg" placeholder="e.g. 45000" value="45000">
+                            </div>
+                            
+                            <div class="mt-4 p-3 bg-white rounded">
+                                <small class="text-muted">Current Monthly Sales</small>
+                                <div class="h4 mb-0" id="currentMonthlySales">-</div>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <h5>Improvement Scenario</h5>
-                        <div class="mb-3">
-                            <label class="form-label">Target Conversion Rate (%)</label>
-                            <input type="number" id="roiTargetRate" class="form-control" step="0.1" placeholder="e.g. 18.5">
+                    
+                    <div class="col-md-7">
+                        <div class="bg-light p-4 rounded">
+                            <h5 class="mb-4">Quick Conversion Rate Improvements</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-4 mb-2">
+                                    <button class="btn btn-outline-primary w-100" onclick="calculateROIImprovement(1)">+1%</button>
+                                </div>
+                                <div class="col-4 mb-2">
+                                    <button class="btn btn-outline-primary w-100" onclick="calculateROIImprovement(2)">+2%</button>
+                                </div>
+                                <div class="col-4 mb-2">
+                                    <button class="btn btn-outline-primary w-100" onclick="calculateROIImprovement(3)">+3%</button>
+                                </div>
+                                <div class="col-4 mb-2">
+                                    <button class="btn btn-outline-primary w-100" onclick="calculateROIImprovement(4)">+4%</button>
+                                </div>
+                                <div class="col-4 mb-2">
+                                    <button class="btn btn-outline-primary w-100" onclick="calculateROIImprovement(5)">+5%</button>
+                                </div>
+                                <div class="col-4 mb-2">
+                                    <button class="btn btn-outline-info w-100" onclick="calculateROIToTarget(16.12)">Network Avg<br><small>16.12%</small></button>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <button class="btn btn-success w-100" onclick="calculateROIToTarget(20)">
+                                    Achieve Elite Status (20%+ Conversion)
+                                </button>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <label class="form-label">Or Enter Custom Target Rate (%)</label>
+                                <div class="input-group">
+                                    <input type="number" id="roiCustomTarget" class="form-control" step="0.1" placeholder="e.g. 18.5">
+                                    <button class="btn btn-primary" onclick="calculateROICustom()">Calculate</button>
+                                </div>
+                            </div>
                         </div>
-                        <button class="btn btn-primary" onclick="calculateROI()">Calculate ROI</button>
                         
-                        <div id="roiResults" class="mt-4" style="display: none;">
+                        <!-- Results -->
+                        <div id="roiResultsPanel" class="mt-4" style="display: none;">
                             <div class="alert alert-success">
-                                <h6>Projected Annual Impact</h6>
-                                <p class="mb-1">Additional Sales: <strong id="roiAddSales">0</strong></p>
-                                <p class="mb-1">Additional Revenue: <strong id="roiAddRevenue">$0</strong></p>
-                                <p class="mb-0">ROI Improvement: <strong id="roiImprovement">0%</strong></p>
+                                <h5 class="mb-3">Projected Revenue Impact</h5>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <small class="text-muted">New Conversion Rate</small>
+                                        <div class="h5" id="roiNewRate">-</div>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted">Improvement</small>
+                                        <div class="h5" id="roiImprovement">-</div>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <small class="text-muted">Additional Sales/Month</small>
+                                        <div class="h5" id="roiMonthlyIncrease">-</div>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted">Additional Sales/Year</small>
+                                        <div class="h5" id="roiAnnualIncrease">-</div>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="text-center">
+                                    <small class="text-muted">Additional Annual Revenue</small>
+                                    <div class="h3 text-success mb-0" id="roiAnnualRevenue">-</div>
+                                </div>
                             </div>
                         </div>
                     </div>

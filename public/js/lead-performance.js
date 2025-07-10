@@ -544,6 +544,9 @@ function processUploadedData(data, filename = '') {
     
     uploadedDealerData = dealers;
     
+    // Populate dealer dropdowns
+    populateDealerDropdowns();
+    
     // Calculate totals for dashboard
     let totalNetworkLeads = 0;
     let totalNetworkSales = 0;
@@ -680,6 +683,12 @@ function updateDealerAnalysis() {
     
     const dealer = uploadedDealerData[dealerName];
     if (!dealer) return;
+    
+    // Auto-populate ROI calculator if on that tab
+    const dealerSelectInROI = document.getElementById('roiMonthlyLeads');
+    if (dealerSelectInROI) {
+        populateROIFromDealer();
+    }
     
     // Calculate network averages from current data
     let networkTotals = {
@@ -1119,6 +1128,9 @@ function processMultiWorksheetFile(workbook, filename) {
     // Update global data
     uploadedDealerData = networkData;
     
+    // Populate dealer dropdowns
+    populateDealerDropdowns();
+    
     // Calculate network metrics
     const avgConversionRate = totalNetworkLeads > 0 ? 
         (totalNetworkSales / totalNetworkLeads * 100).toFixed(2) : 0;
@@ -1191,25 +1203,111 @@ function processMultiWorksheetFile(workbook, filename) {
     }));
 }
 
-// ROI Calculator function
-function calculateROI() {
-    const leads = parseFloat(document.getElementById('roiLeads').value) || 0;
-    const currentRate = parseFloat(document.getElementById('roiCurrentRate').value) || 0;
-    const targetRate = parseFloat(document.getElementById('roiTargetRate').value) || 0;
-    const salePrice = parseFloat(document.getElementById('roiSalePrice').value) || 45000;
+// ROI Calculator functions
+function updateCurrentSales() {
+    const leads = parseFloat(document.getElementById('roiMonthlyLeads').value) || 0;
+    const currentRate = parseFloat(document.getElementById('roiCurrentConversion').value) || 0;
+    const currentSales = leads * (currentRate / 100);
+    document.getElementById('currentMonthlySales').textContent = currentSales.toFixed(1);
+}
+
+// Add event listeners for real-time updates
+document.addEventListener('DOMContentLoaded', function() {
+    const roiLeadsInput = document.getElementById('roiMonthlyLeads');
+    const roiConversionInput = document.getElementById('roiCurrentConversion');
     
-    if (leads && currentRate && targetRate) {
-        const currentSales = leads * (currentRate / 100);
-        const targetSales = leads * (targetRate / 100);
-        const additionalMonthlySales = targetSales - currentSales;
-        const additionalAnnualSales = additionalMonthlySales * 12;
-        const additionalRevenue = additionalAnnualSales * salePrice;
-        const improvement = ((targetRate - currentRate) / currentRate * 100).toFixed(1);
+    if (roiLeadsInput) {
+        roiLeadsInput.addEventListener('input', updateCurrentSales);
+    }
+    if (roiConversionInput) {
+        roiConversionInput.addEventListener('input', updateCurrentSales);
+    }
+});
+
+// Main ROI calculation function
+function calculateROI() {
+    updateCurrentSales();
+}
+
+function calculateROIImprovement(percentIncrease) {
+    const currentRate = parseFloat(document.getElementById('roiCurrentConversion').value) || 0;
+    const newRate = currentRate + percentIncrease;
+    calculateROIToTarget(newRate);
+}
+
+function calculateROIToTarget(targetRate) {
+    const leads = parseFloat(document.getElementById('roiMonthlyLeads').value) || 0;
+    const currentRate = parseFloat(document.getElementById('roiCurrentConversion').value) || 0;
+    const revenuePerSale = parseFloat(document.getElementById('roiRevenuePerSale').value) || 45000;
+    
+    if (!leads || !currentRate) {
+        alert('Please enter your current monthly leads and conversion rate first.');
+        return;
+    }
+    
+    // Calculate current and target sales
+    const currentMonthlySales = leads * (currentRate / 100);
+    const targetMonthlySales = leads * (targetRate / 100);
+    const additionalMonthlySales = targetMonthlySales - currentMonthlySales;
+    const additionalAnnualSales = additionalMonthlySales * 12;
+    const additionalAnnualRevenue = additionalAnnualSales * revenuePerSale;
+    
+    // Update results
+    document.getElementById('roiNewRate').textContent = targetRate.toFixed(2) + '%';
+    document.getElementById('roiImprovement').textContent = '+' + (targetRate - currentRate).toFixed(2) + '%';
+    document.getElementById('roiMonthlyIncrease').textContent = '+' + additionalMonthlySales.toFixed(1);
+    document.getElementById('roiAnnualIncrease').textContent = '+' + additionalAnnualSales.toFixed(0);
+    document.getElementById('roiAnnualRevenue').textContent = '$' + additionalAnnualRevenue.toLocaleString();
+    
+    // Show results panel
+    document.getElementById('roiResultsPanel').style.display = 'block';
+}
+
+function calculateROICustom() {
+    const targetRate = parseFloat(document.getElementById('roiCustomTarget').value) || 0;
+    if (targetRate) {
+        calculateROIToTarget(targetRate);
+    } else {
+        alert('Please enter a target conversion rate.');
+    }
+}
+
+// Auto-populate ROI calculator when a dealer is selected
+function populateROIFromDealer() {
+    const dealerName = document.getElementById('roiDealerSelect').value;
+    if (!dealerName || !uploadedDealerData[dealerName]) return;
+    
+    const dealer = uploadedDealerData[dealerName];
+    
+    // Calculate monthly average (assuming data might be for multiple months)
+    // For now, just use the total as monthly
+    document.getElementById('roiMonthlyLeads').value = dealer.leads;
+    document.getElementById('roiCurrentConversion').value = dealer.conversionRate;
+    
+    // Update current sales display
+    updateCurrentSales();
+}
+
+// Populate dealer dropdowns including ROI calculator
+function populateDealerDropdowns() {
+    // Populate main dealer select
+    populateDealerSelect();
+    
+    // Also populate ROI dealer select if it exists
+    const roiSelect = document.getElementById('roiDealerSelect');
+    if (roiSelect) {
+        // Clear existing options except the first one
+        while (roiSelect.options.length > 1) {
+            roiSelect.remove(1);
+        }
         
-        document.getElementById('roiAddSales').textContent = Math.round(additionalAnnualSales);
-        document.getElementById('roiAddRevenue').textContent = '$' + additionalRevenue.toLocaleString();
-        document.getElementById('roiImprovement').textContent = improvement + '%';
-        document.getElementById('roiResults').style.display = 'block';
+        // Add dealer options
+        Object.keys(uploadedDealerData).sort().forEach(dealerName => {
+            const option = document.createElement('option');
+            option.value = dealerName;
+            option.textContent = dealerName;
+            roiSelect.appendChild(option);
+        });
     }
 }
 
@@ -1226,12 +1324,31 @@ function generateResponseReport() {
     alert('Response time report generation coming soon!');
 }
 
+// Update current sales display
+function updateCurrentSales() {
+    const leads = parseFloat(document.getElementById('roiMonthlyLeads').value) || 0;
+    const conversionRate = parseFloat(document.getElementById('roiCurrentConversion').value) || 0;
+    
+    if (leads && conversionRate) {
+        const currentSales = leads * (conversionRate / 100);
+        document.getElementById('currentMonthlySales').textContent = currentSales.toFixed(1);
+    } else {
+        document.getElementById('currentMonthlySales').textContent = '-';
+    }
+}
+
 // Make functions available globally for onclick handlers
 window.uploadFile = uploadFile;
 window.showSection = showSection;
 window.handleFileSelect = handleFileSelect;
 window.updateDealerAnalysis = updateDealerAnalysis;
 window.calculateROI = calculateROI;
+window.calculateROIImprovement = calculateROIImprovement;
+window.calculateROIToTarget = calculateROIToTarget;
+window.calculateROICustom = calculateROICustom;
+window.updateCurrentSales = updateCurrentSales;
+window.populateROIFromDealer = populateROIFromDealer;
+window.populateDealerDropdowns = populateDealerDropdowns;
 window.generateNetworkReport = generateNetworkReport;
 window.generateDealerReport = generateDealerReport;
 window.generateResponseReport = generateResponseReport;
