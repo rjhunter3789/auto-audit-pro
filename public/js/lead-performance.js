@@ -843,9 +843,10 @@ function updateDealerAnalysis() {
     const dealer = uploadedDealerData[dealerName];
     if (!dealer) return;
     
-    // Auto-populate ROI calculator if on that tab
-    const dealerSelectInROI = document.getElementById('roiMonthlyLeads');
-    if (dealerSelectInROI) {
+    // Auto-populate ROI calculator with selected dealer
+    const roiDealerSelect = document.getElementById('roiDealerSelect');
+    if (roiDealerSelect) {
+        roiDealerSelect.value = dealerName;
         populateROIFromDealer();
     }
     
