@@ -409,6 +409,14 @@ function processUploadedData(data, filename = '') {
             currentDealerData = {
                 leads: 0,
                 sales: 0,
+                responded: 0,
+                noResponse: 0,
+                responseTime15min: 0,
+                responseTime30min: 0,
+                responseTime60min: 0,
+                responseTime60plus: 0,
+                responseTime24hr: 0,
+                responseTime24plus: 0,
                 leadSources: {}
             };
             isNetworkReport = true;
@@ -478,6 +486,11 @@ function processUploadedData(data, filename = '') {
                 if (match) {
                     const totalMinutes = parseInt(match[1]) * 60 + parseInt(match[2]);
                     
+                    // Debug log
+                    if (processedRows < 5) {
+                        console.log(`Response time: ${responseTimeText} = ${totalMinutes} minutes`);
+                    }
+                    
                     // Categorize based on minutes
                     if (totalMinutes <= 15) {
                         currentDealerData.responseTime15min += 1;
@@ -521,6 +534,15 @@ function processUploadedData(data, filename = '') {
             conversionRate: currentDealerData.leads > 0 ? 
                 (currentDealerData.sales / currentDealerData.leads * 100).toFixed(2) : 0
         };
+        
+        // Debug: Log response time data for this dealer
+        console.log(`Dealer ${currentDealer} response times:`, {
+            responded: currentDealerData.responded,
+            noResponse: currentDealerData.noResponse,
+            time15min: currentDealerData.responseTime15min,
+            time30min: currentDealerData.responseTime30min,
+            time60min: currentDealerData.responseTime60min
+        });
     }
     
     console.log('Processed dealer data:', dealers);
@@ -545,6 +567,23 @@ function processUploadedData(data, filename = '') {
     }
     
     uploadedDealerData = dealers;
+    
+    // Debug: Check first dealer's data
+    const firstDealer = Object.values(dealers)[0];
+    if (firstDealer) {
+        console.log('Sample dealer data:', {
+            name: firstDealer.name,
+            leads: firstDealer.leads,
+            responded: firstDealer.responded,
+            noResponse: firstDealer.noResponse,
+            responseTime15min: firstDealer.responseTime15min,
+            responseTime30min: firstDealer.responseTime30min,
+            responseTime60min: firstDealer.responseTime60min,
+            responseTime60plus: firstDealer.responseTime60plus,
+            responseTime24hr: firstDealer.responseTime24hr,
+            responseTime24plus: firstDealer.responseTime24plus
+        });
+    }
     
     // Populate dealer dropdowns
     populateDealerDropdowns();
@@ -587,6 +626,11 @@ function processUploadedData(data, filename = '') {
         responseDistribution.noResponse += dealer.noResponse || 0;
         responseDistribution.responded += dealer.responded || 0;
     });
+    
+    // Debug log response distribution
+    console.log('Response Distribution:', responseDistribution);
+    console.log('Total Responded:', totalResponded);
+    console.log('Total 15-min responses:', total15MinResponses);
     
     const responseRate = totalNetworkLeads > 0 ? 
         (totalResponded / totalNetworkLeads * 100).toFixed(1) : 0;
