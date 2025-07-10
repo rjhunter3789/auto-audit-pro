@@ -1731,7 +1731,7 @@ function calculateROIImprovement(percentIncrease) {
 function calculateROIToTarget(targetRate) {
     const leads = parseFloat(document.getElementById('roiMonthlyLeads').value) || 0;
     const currentRate = parseFloat(document.getElementById('roiCurrentConversion').value) || 0;
-    const revenuePerSale = parseFloat(document.getElementById('roiRevenuePerSale').value) || 45000;
+    const revenuePerSale = parseFloat(document.getElementById('roiRevenuePerSale').value) || 4250;
     
     if (!leads || !currentRate) {
         alert('Please enter your current monthly leads and conversion rate first.');
@@ -1884,7 +1884,7 @@ function generateROIReport() {
     const monthlyIncrease = document.getElementById('roiMonthlyIncrease').textContent;
     const annualIncrease = document.getElementById('roiAnnualIncrease').textContent;
     const annualRevenue = document.getElementById('roiAnnualRevenue').textContent;
-    const revenuePerSale = parseFloat(document.getElementById('roiRevenuePerSale').value) || 45000;
+    const revenuePerSale = parseFloat(document.getElementById('roiRevenuePerSale').value) || 4250;
     
     // Create print window
     const printWindow = window.open('', '_blank');
@@ -1977,7 +1977,7 @@ function generateROIReport() {
                 <span class="metric-value">${currentRate.toFixed(2)}%</span>
             </div>
             <div class="metric">
-                <span class="metric-label">Average Revenue per Sale</span>
+                <span class="metric-label">Average Gross (F/B)</span>
                 <span class="metric-value">$${revenuePerSale.toLocaleString()}</span>
             </div>
             
