@@ -923,12 +923,14 @@ function updateDealerAnalysis() {
                 <div class="metric-card">
                     <h3>Total Form Leads</h3>
                     <p class="metric-value">${dealer.leads}</p>
-                    <p class="metric-change">Network Total: ${networkTotals.leads.toLocaleString()}</p>
+                    <p class="metric-change">Q1-Q2 2025 Actual</p>
+                    <p class="text-muted small">Network Total: ${networkTotals.leads.toLocaleString()}</p>
                 </div>
                 <div class="metric-card">
                     <h3>Total Sales</h3>
                     <p class="metric-value">${dealer.sales}</p>
-                    <p class="metric-change">Network Total: ${networkTotals.sales.toLocaleString()}</p>
+                    <p class="metric-change">Q1-Q2 2025 Actual</p>
+                    <p class="text-muted small">Network Total: ${networkTotals.sales.toLocaleString()}</p>
                 </div>
                 <div class="metric-card">
                     <h3>Conversion Rate</h3>
