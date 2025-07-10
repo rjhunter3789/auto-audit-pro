@@ -2028,12 +2028,10 @@ function generateNetworkReport() {
     reportWindow.document.write(reportHTML);
     reportWindow.document.close();
     
-    // Auto-print option
+    // Auto-open print dialog
     setTimeout(() => {
-        if (confirm('Would you like to print this report?')) {
-            reportWindow.print();
-        }
-    }, 500);
+        reportWindow.print();
+    }, 100);
 }
 
 function generateDealerReport() {
@@ -2042,30 +2040,21 @@ function generateDealerReport() {
         return;
     }
     
-    // Show dealer selection dialog
-    const dealerList = Object.keys(uploadedDealerData).sort();
-    const dealerSelect = prompt('Enter dealer name or number:\n\n' + 
-        dealerList.map((d, i) => `${i + 1}. ${d}`).join('\n'));
+    // Get currently selected dealer from Lead Analysis tab
+    const dealerSelectElement = document.getElementById('dealerSelect');
+    const selectedDealerName = dealerSelectElement ? dealerSelectElement.value : '';
     
-    if (!dealerSelect) return;
-    
-    // Find dealer by name or number
-    let selectedDealer = null;
-    const dealerIndex = parseInt(dealerSelect) - 1;
-    
-    if (!isNaN(dealerIndex) && dealerIndex >= 0 && dealerIndex < dealerList.length) {
-        selectedDealer = uploadedDealerData[dealerList[dealerIndex]];
-    } else {
-        // Try to find by name (case insensitive partial match)
-        const searchTerm = dealerSelect.toLowerCase();
-        const matchedDealer = dealerList.find(d => d.toLowerCase().includes(searchTerm));
-        if (matchedDealer) {
-            selectedDealer = uploadedDealerData[matchedDealer];
-        }
+    if (!selectedDealerName) {
+        alert('Please select a dealer from the Lead Analysis tab first.');
+        // Switch to Lead Analysis tab
+        showSection('analysis');
+        return;
     }
     
+    const selectedDealer = uploadedDealerData[selectedDealerName];
+    
     if (!selectedDealer) {
-        alert('Dealer not found. Please try again.');
+        alert('Selected dealer data not found. Please select a different dealer.');
         return;
     }
     
@@ -2236,12 +2225,10 @@ function generateDealerReport() {
     reportWindow.document.write(reportHTML);
     reportWindow.document.close();
     
-    // Auto-print option
+    // Auto-open print dialog
     setTimeout(() => {
-        if (confirm('Would you like to print this report?')) {
-            reportWindow.print();
-        }
-    }, 500);
+        reportWindow.print();
+    }, 100);
 }
 
 function generateResponseReport() {
@@ -2444,12 +2431,10 @@ function generateResponseReport() {
     reportWindow.document.write(reportHTML);
     reportWindow.document.close();
     
-    // Auto-print option
+    // Auto-open print dialog
     setTimeout(() => {
-        if (confirm('Would you like to print this report?')) {
-            reportWindow.print();
-        }
-    }, 500);
+        reportWindow.print();
+    }, 100);
 }
 
 // Generate ROI Report
