@@ -494,9 +494,6 @@ function processUploadedData(data, filename = '') {
                     }
                 }
             }
-        } else {
-            // No response
-            currentDealerData.noResponse += 1;
         }
         
         // Check for sale (Column J)
