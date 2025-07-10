@@ -459,57 +459,38 @@ function processUploadedData(data, filename = '') {
         currentDealerData.leadSources[leadSource].leads += 1;
         currentDealerData.leads += 1;
         
-        // Get key dates
-        const leadRequestDate = row[0]; // Column A - Lead Request Date
-        const dateTimeActionable = row[5]; // Column F - Date/Time Actionable (when business opens)
+        // Check response - Column H contains Response Date, Column G contains Response Time
         const responseDate = row[7]; // Column H - Response Date
+        const responseTimeText = row[6]; // Column G - Response Time in "0h 30m" format
         
-        // Check if there was a response
-        if (responseDate && responseDate !== 'N/A' && responseDate !== '') {
-            // Track that this lead got a response
+        // Check if there was a response (Column H not "N/A")
+        if (responseDate === 'N/A' || responseDate === '' || !responseDate) {
+            // No response
+            currentDealerData.noResponse += 1;
+        } else {
+            // There was a response
             currentDealerData.responded += 1;
             currentDealerData.leadSources[leadSource].appointments += 1;
             
-            // Calculate response time from Date/Time Actionable (not Lead Request Date)
-            // This accounts for business hours - response time starts when dealership opens
-            try {
-                const actionableTime = new Date(dateTimeActionable);
-                const responseTime = new Date(responseDate);
-                const diffMinutes = Math.floor((responseTime - actionableTime) / (1000 * 60));
-                
-                // Categorize response times
-                if (diffMinutes >= 0) {
-                    if (diffMinutes <= 15) {
+            // Parse response time from Column G
+            if (responseTimeText && responseTimeText !== 'N/A' && responseTimeText !== '') {
+                const match = responseTimeText.match(/(\d+)h (\d+)m/);
+                if (match) {
+                    const totalMinutes = parseInt(match[1]) * 60 + parseInt(match[2]);
+                    
+                    // Categorize based on minutes
+                    if (totalMinutes <= 15) {
                         currentDealerData.responseTime15min += 1;
-                    } else if (diffMinutes <= 30) {
+                    } else if (totalMinutes <= 30) {
                         currentDealerData.responseTime30min += 1;
-                    } else if (diffMinutes <= 60) {
+                    } else if (totalMinutes <= 60) {
                         currentDealerData.responseTime60min += 1;
-                    } else if (diffMinutes <= 1440) { // 24 hours
-                        if (diffMinutes <= 240) { // 4 hours
-                            currentDealerData.responseTime60plus += 1;
-                        } else {
-                            currentDealerData.responseTime24hr += 1;
-                        }
+                    } else if (totalMinutes <= 240) { // 4 hours
+                        currentDealerData.responseTime60plus += 1;
+                    } else if (totalMinutes <= 1440) { // 24 hours
+                        currentDealerData.responseTime24hr += 1;
                     } else {
                         currentDealerData.responseTime24plus += 1;
-                    }
-                }
-                
-                // Log for debugging
-                if (i < 15) { // Log first few for debugging
-                    console.log(`Lead ${i}: Actionable: ${dateTimeActionable}, Response: ${responseDate}, Diff: ${diffMinutes} min`);
-                }
-            } catch (e) {
-                // Date parsing error - fall back to Column G if needed
-                const responseTimeText = row[6]; // Column G as fallback
-                if (responseTimeText && responseTimeText !== 'N/A' && responseTimeText !== '0h 0m') {
-                    const match = responseTimeText.match(/(\d+)h (\d+)m/);
-                    if (match) {
-                        const totalMinutes = parseInt(match[1]) * 60 + parseInt(match[2]);
-                        if (totalMinutes <= 15) {
-                            currentDealerData.responseTime15min += 1;
-                        }
                     }
                 }
             }
@@ -765,6 +746,19 @@ function updateDealerAnalysis() {
         ((dealer.responded || 0) / dealer.leads * 100).toFixed(1) : 0;
     const dealer15MinRate = dealer.leads > 0 ? 
         ((dealer.responseTime15min || 0) / dealer.leads * 100).toFixed(1) : 0;
+    
+    // Debug log dealer response data
+    console.log(`Dealer ${dealerName} response data:`, {
+        leads: dealer.leads,
+        responded: dealer.responded,
+        noResponse: dealer.noResponse,
+        time15min: dealer.responseTime15min,
+        time30min: dealer.responseTime30min,
+        time60min: dealer.responseTime60min,
+        time60plus: dealer.responseTime60plus,
+        time24hr: dealer.responseTime24hr,
+        time24plus: dealer.responseTime24plus
+    });
     
     const analysisHTML = `
         <div class="chart-container">

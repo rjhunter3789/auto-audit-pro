@@ -212,9 +212,15 @@
             margin-bottom: 2rem;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             position: relative;
-            height: 450px;
+            height: 550px;
             display: flex;
             flex-direction: column;
+        }
+        
+        /* Auto height for dealer analysis containers */
+        #dealerAnalysisContent .chart-container {
+            height: auto;
+            min-height: 450px;
         }
 
         .chart-container h3 {
