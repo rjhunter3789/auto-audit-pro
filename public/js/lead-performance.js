@@ -500,18 +500,20 @@ function processUploadedData(data, filename = '') {
         currentDealerData.leadSources[leadSource].leads += 1;
         currentDealerData.leads += 1;
         
-        // Check response - Column G contains Response Date, Column H contains Response Time
-        const responseDate = row[6]; // Column G - Response Date
-        const responseTimeText = row[7]; // Column H - Response Time in "0h 30m" format
+        // Get relevant columns
+        const actionableDateTime = row[5]; // Column F - Date/Time Actionable
+        const responseDate = row[6]; // Column G - Response Date (actual response time)
+        const elapsedTime = row[7]; // Column H - Total Elapsed Time (e.g., "0h 5m", "51h 56m")
         
         // Debug first few rows
         if (processedRows < 3) {
-            console.log(`Row ${i+1} - Response Date (Col G): "${responseDate}", Response Time (Col H): "${responseTimeText}"`);
-            console.log(`  Type of responseDate: ${typeof responseDate}, Type of responseTimeText: ${typeof responseTimeText}`);
+            console.log(`Row ${i+1}:`);
+            console.log(`  Actionable (Col F): "${actionableDateTime}"`);
+            console.log(`  Response Date (Col G): "${responseDate}"`);
+            console.log(`  Elapsed Time (Col H): "${elapsedTime}"`);
         }
         
-        // Check if there was a response (Column H not "N/A")
-        // Also check for case variations and trimmed strings
+        // Check if there was a response (Column G not "N/A" or empty)
         const trimmedResponseDate = responseDate ? responseDate.toString().trim() : '';
         if (trimmedResponseDate === 'N/A' || trimmedResponseDate === 'n/a' || trimmedResponseDate === 'N/a' || 
             trimmedResponseDate === '' || !trimmedResponseDate) {
@@ -521,35 +523,35 @@ function processUploadedData(data, filename = '') {
                 console.log('  -> Counted as NO RESPONSE');
             }
         } else {
-            // There was a response
+            // There was a response - use Column H for elapsed time
             currentDealerData.responded += 1;
             currentDealerData.leadSources[leadSource].appointments += 1;
             if (processedRows < 3) {
                 console.log('  -> Counted as RESPONDED');
             }
             
-            // Parse response time from Column G
-            if (responseTimeText && responseTimeText !== 'N/A' && responseTimeText !== '') {
+            // Parse elapsed time from Column H
+            if (elapsedTime && elapsedTime !== 'N/A' && elapsedTime !== '') {
                 // Try different regex patterns for time format
                 let totalMinutes = null;
                 
                 // Pattern 1: "0h 30m" format
-                let match = responseTimeText.match(/(\d+)h (\d+)m/);
+                let match = elapsedTime.match(/(\d+)h (\d+)m/);
                 if (match) {
                     totalMinutes = parseInt(match[1]) * 60 + parseInt(match[2]);
                 } else {
                     // Pattern 2: "0h30m" (no space)
-                    match = responseTimeText.match(/(\d+)h(\d+)m/);
+                    match = elapsedTime.match(/(\d+)h(\d+)m/);
                     if (match) {
                         totalMinutes = parseInt(match[1]) * 60 + parseInt(match[2]);
                     } else {
                         // Pattern 3: Just minutes "30m"
-                        match = responseTimeText.match(/(\d+)m/);
+                        match = elapsedTime.match(/(\d+)m/);
                         if (match) {
                             totalMinutes = parseInt(match[1]);
                         } else {
                             // Pattern 4: Just hours "2h"
-                            match = responseTimeText.match(/(\d+)h/);
+                            match = elapsedTime.match(/(\d+)h/);
                             if (match) {
                                 totalMinutes = parseInt(match[1]) * 60;
                             }
@@ -560,7 +562,7 @@ function processUploadedData(data, filename = '') {
                 if (totalMinutes !== null) {
                     // Debug log
                     if (processedRows < 5) {
-                        console.log(`Response time: "${responseTimeText}" = ${totalMinutes} minutes`);
+                        console.log(`  Elapsed time parsed: "${elapsedTime}" = ${totalMinutes} minutes`);
                     }
                     
                     // Categorize based on minutes
@@ -1473,18 +1475,21 @@ function processMultiWorksheetFile(workbook, filename) {
             dealerData.leadSources[leadSource].leads += 1;
             dealerData.leads += 1;
             
-            // Check response - Column G contains Response Date, Column H contains Response Time
-            const responseDate = row[6]; // Column G - Response Date
-            const responseTimeText = row[7]; // Column H - Response Time in "0h 30m" format
+            // Get relevant columns
+            const actionableDateTime = row[5]; // Column F - Date/Time Actionable
+            const responseDate = row[6]; // Column G - Response Date (actual response time)
+            const elapsedTime = row[7]; // Column H - Total Elapsed Time (e.g., "0h 5m", "51h 56m")
             
             // Debug first row of first dealer
             if (index === 0 && i === 11) {
-                console.log(`First data row - Col G (Response Date): "${responseDate}", Col H (Response Time): "${responseTimeText}"`);
+                console.log(`First data row:`);
+                console.log(`  Actionable (Col F): "${actionableDateTime}"`);
+                console.log(`  Response Date (Col G): "${responseDate}"`);
+                console.log(`  Elapsed Time (Col H): "${elapsedTime}"`);
                 console.log('Full row data:', row);
-                console.log(`  Type of responseDate: ${typeof responseDate}, Type of responseTimeText: ${typeof responseTimeText}`);
             }
             
-            // Check if there was a response
+            // Check if there was a response (Column G not "N/A" or empty)
             const trimmedResponseDate = responseDate ? responseDate.toString().trim() : '';
             if (trimmedResponseDate === 'N/A' || trimmedResponseDate === 'n/a' || trimmedResponseDate === 'N/a' || 
                 trimmedResponseDate === '' || !trimmedResponseDate) {
@@ -1494,39 +1499,43 @@ function processMultiWorksheetFile(workbook, filename) {
                     console.log('  -> Counted as NO RESPONSE');
                 }
             } else {
-                // There was a response
+                // There was a response - use Column H for elapsed time
                 dealerData.responded += 1;
                 if (index === 0 && i === 11) {
                     console.log('  -> Counted as RESPONDED');
                 }
                 
-                // Now categorize the response time from Column G
-                if (responseTimeText && responseTimeText !== 'N/A' && responseTimeText !== '') {
+                // Parse elapsed time from Column H
+                if (elapsedTime && elapsedTime !== 'N/A' && elapsedTime !== '') {
                     // Try different regex patterns for time format
                     let totalMinutes = null;
                     
                     // Pattern 1: "0h 30m" format
-                    let match = responseTimeText.match(/(\d+)h (\d+)m/);
+                    let match = elapsedTime.match(/(\d+)h (\d+)m/);
                     if (match) {
                         totalMinutes = parseInt(match[1]) * 60 + parseInt(match[2]);
                     } else {
                         // Pattern 2: "0h30m" (no space)
-                        match = responseTimeText.match(/(\d+)h(\d+)m/);
+                        match = elapsedTime.match(/(\d+)h(\d+)m/);
                         if (match) {
                             totalMinutes = parseInt(match[1]) * 60 + parseInt(match[2]);
                         } else {
                             // Pattern 3: Just minutes "30m"
-                            match = responseTimeText.match(/(\d+)m/);
+                            match = elapsedTime.match(/(\d+)m/);
                             if (match) {
                                 totalMinutes = parseInt(match[1]);
                             } else {
                                 // Pattern 4: Just hours "2h"
-                                match = responseTimeText.match(/(\d+)h/);
+                                match = elapsedTime.match(/(\d+)h/);
                                 if (match) {
                                     totalMinutes = parseInt(match[1]) * 60;
                                 }
                             }
                         }
+                    }
+                    
+                    if (totalMinutes !== null && index === 0 && i === 11) {
+                        console.log(`  Elapsed time parsed: "${elapsedTime}" = ${totalMinutes} minutes`);
                     }
                     
                     if (totalMinutes !== null) {
