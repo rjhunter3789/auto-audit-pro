@@ -136,7 +136,7 @@ function handleFileSelect(event) {
     }
     
     const reader = new FileReader();
-        reader.onload = function(e) {
+    reader.onload = function(e) {
             console.log('FileReader onload triggered');
             try {
                 let data;
@@ -174,11 +174,10 @@ function handleFileSelect(event) {
             }
         };
         
-        if (file.name.endsWith('.csv')) {
-            reader.readAsText(file);
-        } else {
-            reader.readAsBinaryString(file);
-        }
+    if (file.name.endsWith('.csv')) {
+        reader.readAsText(file);
+    } else {
+        reader.readAsBinaryString(file);
     }
 }
 
