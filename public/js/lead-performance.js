@@ -335,6 +335,13 @@ function processUploadedData(data, filename = '') {
             
             // Save previous dealer if exists
             if (currentDealer && currentDealerData.leads > 0) {
+                // Calculate conversion rates for each lead source
+                Object.keys(currentDealerData.leadSources).forEach(source => {
+                    const sourceData = currentDealerData.leadSources[source];
+                    sourceData.conversionRate = sourceData.leads > 0 ? 
+                        (sourceData.sales / sourceData.leads * 100).toFixed(2) : '0';
+                });
+                
                 dealers[currentDealer] = {
                     name: currentDealer,
                     ...currentDealerData,
@@ -359,27 +366,43 @@ function processUploadedData(data, filename = '') {
         const leadSource = colB;
         if (!leadSource || leadSource === 'Grand Total' || leadSource.toLowerCase().includes('total')) continue;
         
-        const leads = parseInt(row[2]) || 0; // Column C - Leads
-        const appointments = parseInt(row[6]) || 0; // Column G - Appointments
-        const shows = parseInt(row[7]) || 0; // Column H - Shows  
-        const sales = parseInt(row[8]) || 0; // Column I - Sales
+        // This appears to be a different Excel format - each row is one lead
+        // Column A: Date/Time
+        // Column B: Lead Source
+        // Column C: Lead Type (Chat/Form)
+        // We need to count leads by source
         
-        if (leads > 0) {
+        if (!currentDealerData.leadSources[leadSource]) {
             currentDealerData.leadSources[leadSource] = {
-                leads: leads,
-                appointments: appointments,
-                shows: shows,
-                sales: sales,
-                conversionRate: leads > 0 ? (sales / leads * 100).toFixed(2) : 0
+                leads: 0,
+                appointments: 0,
+                shows: 0,
+                sales: 0,
+                conversionRate: 0
             };
-            
-            currentDealerData.leads += leads;
-            currentDealerData.sales += sales;
+        }
+        
+        // Count this lead
+        currentDealerData.leadSources[leadSource].leads += 1;
+        currentDealerData.leads += 1;
+        
+        // Check for sale (might be in column H or I)
+        const saleIndicator = row[8] || row[7]; // Column I or H
+        if (saleIndicator && (saleIndicator === 'Y' || saleIndicator === 'Yes' || saleIndicator === '1')) {
+            currentDealerData.leadSources[leadSource].sales += 1;
+            currentDealerData.sales += 1;
         }
     }
     
     // Save last dealer
     if (currentDealer && currentDealerData.leads > 0) {
+        // Calculate conversion rates for each lead source
+        Object.keys(currentDealerData.leadSources).forEach(source => {
+            const sourceData = currentDealerData.leadSources[source];
+            sourceData.conversionRate = sourceData.leads > 0 ? 
+                (sourceData.sales / sourceData.leads * 100).toFixed(2) : '0';
+        });
+        
         dealers[currentDealer] = {
             name: currentDealer,
             ...currentDealerData,
