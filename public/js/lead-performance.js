@@ -206,6 +206,12 @@ function processUploadedData(data, filename = '') {
     // Log what's in key positions
     if (data.length > 11) {
         console.log('Row 11 (data start):', data[11]);
+        console.log('Row 12:', data[12]);
+        
+        // Show column headers if they exist
+        if (data.length > 10 && data[10]) {
+            console.log('Possible headers at row 11:', data[10]);
+        }
     }
     
     // Find dealer name - Ford reports have dealer name in cell B2
@@ -386,12 +392,8 @@ function processUploadedData(data, filename = '') {
         currentDealerData.leadSources[leadSource].leads += 1;
         currentDealerData.leads += 1;
         
-        // Check for sale (might be in column H or I)
-        const saleIndicator = row[8] || row[7]; // Column I or H
-        if (saleIndicator && (saleIndicator === 'Y' || saleIndicator === 'Yes' || saleIndicator === '1')) {
-            currentDealerData.leadSources[leadSource].sales += 1;
-            currentDealerData.sales += 1;
-        }
+        // Note: This file format appears to be lead data only, no sales data
+        // Sales would need to come from a different report or be tracked separately
     }
     
     // Save last dealer
