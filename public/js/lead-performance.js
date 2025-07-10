@@ -127,6 +127,23 @@ function handleFileSelect(event) {
     
     console.log('File selected:', file.name, 'Type:', file.type, 'Size:', file.size);
     
+    // If there's existing data, confirm replacement
+    if (Object.keys(uploadedDealerData).length > 0) {
+        const uploadInfo = localStorage.getItem('dataUploadInfo');
+        let confirmMessage = 'This will replace your existing dealer data. Continue?';
+        
+        if (uploadInfo) {
+            const info = JSON.parse(uploadInfo);
+            const uploadDate = new Date(info.uploadDate);
+            confirmMessage = `This will replace your existing data (${info.dealerCount} dealers uploaded ${uploadDate.toLocaleDateString()}). Continue?`;
+        }
+        
+        if (!confirm(confirmMessage)) {
+            event.target.value = ''; // Reset file input
+            return;
+        }
+    }
+    
     // Check file type
     const validTypes = ['.csv', '.xlsx', '.xlsm', '.xls'];
     const fileExtension = file.name.toLowerCase().substr(file.name.lastIndexOf('.'));
@@ -211,6 +228,9 @@ function parseCSV(csvText) {
 }
 
 function processUploadedData(data, filename = '') {
+    // Clear existing data when processing new file
+    uploadedDealerData = {};
+    
     // Debug: Log the first few rows to understand structure
     console.log('First 15 rows of data:', data.slice(0, 15));
     console.log('Filename:', filename);
@@ -1091,11 +1111,11 @@ function showDataLoadedUI(info, daysUntilExpiry) {
                 <p class="${statusClass}">Expires in ${daysUntilExpiry} days</p>
             </div>
             <div class="d-flex flex-column gap-2">
-                <button class="btn btn-primary" onclick="uploadFile()">
-                    <i class="fas fa-upload"></i> Upload New Data
+                <button class="btn btn-primary" onclick="uploadFile()" title="Replace current data with new file">
+                    <i class="fas fa-sync-alt"></i> Replace Data
                 </button>
-                <button class="btn btn-outline-danger btn-sm" onclick="clearStoredData()">
-                    <i class="fas fa-trash"></i> Clear Stored Data
+                <button class="btn btn-outline-danger btn-sm" onclick="clearStoredData()" title="Remove all stored data">
+                    <i class="fas fa-trash"></i> Clear All Data
                 </button>
             </div>
         </div>
