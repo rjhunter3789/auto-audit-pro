@@ -1001,36 +1001,71 @@ function processMultiWorksheetFile(workbook, filename) {
             
             // Check response
             const responseDate = row[7]; // Column H
+            
+            // Debug first few rows
+            if (i < 15 && dealerData.leads < 5) {
+                console.log(`Row ${i} - Response Date: "${responseDate}", Actionable: "${row[5]}"`);
+            }
+            
             if (responseDate && responseDate !== 'N/A' && responseDate !== '') {
                 dealerData.responded += 1;
                 
-                // Check 15-min response
+                // Check response time calculation
                 const dateTimeActionable = row[5]; // Column F
                 try {
                     const actionableTime = new Date(dateTimeActionable);
                     const responseTime = new Date(responseDate);
-                    const diffMinutes = Math.floor((responseTime - actionableTime) / (1000 * 60));
                     
-                    // Categorize response times
-                    if (diffMinutes >= 0) {
-                        if (diffMinutes <= 15) {
-                            dealerData.responseTime15min += 1;
-                        } else if (diffMinutes <= 30) {
-                            dealerData.responseTime30min += 1;
-                        } else if (diffMinutes <= 60) {
-                            dealerData.responseTime60min += 1;
-                        } else if (diffMinutes <= 1440) { // 24 hours
-                            if (diffMinutes <= 240) { // 4 hours
-                                dealerData.responseTime60plus += 1;
-                            } else {
-                                dealerData.responseTime24hr += 1;
+                    // Check if dates are valid
+                    if (isNaN(actionableTime.getTime()) || isNaN(responseTime.getTime())) {
+                        console.log(`Invalid date format - Actionable: ${dateTimeActionable}, Response: ${responseDate}`);
+                        // Try parsing the "0h 30m" format from Column G instead
+                        const responseTimeText = row[6]; // Column G
+                        if (responseTimeText && responseTimeText !== 'N/A' && responseTimeText !== '0h 0m') {
+                            const match = responseTimeText.match(/(\d+)h (\d+)m/);
+                            if (match) {
+                                const totalMinutes = parseInt(match[1]) * 60 + parseInt(match[2]);
+                                
+                                // Categorize based on text format
+                                if (totalMinutes <= 15) {
+                                    dealerData.responseTime15min += 1;
+                                } else if (totalMinutes <= 30) {
+                                    dealerData.responseTime30min += 1;
+                                } else if (totalMinutes <= 60) {
+                                    dealerData.responseTime60min += 1;
+                                } else if (totalMinutes <= 240) { // 4 hours
+                                    dealerData.responseTime60plus += 1;
+                                } else if (totalMinutes <= 1440) { // 24 hours
+                                    dealerData.responseTime24hr += 1;
+                                } else {
+                                    dealerData.responseTime24plus += 1;
+                                }
                             }
-                        } else {
-                            dealerData.responseTime24plus += 1;
+                        }
+                    } else {
+                        const diffMinutes = Math.floor((responseTime - actionableTime) / (1000 * 60));
+                        
+                        // Categorize response times
+                        if (diffMinutes >= 0) {
+                            if (diffMinutes <= 15) {
+                                dealerData.responseTime15min += 1;
+                            } else if (diffMinutes <= 30) {
+                                dealerData.responseTime30min += 1;
+                            } else if (diffMinutes <= 60) {
+                                dealerData.responseTime60min += 1;
+                            } else if (diffMinutes <= 1440) { // 24 hours
+                                if (diffMinutes <= 240) { // 4 hours
+                                    dealerData.responseTime60plus += 1;
+                                } else {
+                                    dealerData.responseTime24hr += 1;
+                                }
+                            } else {
+                                dealerData.responseTime24plus += 1;
+                            }
                         }
                     }
                 } catch (e) {
-                    // Date parsing error
+                    console.error('Date parsing error:', e);
                 }
             } else {
                 dealerData.noResponse += 1;
@@ -1072,7 +1107,12 @@ function processMultiWorksheetFile(workbook, filename) {
             leads: firstDealer.leads,
             responded: firstDealer.responded,
             noResponse: firstDealer.noResponse,
-            time15min: firstDealer.responseTime15min
+            time15min: firstDealer.responseTime15min,
+            time30min: firstDealer.responseTime30min,
+            time60min: firstDealer.responseTime60min,
+            time60plus: firstDealer.responseTime60plus,
+            time24hr: firstDealer.responseTime24hr,
+            time24plus: firstDealer.responseTime24plus
         });
     }
     
@@ -1116,6 +1156,8 @@ function processMultiWorksheetFile(workbook, filename) {
         ((totalNetworkLeads - totalResponded) / totalNetworkLeads * 100).toFixed(1) : 0;
     const quickResponseRate = totalNetworkLeads > 0 ? 
         (total15MinResponses / totalNetworkLeads * 100).toFixed(1) : 0;
+    
+    console.log('Final response distribution:', responseDistribution);
     
     // Update dashboard
     updateDashboard({
