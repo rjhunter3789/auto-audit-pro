@@ -1064,6 +1064,18 @@ function processMultiWorksheetFile(workbook, filename) {
     
     console.log(`Processed ${Object.keys(networkData).length} dealers with data`);
     
+    // Debug: Log response data for first dealer
+    const firstDealer = Object.values(networkData)[0];
+    if (firstDealer) {
+        console.log('Sample dealer response data:', {
+            name: firstDealer.name,
+            leads: firstDealer.leads,
+            responded: firstDealer.responded,
+            noResponse: firstDealer.noResponse,
+            time15min: firstDealer.responseTime15min
+        });
+    }
+    
     // Update global data
     uploadedDealerData = networkData;
     
@@ -1073,9 +1085,29 @@ function processMultiWorksheetFile(workbook, filename) {
     
     let totalResponded = 0;
     let total15MinResponses = 0;
+    let responseDistribution = {
+        time15min: 0,
+        time30min: 0,
+        time60min: 0,
+        time60plus: 0,
+        time24hr: 0,
+        time24plus: 0,
+        noResponse: 0,
+        responded: 0,
+        total: totalNetworkLeads
+    };
+    
     Object.values(networkData).forEach(dealer => {
         totalResponded += dealer.responded || 0;
         total15MinResponses += dealer.responseTime15min || 0;
+        responseDistribution.time15min += dealer.responseTime15min || 0;
+        responseDistribution.time30min += dealer.responseTime30min || 0;
+        responseDistribution.time60min += dealer.responseTime60min || 0;
+        responseDistribution.time60plus += dealer.responseTime60plus || 0;
+        responseDistribution.time24hr += dealer.responseTime24hr || 0;
+        responseDistribution.time24plus += dealer.responseTime24plus || 0;
+        responseDistribution.noResponse += dealer.noResponse || 0;
+        responseDistribution.responded += dealer.responded || 0;
     });
     
     const responseRate = totalNetworkLeads > 0 ? 
@@ -1093,7 +1125,8 @@ function processMultiWorksheetFile(workbook, filename) {
         noResponseRate: noResponseRate,
         quickResponseRate: quickResponseRate,
         dealerCount: Object.keys(networkData).length,
-        dealerName: 'Network Report'
+        dealerName: 'Network Report',
+        responseDistribution: responseDistribution
     });
     
     // Update dealer dropdown
