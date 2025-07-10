@@ -794,8 +794,47 @@ function loadStoredData() {
     }
 }
 
+// ROI Calculator function
+function calculateROI() {
+    const leads = parseFloat(document.getElementById('roiLeads').value) || 0;
+    const currentRate = parseFloat(document.getElementById('roiCurrentRate').value) || 0;
+    const targetRate = parseFloat(document.getElementById('roiTargetRate').value) || 0;
+    const salePrice = parseFloat(document.getElementById('roiSalePrice').value) || 45000;
+    
+    if (leads && currentRate && targetRate) {
+        const currentSales = leads * (currentRate / 100);
+        const targetSales = leads * (targetRate / 100);
+        const additionalMonthlySales = targetSales - currentSales;
+        const additionalAnnualSales = additionalMonthlySales * 12;
+        const additionalRevenue = additionalAnnualSales * salePrice;
+        const improvement = ((targetRate - currentRate) / currentRate * 100).toFixed(1);
+        
+        document.getElementById('roiAddSales').textContent = Math.round(additionalAnnualSales);
+        document.getElementById('roiAddRevenue').textContent = '$' + additionalRevenue.toLocaleString();
+        document.getElementById('roiImprovement').textContent = improvement + '%';
+        document.getElementById('roiResults').style.display = 'block';
+    }
+}
+
+// Report generation functions
+function generateNetworkReport() {
+    alert('Network report generation coming soon!');
+}
+
+function generateDealerReport() {
+    alert('Individual dealer report generation coming soon!');
+}
+
+function generateResponseReport() {
+    alert('Response time report generation coming soon!');
+}
+
 // Make functions available globally for onclick handlers
 window.uploadFile = uploadFile;
 window.showSection = showSection;
 window.handleFileSelect = handleFileSelect;
 window.updateDealerAnalysis = updateDealerAnalysis;
+window.calculateROI = calculateROI;
+window.generateNetworkReport = generateNetworkReport;
+window.generateDealerReport = generateDealerReport;
+window.generateResponseReport = generateResponseReport;

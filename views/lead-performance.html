@@ -347,6 +347,7 @@
                 <h3>Upload Dealer Lead Data</h3>
                 <p>Drag & drop your Excel/CSV file here or click to browse</p>
                 <p class="text-muted small">Supports .xlsx, .xls, and .csv files</p>
+                <p class="text-info small mt-2"><i class="fas fa-info-circle"></i> For network reports: Upload file with multiple dealers listed in Column A</p>
                 <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" onchange="handleFileSelect(event)">
             </div>
 
@@ -437,7 +438,41 @@
             <div class="chart-container">
                 <h3>ROI Calculator</h3>
                 <p>Calculate potential return on investment from lead performance improvements</p>
-                <!-- ROI Calculator content will go here -->
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <h5>Current Performance</h5>
+                        <div class="mb-3">
+                            <label class="form-label">Monthly Form Leads</label>
+                            <input type="number" id="roiLeads" class="form-control" placeholder="Enter monthly leads">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Current Conversion Rate (%)</label>
+                            <input type="number" id="roiCurrentRate" class="form-control" step="0.1" placeholder="e.g. 16.5">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Average Vehicle Sale Price</label>
+                            <input type="number" id="roiSalePrice" class="form-control" value="45000">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Improvement Scenario</h5>
+                        <div class="mb-3">
+                            <label class="form-label">Target Conversion Rate (%)</label>
+                            <input type="number" id="roiTargetRate" class="form-control" step="0.1" placeholder="e.g. 18.5">
+                        </div>
+                        <button class="btn btn-primary" onclick="calculateROI()">Calculate ROI</button>
+                        
+                        <div id="roiResults" class="mt-4" style="display: none;">
+                            <div class="alert alert-success">
+                                <h6>Projected Annual Impact</h6>
+                                <p class="mb-1">Additional Sales: <strong id="roiAddSales">0</strong></p>
+                                <p class="mb-1">Additional Revenue: <strong id="roiAddRevenue">$0</strong></p>
+                                <p class="mb-0">ROI Improvement: <strong id="roiImprovement">0%</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -446,7 +481,38 @@
             <div class="chart-container">
                 <h3>Generate Reports</h3>
                 <p>Create custom reports for dealer performance analysis</p>
-                <!-- Reports content will go here -->
+                
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Network Summary Report</h5>
+                                <p class="card-text">Overview of all dealers' performance metrics</p>
+                                <button class="btn btn-primary" onclick="generateNetworkReport()">Generate Report</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Individual Dealer Report</h5>
+                                <p class="card-text">Detailed analysis for a specific dealer</p>
+                                <button class="btn btn-primary" onclick="generateDealerReport()">Generate Report</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Response Time Analysis</h5>
+                                <p class="card-text">Focus on response metrics and trends</p>
+                                <button class="btn btn-primary" onclick="generateResponseReport()">Generate Report</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="reportOutput" class="mt-4"></div>
             </div>
         </section>
 
