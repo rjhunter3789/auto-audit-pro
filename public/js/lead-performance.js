@@ -35,6 +35,17 @@ document.addEventListener('DOMContentLoaded', function() {
     checkAndLoadStoredData();
     setupDragAndDrop();
     setupSecurityFeatures();
+    
+    // Test: Try to update response time display after a short delay
+    setTimeout(() => {
+        const testElem = document.getElementById('response15min');
+        if (testElem) {
+            console.log('Test: Found response15min element, current value:', testElem.textContent);
+            // Don't actually change it, just log that we found it
+        } else {
+            console.error('Test: response15min element not found after DOM ready!');
+        }
+    }, 1000);
 });
 
 // Setup drag and drop
@@ -487,13 +498,37 @@ function processUploadedData(data, filename = '') {
             
             // Parse response time from Column G
             if (responseTimeText && responseTimeText !== 'N/A' && responseTimeText !== '') {
-                const match = responseTimeText.match(/(\d+)h (\d+)m/);
+                // Try different regex patterns for time format
+                let totalMinutes = null;
+                
+                // Pattern 1: "0h 30m" format
+                let match = responseTimeText.match(/(\d+)h (\d+)m/);
                 if (match) {
-                    const totalMinutes = parseInt(match[1]) * 60 + parseInt(match[2]);
-                    
+                    totalMinutes = parseInt(match[1]) * 60 + parseInt(match[2]);
+                } else {
+                    // Pattern 2: "0h30m" (no space)
+                    match = responseTimeText.match(/(\d+)h(\d+)m/);
+                    if (match) {
+                        totalMinutes = parseInt(match[1]) * 60 + parseInt(match[2]);
+                    } else {
+                        // Pattern 3: Just minutes "30m"
+                        match = responseTimeText.match(/(\d+)m/);
+                        if (match) {
+                            totalMinutes = parseInt(match[1]);
+                        } else {
+                            // Pattern 4: Just hours "2h"
+                            match = responseTimeText.match(/(\d+)h/);
+                            if (match) {
+                                totalMinutes = parseInt(match[1]) * 60;
+                            }
+                        }
+                    }
+                }
+                
+                if (totalMinutes !== null) {
                     // Debug log
                     if (processedRows < 5) {
-                        console.log(`Response time: ${responseTimeText} = ${totalMinutes} minutes`);
+                        console.log(`Response time: "${responseTimeText}" = ${totalMinutes} minutes`);
                     }
                     
                     // Categorize based on minutes
@@ -509,6 +544,11 @@ function processUploadedData(data, filename = '') {
                         currentDealerData.responseTime24hr += 1;
                     } else {
                         currentDealerData.responseTime24plus += 1;
+                    }
+                } else {
+                    // Could not parse time format
+                    if (processedRows < 5) {
+                        console.warn(`Could not parse response time format: "${responseTimeText}"`);
                     }
                 }
             }
@@ -684,22 +724,26 @@ function updateDashboard(metrics) {
         const dist = metrics.responseDistribution;
         const total = dist.total || 1; // Avoid division by zero
         
-        document.getElementById('response15min').textContent = 
-            `${dist.time15min} (${((dist.time15min / total) * 100).toFixed(1)}%)`;
-        document.getElementById('response30min').textContent = 
-            `${dist.time30min} (${((dist.time30min / total) * 100).toFixed(1)}%)`;
-        document.getElementById('response60min').textContent = 
-            `${dist.time60min} (${((dist.time60min / total) * 100).toFixed(1)}%)`;
-        document.getElementById('response60plus').textContent = 
-            `${dist.time60plus} (${((dist.time60plus / total) * 100).toFixed(1)}%)`;
-        document.getElementById('response24hr').textContent = 
-            `${dist.time24hr} (${((dist.time24hr / total) * 100).toFixed(1)}%)`;
-        document.getElementById('response24plus').textContent = 
-            `${dist.time24plus} (${((dist.time24plus / total) * 100).toFixed(1)}%)`;
-        document.getElementById('responseNone').textContent = 
-            `${dist.noResponse} (${((dist.noResponse / total) * 100).toFixed(1)}%)`;
-        document.getElementById('responseTotal').textContent = 
-            `${dist.responded} (${((dist.responded / total) * 100).toFixed(1)}%)`;
+        // Helper function to safely update element
+        const updateElement = (id, value) => {
+            const elem = document.getElementById(id);
+            if (elem) {
+                elem.textContent = value;
+                console.log(`Updated ${id}: ${value}`);
+            } else {
+                console.error(`Element #${id} not found! Cannot update with value: ${value}`);
+            }
+        };
+        
+        // Update each response time element
+        updateElement('response15min', `${dist.time15min} (${((dist.time15min / total) * 100).toFixed(1)}%)`);
+        updateElement('response30min', `${dist.time30min} (${((dist.time30min / total) * 100).toFixed(1)}%)`);
+        updateElement('response60min', `${dist.time60min} (${((dist.time60min / total) * 100).toFixed(1)}%)`);
+        updateElement('response60plus', `${dist.time60plus} (${((dist.time60plus / total) * 100).toFixed(1)}%)`);
+        updateElement('response24hr', `${dist.time24hr} (${((dist.time24hr / total) * 100).toFixed(1)}%)`);
+        updateElement('response24plus', `${dist.time24plus} (${((dist.time24plus / total) * 100).toFixed(1)}%)`);
+        updateElement('responseNone', `${dist.noResponse} (${((dist.noResponse / total) * 100).toFixed(1)}%)`);
+        updateElement('responseTotal', `${dist.responded} (${((dist.responded / total) * 100).toFixed(1)}%)`);
     } else {
         console.warn('No responseDistribution data in metrics!', metrics);
     }
@@ -1392,10 +1436,34 @@ function processMultiWorksheetFile(workbook, filename) {
                 
                 // Now categorize the response time from Column G
                 if (responseTimeText && responseTimeText !== 'N/A' && responseTimeText !== '') {
-                    const match = responseTimeText.match(/(\d+)h (\d+)m/);
+                    // Try different regex patterns for time format
+                    let totalMinutes = null;
+                    
+                    // Pattern 1: "0h 30m" format
+                    let match = responseTimeText.match(/(\d+)h (\d+)m/);
                     if (match) {
-                        const totalMinutes = parseInt(match[1]) * 60 + parseInt(match[2]);
-                        
+                        totalMinutes = parseInt(match[1]) * 60 + parseInt(match[2]);
+                    } else {
+                        // Pattern 2: "0h30m" (no space)
+                        match = responseTimeText.match(/(\d+)h(\d+)m/);
+                        if (match) {
+                            totalMinutes = parseInt(match[1]) * 60 + parseInt(match[2]);
+                        } else {
+                            // Pattern 3: Just minutes "30m"
+                            match = responseTimeText.match(/(\d+)m/);
+                            if (match) {
+                                totalMinutes = parseInt(match[1]);
+                            } else {
+                                // Pattern 4: Just hours "2h"
+                                match = responseTimeText.match(/(\d+)h/);
+                                if (match) {
+                                    totalMinutes = parseInt(match[1]) * 60;
+                                }
+                            }
+                        }
+                    }
+                    
+                    if (totalMinutes !== null) {
                         // Categorize based on minutes
                         if (totalMinutes <= 15) {
                             dealerData.responseTime15min += 1;
@@ -1721,3 +1789,179 @@ window.clearStoredData = clearStoredData;
 window.generateNetworkReport = generateNetworkReport;
 window.generateDealerReport = generateDealerReport;
 window.generateResponseReport = generateResponseReport;
+
+// Debug function to test response time display
+function testResponseTimeDisplay() {
+    console.log('Testing response time display...');
+    
+    // Check if elements exist
+    const elements = [
+        'response15min', 'response30min', 'response60min', 
+        'response60plus', 'response24hr', 'response24plus',
+        'responseNone', 'responseTotal'
+    ];
+    
+    elements.forEach(id => {
+        const elem = document.getElementById(id);
+        if (!elem) {
+            console.error(`Element #${id} not found!`);
+        } else {
+            console.log(`Element #${id} found: ${elem.textContent}`);
+        }
+    });
+    
+    // Test with sample data
+    const testDist = {
+        time15min: 50,
+        time30min: 30,
+        time60min: 20,
+        time60plus: 10,
+        time24hr: 5,
+        time24plus: 2,
+        noResponse: 100,
+        responded: 117,
+        total: 217
+    };
+    
+    console.log('Attempting to update with test data:', testDist);
+    
+    // Try updating directly
+    try {
+        document.getElementById('response15min').textContent = 
+            `${testDist.time15min} (${((testDist.time15min / testDist.total) * 100).toFixed(1)}%)`;
+        console.log('Successfully updated response15min');
+    } catch (e) {
+        console.error('Error updating response15min:', e);
+    }
+}
+
+// Test column mapping
+function debugColumnMapping() {
+    console.log('=== COLUMN MAPPING DEBUG ===');
+    console.log('Expected Ford Report Structure:');
+    console.log('Column A (0): Lead Request Date');
+    console.log('Column B (1): Lead Source');
+    console.log('Column C (2): Lead Type (Form/Chat)');
+    console.log('Column D (3): [Unknown]');
+    console.log('Column E (4): [Unknown]');
+    console.log('Column F (5): Date/Time Actionable');
+    console.log('Column G (6): Response Time (e.g., "0h 30m")');
+    console.log('Column H (7): Response Date');
+    console.log('Column I (8): [Unknown]');
+    console.log('Column J (9): Sale Date');
+    console.log('');
+    
+    if (uploadedDealerData && Object.keys(uploadedDealerData).length > 0) {
+        const firstDealer = Object.values(uploadedDealerData)[0];
+        console.log('First dealer data summary:', {
+            name: firstDealer.name,
+            totalLeads: firstDealer.leads,
+            responded: firstDealer.responded,
+            noResponse: firstDealer.noResponse,
+            responseBreakdown: {
+                '0-15min': firstDealer.responseTime15min,
+                '16-30min': firstDealer.responseTime30min,
+                '31-60min': firstDealer.responseTime60min,
+                '60+min': firstDealer.responseTime60plus,
+                '1-24hr': firstDealer.responseTime24hr,
+                '24+hr': firstDealer.responseTime24plus
+            }
+        });
+    } else {
+        console.log('No dealer data loaded yet');
+    }
+}
+
+window.testResponseTimeDisplay = testResponseTimeDisplay;
+window.debugColumnMapping = debugColumnMapping;
+
+// Function to inspect raw data structure
+function inspectRawData(data) {
+    console.log('=== RAW DATA INSPECTION ===');
+    if (!data || data.length === 0) {
+        console.log('No data provided');
+        return;
+    }
+    
+    console.log(`Total rows: ${data.length}`);
+    
+    // Show rows 10-15 to see headers and first data rows
+    console.log('\nRows 10-15 (around where data starts):');
+    for (let i = 10; i < Math.min(15, data.length); i++) {
+        const row = data[i];
+        if (row && row.length > 0) {
+            console.log(`Row ${i+1}:`, row.slice(0, 11)); // Show first 11 columns
+        }
+    }
+    
+    // If we have data starting at row 12 (index 11), show column values
+    if (data.length > 11 && data[11]) {
+        console.log('\nFirst data row (Row 12) column values:');
+        const firstDataRow = data[11];
+        const columnNames = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+        for (let i = 0; i < Math.min(10, firstDataRow.length); i++) {
+            console.log(`Column ${columnNames[i]} (${i}): "${firstDataRow[i]}"`);
+        }
+    }
+}
+
+window.inspectRawData = inspectRawData;
+
+// Function to manually test response time parsing
+function testResponseTimeParsing() {
+    const testCases = [
+        "0h 30m",
+        "1h 15m",
+        "0h30m",
+        "1h15m",
+        "30m",
+        "2h",
+        "0h 5m",
+        "24h 0m",
+        "48h 30m"
+    ];
+    
+    console.log('=== RESPONSE TIME PARSING TEST ===');
+    
+    testCases.forEach(testCase => {
+        let totalMinutes = null;
+        
+        // Pattern 1: "0h 30m" format
+        let match = testCase.match(/(\d+)h (\d+)m/);
+        if (match) {
+            totalMinutes = parseInt(match[1]) * 60 + parseInt(match[2]);
+        } else {
+            // Pattern 2: "0h30m" (no space)
+            match = testCase.match(/(\d+)h(\d+)m/);
+            if (match) {
+                totalMinutes = parseInt(match[1]) * 60 + parseInt(match[2]);
+            } else {
+                // Pattern 3: Just minutes "30m"
+                match = testCase.match(/(\d+)m/);
+                if (match) {
+                    totalMinutes = parseInt(match[1]);
+                } else {
+                    // Pattern 4: Just hours "2h"
+                    match = testCase.match(/(\d+)h/);
+                    if (match) {
+                        totalMinutes = parseInt(match[1]) * 60;
+                    }
+                }
+            }
+        }
+        
+        let category = 'unknown';
+        if (totalMinutes !== null) {
+            if (totalMinutes <= 15) category = '0-15min';
+            else if (totalMinutes <= 30) category = '16-30min';
+            else if (totalMinutes <= 60) category = '31-60min';
+            else if (totalMinutes <= 240) category = '60min-4hr';
+            else if (totalMinutes <= 1440) category = '4-24hr';
+            else category = '24hr+';
+        }
+        
+        console.log(`"${testCase}" => ${totalMinutes !== null ? totalMinutes + ' minutes' : 'FAILED TO PARSE'} (${category})`);
+    });
+}
+
+window.testResponseTimeParsing = testResponseTimeParsing;
