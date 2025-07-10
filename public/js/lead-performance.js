@@ -1880,15 +1880,576 @@ function populateDealerDropdowns() {
 
 // Report generation functions
 function generateNetworkReport() {
-    alert('Network report generation coming soon!');
+    if (!uploadedDealerData || Object.keys(uploadedDealerData).length === 0) {
+        alert('Please upload dealer data first.');
+        return;
+    }
+    
+    // Calculate network totals
+    let totalLeads = 0;
+    let totalSales = 0;
+    let totalResponded = 0;
+    let dealersByTier = { elite: [], strong: [], average: [], challenge: [] };
+    
+    Object.values(uploadedDealerData).forEach(dealer => {
+        totalLeads += dealer.leads || 0;
+        totalSales += dealer.sales || 0;
+        totalResponded += dealer.responded || 0;
+        
+        // Categorize dealers
+        const rate = dealer.conversionRate || 0;
+        if (rate >= 20) dealersByTier.elite.push(dealer);
+        else if (rate >= 16) dealersByTier.strong.push(dealer);
+        else if (rate >= 12) dealersByTier.average.push(dealer);
+        else dealersByTier.challenge.push(dealer);
+    });
+    
+    const avgConversionRate = totalLeads > 0 ? (totalSales / totalLeads * 100).toFixed(2) : 0;
+    const responseRate = totalLeads > 0 ? (totalResponded / totalLeads * 100).toFixed(1) : 0;
+    
+    // Create report HTML
+    const reportHTML = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Network Summary Report - Auto Audit Pro</title>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 1000px; margin: 0 auto; padding: 40px; }
+                h1 { color: #6B46C1; border-bottom: 3px solid #6B46C1; padding-bottom: 10px; }
+                h2 { color: #9333EA; margin-top: 30px; }
+                h3 { color: #6B46C1; }
+                .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 20px 0; }
+                .metric { background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center; }
+                .metric-value { font-size: 2.5em; font-weight: bold; color: #6B46C1; }
+                .metric-label { color: #666; font-size: 0.9em; }
+                table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+                th { background-color: #f8f9fa; font-weight: bold; }
+                .tier-elite { color: #10B981; }
+                .tier-strong { color: #3B82F6; }
+                .tier-average { color: #F59E0B; }
+                .tier-challenge { color: #EF4444; }
+                .footer { margin-top: 50px; text-align: center; color: #666; font-size: 0.9em; }
+                @media print {
+                    body { padding: 20px; }
+                    .no-print { display: none; }
+                }
+            </style>
+        </head>
+        <body>
+            <h1>Network Summary Report</h1>
+            <p><strong>Report Date:</strong> ${new Date().toLocaleDateString()}</p>
+            <p><strong>Data Period:</strong> Q1-Q2 2025</p>
+            <p><strong>Total Dealers:</strong> ${Object.keys(uploadedDealerData).length}</p>
+            
+            <h2>Network Overview</h2>
+            <div class="metric-grid">
+                <div class="metric">
+                    <div class="metric-value">${totalLeads.toLocaleString()}</div>
+                    <div class="metric-label">Total Form Leads (6 months)</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">${avgConversionRate}%</div>
+                    <div class="metric-label">Network Conversion Rate</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">${responseRate}%</div>
+                    <div class="metric-label">Response Rate</div>
+                </div>
+            </div>
+            
+            <h2>Performance Tiers</h2>
+            <table>
+                <tr>
+                    <th>Tier</th>
+                    <th>Criteria</th>
+                    <th>Dealer Count</th>
+                    <th>% of Network</th>
+                </tr>
+                <tr class="tier-elite">
+                    <td><strong>Elite</strong></td>
+                    <td>20%+ Conversion</td>
+                    <td>${dealersByTier.elite.length}</td>
+                    <td>${(dealersByTier.elite.length / Object.keys(uploadedDealerData).length * 100).toFixed(1)}%</td>
+                </tr>
+                <tr class="tier-strong">
+                    <td><strong>Strong</strong></td>
+                    <td>16-20% Conversion</td>
+                    <td>${dealersByTier.strong.length}</td>
+                    <td>${(dealersByTier.strong.length / Object.keys(uploadedDealerData).length * 100).toFixed(1)}%</td>
+                </tr>
+                <tr class="tier-average">
+                    <td><strong>Average</strong></td>
+                    <td>12-16% Conversion</td>
+                    <td>${dealersByTier.average.length}</td>
+                    <td>${(dealersByTier.average.length / Object.keys(uploadedDealerData).length * 100).toFixed(1)}%</td>
+                </tr>
+                <tr class="tier-challenge">
+                    <td><strong>Challenge</strong></td>
+                    <td><12% Conversion</td>
+                    <td>${dealersByTier.challenge.length}</td>
+                    <td>${(dealersByTier.challenge.length / Object.keys(uploadedDealerData).length * 100).toFixed(1)}%</td>
+                </tr>
+            </table>
+            
+            <h2>Top 10 Dealers by Lead Volume</h2>
+            <table>
+                <tr>
+                    <th>Rank</th>
+                    <th>Dealer</th>
+                    <th>Total Leads</th>
+                    <th>Conversion Rate</th>
+                    <th>Response Rate</th>
+                </tr>
+                ${Object.values(uploadedDealerData)
+                    .sort((a, b) => b.leads - a.leads)
+                    .slice(0, 10)
+                    .map((dealer, index) => `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${dealer.name}</td>
+                            <td>${dealer.leads.toLocaleString()}</td>
+                            <td>${dealer.conversionRate || 0}%</td>
+                            <td>${dealer.responded && dealer.leads ? (dealer.responded / dealer.leads * 100).toFixed(1) : 0}%</td>
+                        </tr>
+                    `).join('')}
+            </table>
+            
+            <div class="footer">
+                <p>© 2025 JL Robinson. All Rights Reserved.</p>
+                <p>Auto Audit Pro™ - Complete Dealership Performance Suite</p>
+            </div>
+        </body>
+        </html>
+    `;
+    
+    // Open report in new window
+    const reportWindow = window.open('', '_blank');
+    reportWindow.document.write(reportHTML);
+    reportWindow.document.close();
+    
+    // Auto-print option
+    setTimeout(() => {
+        if (confirm('Would you like to print this report?')) {
+            reportWindow.print();
+        }
+    }, 500);
 }
 
 function generateDealerReport() {
-    alert('Individual dealer report generation coming soon!');
+    if (!uploadedDealerData || Object.keys(uploadedDealerData).length === 0) {
+        alert('Please upload dealer data first.');
+        return;
+    }
+    
+    // Show dealer selection dialog
+    const dealerList = Object.keys(uploadedDealerData).sort();
+    const dealerSelect = prompt('Enter dealer name or number:\n\n' + 
+        dealerList.map((d, i) => `${i + 1}. ${d}`).join('\n'));
+    
+    if (!dealerSelect) return;
+    
+    // Find dealer by name or number
+    let selectedDealer = null;
+    const dealerIndex = parseInt(dealerSelect) - 1;
+    
+    if (!isNaN(dealerIndex) && dealerIndex >= 0 && dealerIndex < dealerList.length) {
+        selectedDealer = uploadedDealerData[dealerList[dealerIndex]];
+    } else {
+        // Try to find by name (case insensitive partial match)
+        const searchTerm = dealerSelect.toLowerCase();
+        const matchedDealer = dealerList.find(d => d.toLowerCase().includes(searchTerm));
+        if (matchedDealer) {
+            selectedDealer = uploadedDealerData[matchedDealer];
+        }
+    }
+    
+    if (!selectedDealer) {
+        alert('Dealer not found. Please try again.');
+        return;
+    }
+    
+    // Calculate monthly average
+    const monthlyAverage = Math.round((selectedDealer.leads * 2) / 12);
+    const responseRate = selectedDealer.leads > 0 ? 
+        (selectedDealer.responded / selectedDealer.leads * 100).toFixed(1) : 0;
+    
+    // Determine performance tier
+    let tier = 'Challenge';
+    let tierColor = '#EF4444';
+    if (selectedDealer.conversionRate >= 20) {
+        tier = 'Elite';
+        tierColor = '#10B981';
+    } else if (selectedDealer.conversionRate >= 16) {
+        tier = 'Strong';
+        tierColor = '#3B82F6';
+    } else if (selectedDealer.conversionRate >= 12) {
+        tier = 'Average';
+        tierColor = '#F59E0B';
+    }
+    
+    // Create report HTML
+    const reportHTML = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>${selectedDealer.name} - Performance Report</title>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 40px; }
+                h1 { color: #6B46C1; border-bottom: 3px solid #6B46C1; padding-bottom: 10px; }
+                h2 { color: #9333EA; margin-top: 30px; }
+                .tier-badge { 
+                    display: inline-block; 
+                    background: ${tierColor}; 
+                    color: white; 
+                    padding: 5px 15px; 
+                    border-radius: 20px; 
+                    font-weight: bold;
+                    margin-left: 10px;
+                }
+                .metric-row { 
+                    display: flex; 
+                    justify-content: space-between; 
+                    margin: 15px 0; 
+                    padding: 15px; 
+                    background: #f8f9fa; 
+                    border-radius: 8px;
+                }
+                .metric-label { font-weight: bold; color: #666; }
+                .metric-value { font-size: 1.2em; color: #6B46C1; }
+                .response-grid { 
+                    display: grid; 
+                    grid-template-columns: repeat(2, 1fr); 
+                    gap: 15px; 
+                    margin: 20px 0; 
+                }
+                .response-item { 
+                    background: #f8f9fa; 
+                    padding: 15px; 
+                    border-radius: 8px; 
+                    text-align: center;
+                }
+                .response-time { font-size: 1.5em; font-weight: bold; }
+                .recommendation { 
+                    background: #FEF3C7; 
+                    border-left: 4px solid #F59E0B; 
+                    padding: 15px; 
+                    margin: 20px 0;
+                }
+                .footer { margin-top: 50px; text-align: center; color: #666; font-size: 0.9em; }
+            </style>
+        </head>
+        <body>
+            <h1>${selectedDealer.name} <span class="tier-badge">${tier} Performer</span></h1>
+            <p><strong>Report Date:</strong> ${new Date().toLocaleDateString()}</p>
+            <p><strong>Data Period:</strong> Q1-Q2 2025</p>
+            
+            <h2>Performance Overview</h2>
+            <div class="metric-row">
+                <span class="metric-label">Total Form Leads (6 months):</span>
+                <span class="metric-value">${selectedDealer.leads.toLocaleString()}</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">Monthly Lead Average:</span>
+                <span class="metric-value">${monthlyAverage}</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">Conversion Rate:</span>
+                <span class="metric-value">${selectedDealer.conversionRate || 0}%</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">Response Rate:</span>
+                <span class="metric-value">${responseRate}%</span>
+            </div>
+            
+            <h2>Response Time Breakdown</h2>
+            <div class="response-grid">
+                <div class="response-item" style="background: #D1FAE5;">
+                    <div class="response-time">${selectedDealer.responseTime15min || 0}</div>
+                    <div>0-15 Minutes</div>
+                    <div style="color: #666; font-size: 0.9em;">${selectedDealer.leads > 0 ? ((selectedDealer.responseTime15min || 0) / selectedDealer.leads * 100).toFixed(1) : 0}%</div>
+                </div>
+                <div class="response-item">
+                    <div class="response-time">${selectedDealer.responseTime30min || 0}</div>
+                    <div>16-30 Minutes</div>
+                    <div style="color: #666; font-size: 0.9em;">${selectedDealer.leads > 0 ? ((selectedDealer.responseTime30min || 0) / selectedDealer.leads * 100).toFixed(1) : 0}%</div>
+                </div>
+                <div class="response-item">
+                    <div class="response-time">${selectedDealer.responseTime60min || 0}</div>
+                    <div>31-60 Minutes</div>
+                    <div style="color: #666; font-size: 0.9em;">${selectedDealer.leads > 0 ? ((selectedDealer.responseTime60min || 0) / selectedDealer.leads * 100).toFixed(1) : 0}%</div>
+                </div>
+                <div class="response-item">
+                    <div class="response-time">${selectedDealer.responseTime60plus || 0}</div>
+                    <div>60+ Minutes</div>
+                    <div style="color: #666; font-size: 0.9em;">${selectedDealer.leads > 0 ? ((selectedDealer.responseTime60plus || 0) / selectedDealer.leads * 100).toFixed(1) : 0}%</div>
+                </div>
+                <div class="response-item">
+                    <div class="response-time">${selectedDealer.responseTime24hr || 0}</div>
+                    <div>1-24 Hours</div>
+                    <div style="color: #666; font-size: 0.9em;">${selectedDealer.leads > 0 ? ((selectedDealer.responseTime24hr || 0) / selectedDealer.leads * 100).toFixed(1) : 0}%</div>
+                </div>
+                <div class="response-item">
+                    <div class="response-time">${selectedDealer.responseTime24plus || 0}</div>
+                    <div>24+ Hours</div>
+                    <div style="color: #666; font-size: 0.9em;">${selectedDealer.leads > 0 ? ((selectedDealer.responseTime24plus || 0) / selectedDealer.leads * 100).toFixed(1) : 0}%</div>
+                </div>
+                <div class="response-item" style="background: #FEE2E2;">
+                    <div class="response-time">${selectedDealer.noResponse || 0}</div>
+                    <div>No Response</div>
+                    <div style="color: #666; font-size: 0.9em;">${selectedDealer.leads > 0 ? ((selectedDealer.noResponse || 0) / selectedDealer.leads * 100).toFixed(1) : 0}%</div>
+                </div>
+                <div class="response-item" style="background: #D1FAE5;">
+                    <div class="response-time">${selectedDealer.responded || 0}</div>
+                    <div>Total Responded</div>
+                    <div style="color: #666; font-size: 0.9em;">${responseRate}%</div>
+                </div>
+            </div>
+            
+            <h2>Recommendations</h2>
+            ${tier === 'Elite' ? `
+                <div class="recommendation" style="background: #D1FAE5; border-color: #10B981;">
+                    <strong>Excellent Performance!</strong> You're in the Elite tier. Focus on maintaining these high standards and sharing best practices with other dealers.
+                </div>
+            ` : `
+                <div class="recommendation">
+                    <strong>Improvement Opportunities:</strong>
+                    <ul style="margin: 10px 0;">
+                        ${selectedDealer.conversionRate < 16 ? '<li>Focus on improving conversion rate to reach Strong/Elite status</li>' : ''}
+                        ${(selectedDealer.responseTime15min || 0) / selectedDealer.leads * 100 < 30 ? '<li>Increase 15-minute response rate - target 40%+ for optimal lead conversion</li>' : ''}
+                        ${(selectedDealer.noResponse || 0) / selectedDealer.leads * 100 > 30 ? '<li>Reduce no-response rate - every lead deserves follow-up</li>' : ''}
+                        <li>Consider implementing automated lead response systems</li>
+                    </ul>
+                </div>
+            `}
+            
+            <div class="footer">
+                <p>© 2025 JL Robinson. All Rights Reserved.</p>
+                <p>Auto Audit Pro™ - Complete Dealership Performance Suite</p>
+            </div>
+        </body>
+        </html>
+    `;
+    
+    // Open report in new window
+    const reportWindow = window.open('', '_blank');
+    reportWindow.document.write(reportHTML);
+    reportWindow.document.close();
+    
+    // Auto-print option
+    setTimeout(() => {
+        if (confirm('Would you like to print this report?')) {
+            reportWindow.print();
+        }
+    }, 500);
 }
 
 function generateResponseReport() {
-    alert('Response time report generation coming soon!');
+    if (!uploadedDealerData || Object.keys(uploadedDealerData).length === 0) {
+        alert('Please upload dealer data first.');
+        return;
+    }
+    
+    // Calculate response time metrics across network
+    let totalLeads = 0;
+    let responseMetrics = {
+        time15min: 0,
+        time30min: 0,
+        time60min: 0,
+        time60plus: 0,
+        time24hr: 0,
+        time24plus: 0,
+        noResponse: 0,
+        responded: 0
+    };
+    
+    // Top performers by response time
+    let dealerResponseRates = [];
+    
+    Object.values(uploadedDealerData).forEach(dealer => {
+        totalLeads += dealer.leads || 0;
+        responseMetrics.time15min += dealer.responseTime15min || 0;
+        responseMetrics.time30min += dealer.responseTime30min || 0;
+        responseMetrics.time60min += dealer.responseTime60min || 0;
+        responseMetrics.time60plus += dealer.responseTime60plus || 0;
+        responseMetrics.time24hr += dealer.responseTime24hr || 0;
+        responseMetrics.time24plus += dealer.responseTime24plus || 0;
+        responseMetrics.noResponse += dealer.noResponse || 0;
+        responseMetrics.responded += dealer.responded || 0;
+        
+        // Calculate 15-min response rate for each dealer
+        if (dealer.leads > 0) {
+            dealerResponseRates.push({
+                name: dealer.name,
+                leads: dealer.leads,
+                quickResponseRate: ((dealer.responseTime15min || 0) / dealer.leads * 100).toFixed(1),
+                responseRate: ((dealer.responded || 0) / dealer.leads * 100).toFixed(1),
+                noResponseRate: ((dealer.noResponse || 0) / dealer.leads * 100).toFixed(1)
+            });
+        }
+    });
+    
+    // Sort by 15-min response rate
+    dealerResponseRates.sort((a, b) => parseFloat(b.quickResponseRate) - parseFloat(a.quickResponseRate));
+    
+    // Create report HTML
+    const reportHTML = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Response Time Analysis Report - Auto Audit Pro</title>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 1000px; margin: 0 auto; padding: 40px; }
+                h1 { color: #6B46C1; border-bottom: 3px solid #6B46C1; padding-bottom: 10px; }
+                h2 { color: #9333EA; margin-top: 30px; }
+                .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 20px 0; }
+                .metric-card { 
+                    background: #f8f9fa; 
+                    padding: 20px; 
+                    border-radius: 8px; 
+                    text-align: center;
+                    border: 2px solid transparent;
+                }
+                .metric-card.good { border-color: #10B981; background: #D1FAE5; }
+                .metric-card.warning { border-color: #F59E0B; background: #FEF3C7; }
+                .metric-card.critical { border-color: #EF4444; background: #FEE2E2; }
+                .metric-value { font-size: 2em; font-weight: bold; color: #6B46C1; }
+                .metric-label { color: #666; font-size: 0.9em; margin-top: 5px; }
+                .chart-container { 
+                    background: #f8f9fa; 
+                    padding: 20px; 
+                    border-radius: 8px; 
+                    margin: 20px 0;
+                }
+                table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+                th { background-color: #f8f9fa; font-weight: bold; }
+                .footer { margin-top: 50px; text-align: center; color: #666; font-size: 0.9em; }
+                .insight { 
+                    background: #E0E7FF; 
+                    border-left: 4px solid #6B46C1; 
+                    padding: 15px; 
+                    margin: 20px 0;
+                }
+            </style>
+        </head>
+        <body>
+            <h1>Response Time Analysis Report</h1>
+            <p><strong>Report Date:</strong> ${new Date().toLocaleDateString()}</p>
+            <p><strong>Data Period:</strong> Q1-Q2 2025</p>
+            <p><strong>Total Network Leads:</strong> ${totalLeads.toLocaleString()}</p>
+            
+            <h2>Network Response Time Distribution</h2>
+            <div class="metric-grid">
+                <div class="metric-card good">
+                    <div class="metric-value">${responseMetrics.time15min.toLocaleString()}</div>
+                    <div class="metric-label">0-15 Minutes</div>
+                    <div class="metric-label">${(responseMetrics.time15min / totalLeads * 100).toFixed(1)}%</div>
+                </div>
+                <div class="metric-card good">
+                    <div class="metric-value">${responseMetrics.time30min.toLocaleString()}</div>
+                    <div class="metric-label">16-30 Minutes</div>
+                    <div class="metric-label">${(responseMetrics.time30min / totalLeads * 100).toFixed(1)}%</div>
+                </div>
+                <div class="metric-card warning">
+                    <div class="metric-value">${responseMetrics.time60min.toLocaleString()}</div>
+                    <div class="metric-label">31-60 Minutes</div>
+                    <div class="metric-label">${(responseMetrics.time60min / totalLeads * 100).toFixed(1)}%</div>
+                </div>
+                <div class="metric-card warning">
+                    <div class="metric-value">${responseMetrics.time60plus.toLocaleString()}</div>
+                    <div class="metric-label">60+ Minutes</div>
+                    <div class="metric-label">${(responseMetrics.time60plus / totalLeads * 100).toFixed(1)}%</div>
+                </div>
+                <div class="metric-card critical">
+                    <div class="metric-value">${responseMetrics.time24hr.toLocaleString()}</div>
+                    <div class="metric-label">1-24 Hours</div>
+                    <div class="metric-label">${(responseMetrics.time24hr / totalLeads * 100).toFixed(1)}%</div>
+                </div>
+                <div class="metric-card critical">
+                    <div class="metric-value">${responseMetrics.time24plus.toLocaleString()}</div>
+                    <div class="metric-label">24+ Hours</div>
+                    <div class="metric-label">${(responseMetrics.time24plus / totalLeads * 100).toFixed(1)}%</div>
+                </div>
+                <div class="metric-card critical">
+                    <div class="metric-value">${responseMetrics.noResponse.toLocaleString()}</div>
+                    <div class="metric-label">No Response</div>
+                    <div class="metric-label">${(responseMetrics.noResponse / totalLeads * 100).toFixed(1)}%</div>
+                </div>
+            </div>
+            
+            <div class="insight">
+                <strong>Key Insight:</strong> ${(responseMetrics.time15min / totalLeads * 100).toFixed(1)}% of leads receive a response within 15 minutes. 
+                Industry best practice targets 40%+ for optimal conversion. 
+                ${responseMetrics.noResponse / totalLeads * 100 > 30 ? 'High no-response rate detected - significant opportunity for improvement.' : ''}
+            </div>
+            
+            <h2>Top 10 Dealers by 15-Minute Response Rate</h2>
+            <table>
+                <tr>
+                    <th>Rank</th>
+                    <th>Dealer</th>
+                    <th>Total Leads</th>
+                    <th>15-Min Response</th>
+                    <th>Total Response</th>
+                    <th>No Response</th>
+                </tr>
+                ${dealerResponseRates.slice(0, 10).map((dealer, index) => `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${dealer.name}</td>
+                        <td>${dealer.leads.toLocaleString()}</td>
+                        <td style="color: #10B981; font-weight: bold;">${dealer.quickResponseRate}%</td>
+                        <td>${dealer.responseRate}%</td>
+                        <td style="color: ${parseFloat(dealer.noResponseRate) > 30 ? '#EF4444' : '#666'};">${dealer.noResponseRate}%</td>
+                    </tr>
+                `).join('')}
+            </table>
+            
+            <h2>Bottom 10 Dealers by Response Rate</h2>
+            <table>
+                <tr>
+                    <th>Rank</th>
+                    <th>Dealer</th>
+                    <th>Total Leads</th>
+                    <th>15-Min Response</th>
+                    <th>Total Response</th>
+                    <th>No Response</th>
+                </tr>
+                ${dealerResponseRates
+                    .sort((a, b) => parseFloat(a.responseRate) - parseFloat(b.responseRate))
+                    .slice(0, 10)
+                    .map((dealer, index) => `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${dealer.name}</td>
+                        <td>${dealer.leads.toLocaleString()}</td>
+                        <td>${dealer.quickResponseRate}%</td>
+                        <td style="color: #EF4444; font-weight: bold;">${dealer.responseRate}%</td>
+                        <td style="color: #EF4444; font-weight: bold;">${dealer.noResponseRate}%</td>
+                    </tr>
+                `).join('')}
+            </table>
+            
+            <div class="footer">
+                <p>© 2025 JL Robinson. All Rights Reserved.</p>
+                <p>Auto Audit Pro™ - Complete Dealership Performance Suite</p>
+            </div>
+        </body>
+        </html>
+    `;
+    
+    // Open report in new window
+    const reportWindow = window.open('', '_blank');
+    reportWindow.document.write(reportHTML);
+    reportWindow.document.close();
+    
+    // Auto-print option
+    setTimeout(() => {
+        if (confirm('Would you like to print this report?')) {
+            reportWindow.print();
+        }
+    }, 500);
 }
 
 // Generate ROI Report
