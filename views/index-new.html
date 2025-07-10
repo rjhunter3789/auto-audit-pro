@@ -184,6 +184,73 @@
             border: 2px solid #dee2e6;
         }
 
+        /* Navigation styles */
+        .suite-nav {
+            background: var(--dark-bg);
+            padding: 1rem 0;
+            margin: -2rem -2rem 2rem -2rem;
+            position: relative;
+            z-index: 100;
+        }
+        
+        .suite-nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        .suite-brand {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        
+        .suite-brand:hover {
+            color: #E5E7EB;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            margin: 0;
+        }
+        
+        .nav-links a {
+            color: #9CA3AF;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: white;
+        }
+        
+        .back-to-suite {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            transition: opacity 0.2s;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+        }
+        
+        .back-to-suite:hover {
+            opacity: 0.8;
+            color: white;
+            background: rgba(255, 255, 255, 0.3);
+        }
+
         @media (max-width: 768px) {
             .header-section h1 {
                 font-size: 2rem;
@@ -196,7 +263,27 @@
     </style>
 </head>
 <body>
+    <!-- Navigation Bar -->
+    <nav class="suite-nav">
+        <div class="container">
+            <a href="/" class="suite-brand">Auto Audit Pro Suite</a>
+            <div class="nav-links">
+                <a href="/website-audit" class="active">Website Analysis</a>
+                <a href="/lead-analysis">Lead Performance</a>
+                <a href="/definitions">Definitions</a>
+            </div>
+        </div>
+    </nav>
+    
     <div class="main-container">
+        <!-- Back Link -->
+        <a href="/" class="back-to-suite">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+            </svg>
+            Back to Suite
+        </a>
+        
         <!-- Header Section -->
         <div class="header-section">
             <h1>Auto Audit Pro</h1>

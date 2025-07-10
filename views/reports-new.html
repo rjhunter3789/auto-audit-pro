@@ -20,6 +20,64 @@
             background-color: #F3F4F6;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
+        
+        /* Navigation styles */
+        .suite-nav {
+            background: #1F2937;
+            padding: 1rem 0;
+            margin-bottom: 0;
+        }
+        
+        .suite-nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .suite-brand {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        
+        .suite-brand:hover {
+            color: #E5E7EB;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            margin: 0;
+        }
+        
+        .nav-links a {
+            color: #9CA3AF;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: white;
+        }
+        
+        .back-to-suite {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #6B46C1;
+            text-decoration: none;
+            font-weight: 500;
+            margin: 1.5rem 0;
+            transition: opacity 0.2s;
+        }
+        
+        .back-to-suite:hover {
+            opacity: 0.8;
+            color: #6B46C1;
+        }
 
         .score-header {
             background: linear-gradient(135deg, #10B981 0%, #059669 100%);
@@ -264,6 +322,17 @@
     </style>
 </head>
 <body>
+    <!-- Navigation Bar -->
+    <nav class="suite-nav">
+        <div class="container">
+            <a href="/" class="suite-brand">Auto Audit Pro Suite</a>
+            <div class="nav-links">
+                <a href="/website-audit" class="active">Website Analysis</a>
+                <a href="/lead-analysis">Lead Performance</a>
+                <a href="/definitions">Definitions</a>
+            </div>
+        </div>
+    </nav>
     <!-- Score Header -->
     <div class="score-header <%= results.overallScore >= 80 ? 'excellent' : results.overallScore >= 60 ? 'good' : 'poor' %>">
         <div class="container">
@@ -291,12 +360,20 @@
     </div>
 
     <div class="container">
+        <!-- Back Link -->
+        <a href="/" class="back-to-suite">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+            </svg>
+            Back to Suite
+        </a>
+        
         <!-- Action Buttons -->
         <div class="action-buttons">
             <button class="btn btn-primary btn-action" onclick="window.print()">
                 <i class="fas fa-print"></i> Print Report
             </button>
-            <a href="/" class="btn btn-secondary btn-action">
+            <a href="/website-audit" class="btn btn-secondary btn-action">
                 <i class="fas fa-redo"></i> New Analysis
             </a>
         </div>
