@@ -125,26 +125,32 @@ function processUploadedData(data, filename = '') {
         console.log('Row 11 (data start):', data[11]);
     }
     
-    // Find dealer name - check multiple possible locations
+    // Find dealer name - Ford reports have dealer name in cell B2
     let dealerName = '';
     
-    // Strategy 1: Look for dealer name in specific cells
-    // Check various common locations for dealer names in Ford reports
-    const possibleLocations = [
-        [1, 1], // Row 2, Column B
-        [0, 1], // Row 1, Column B
-        [2, 1], // Row 3, Column B
-        [1, 0], // Row 2, Column A
-        [0, 0], // Row 1, Column A
-        [3, 1], // Row 4, Column B
-        [4, 1], // Row 5, Column B
-        [5, 1], // Row 6, Column B
-        [6, 1], // Row 7, Column B
-        [7, 1], // Row 8, Column B
-        [8, 1], // Row 9, Column B
-        [9, 1], // Row 10, Column B
-        [10, 1], // Row 11, Column B
-    ];
+    // Primary location: Cell B2 (Row 2, Column B = index [1][1])
+    if (data.length > 1 && data[1] && data[1][1]) {
+        const cellB2 = String(data[1][1]).trim();
+        console.log('Cell B2 content:', cellB2);
+        
+        // Check if this looks like a dealer name (not a header)
+        if (cellB2 && 
+            !cellB2.toLowerCase().includes('dealer') && 
+            !cellB2.toLowerCase().includes('report') &&
+            !cellB2.toLowerCase().includes('lead') &&
+            cellB2.length > 3) {
+            dealerName = cellB2;
+            console.log('Found dealer name in B2:', dealerName);
+        }
+    }
+    
+    // If not found in B2, check a few other common locations
+    if (!dealerName) {
+        const possibleLocations = [
+            [0, 1], // Row 1, Column B
+            [2, 1], // Row 3, Column B
+            [1, 0], // Row 2, Column A
+        ];
     
     for (const [row, col] of possibleLocations) {
         if (data.length > row && data[row] && data[row][col]) {
@@ -198,7 +204,8 @@ function processUploadedData(data, filename = '') {
     }
     
     // Check if this is a multi-dealer file (network report)
-    // Look for dealer names in column A starting around row 11
+    // IMPORTANT: Lead data starts at row 12 (index 11)
+    // Row 12 has "Lead Source" in column B
     const dealers = {};
     let isNetworkReport = false;
     let currentDealer = dealerName;
@@ -208,7 +215,7 @@ function processUploadedData(data, filename = '') {
         leadSources: {}
     };
     
-    // Start scanning from row 11
+    // Start scanning from row 12 (index 11) where lead data begins
     for (let i = 11; i < data.length; i++) {
         const row = data[i];
         if (!row || row.length < 10) continue;
