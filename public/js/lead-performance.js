@@ -32,8 +32,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     initializeCharts();
-    loadStoredData();
+    checkAndLoadStoredData();
     setupDragAndDrop();
+    setupSecurityFeatures();
 });
 
 // Setup drag and drop
@@ -166,7 +167,10 @@ function handleFileSelect(event) {
                 processUploadedData(data, file.name);
                 showUploadSuccess();
                 
-                // Store data for correlation with website audit
+                // Save complete data to enhanced storage
+                saveDataToStorage(uploadedDealerData);
+                
+                // Store data for correlation with website audit (legacy)
                 localStorage.setItem('leadPerformanceData', JSON.stringify({
                     uploadDate: new Date().toISOString(),
                     dealerCount: Object.keys(uploadedDealerData).length,
@@ -925,20 +929,273 @@ function showUploadSuccess() {
     `;
 }
 
-function loadStoredData() {
-    // Check for stored lead performance data
-    const storedData = localStorage.getItem('leadPerformanceData');
-    if (storedData) {
-        const data = JSON.parse(storedData);
-        console.log('Found stored lead performance data:', data);
+// Enhanced LocalStorage functions with security
+function saveDataToStorage(dealerData) {
+    try {
+        const dataPackage = {
+            data: dealerData,
+            uploadDate: new Date().toISOString(),
+            expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
+            dataChecksum: generateChecksum(dealerData),
+            version: '1.0'
+        };
+        
+        // Compress the data to save space
+        const dataString = JSON.stringify(dataPackage);
+        
+        // Check storage size
+        const sizeInMB = (new Blob([dataString]).size / 1024 / 1024).toFixed(2);
+        console.log(`Storing ${sizeInMB}MB of dealer data`);
+        
+        localStorage.setItem('dealerDataComplete', dataString);
+        localStorage.setItem('dataUploadInfo', JSON.stringify({
+            uploadDate: dataPackage.uploadDate,
+            expiryDate: dataPackage.expiryDate,
+            dealerCount: Object.keys(dealerData).length,
+            sizeInMB: sizeInMB
+        }));
+        
+        showStorageNotification('Data saved successfully', 'success');
+    } catch (e) {
+        console.error('Failed to save data:', e);
+        if (e.name === 'QuotaExceededError') {
+            showStorageNotification('Storage full. Please clear old data.', 'error');
+        }
+    }
+}
+
+function checkAndLoadStoredData() {
+    try {
+        const storedDataString = localStorage.getItem('dealerDataComplete');
+        const uploadInfo = localStorage.getItem('dataUploadInfo');
+        
+        if (!storedDataString || !uploadInfo) {
+            console.log('No stored dealer data found');
+            return;
+        }
+        
+        const dataPackage = JSON.parse(storedDataString);
+        const info = JSON.parse(uploadInfo);
+        
+        // Check if data has expired
+        const expiryDate = new Date(dataPackage.expiryDate);
+        const now = new Date();
+        const daysUntilExpiry = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+        
+        if (now > expiryDate) {
+            console.log('Stored data has expired');
+            clearStoredData();
+            showStorageNotification('Previous data expired and was removed', 'warning');
+            return;
+        }
+        
+        // Verify data integrity
+        if (dataPackage.dataChecksum !== generateChecksum(dataPackage.data)) {
+            console.error('Data integrity check failed');
+            clearStoredData();
+            showStorageNotification('Stored data corrupted and was removed', 'error');
+            return;
+        }
+        
+        // Load the data
+        uploadedDealerData = dataPackage.data;
+        
+        // Update UI to show data is loaded
+        showDataLoadedUI(info, daysUntilExpiry);
+        
+        // Populate dropdowns and update dashboard
+        populateDealerDropdowns();
+        
+        // Calculate and show metrics
+        if (Object.keys(uploadedDealerData).length > 0) {
+            recalculateMetricsFromStoredData();
+        }
+        
+        console.log(`Loaded stored data: ${info.dealerCount} dealers, ${info.sizeInMB}MB`);
+        
+    } catch (e) {
+        console.error('Error loading stored data:', e);
+        clearStoredData();
+    }
+}
+
+function clearStoredData() {
+    localStorage.removeItem('dealerDataComplete');
+    localStorage.removeItem('dataUploadInfo');
+    localStorage.removeItem('leadPerformanceData');
+    uploadedDealerData = {};
+    showStorageNotification('All stored data cleared', 'info');
+    location.reload();
+}
+
+function generateChecksum(data) {
+    // Simple checksum for data integrity
+    const str = JSON.stringify(data);
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32-bit integer
+    }
+    return hash.toString(16);
+}
+
+function showStorageNotification(message, type = 'info') {
+    const alertClass = {
+        'success': 'alert-success',
+        'error': 'alert-danger',
+        'warning': 'alert-warning',
+        'info': 'alert-info'
+    }[type];
+    
+    const notification = document.createElement('div');
+    notification.className = `alert ${alertClass} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
+    notification.style.zIndex = '9999';
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 5000);
+}
+
+function showDataLoadedUI(info, daysUntilExpiry) {
+    const uploadCard = document.querySelector('.upload-card');
+    if (!uploadCard) return;
+    
+    const uploadDate = new Date(info.uploadDate);
+    const daysAgo = Math.floor((new Date() - uploadDate) / (1000 * 60 * 60 * 24));
+    
+    let statusClass = 'text-success';
+    let statusIcon = 'fa-check-circle';
+    
+    if (daysUntilExpiry <= 5) {
+        statusClass = 'text-danger';
+        statusIcon = 'fa-exclamation-circle';
+    } else if (daysUntilExpiry <= 10) {
+        statusClass = 'text-warning';
+        statusIcon = 'fa-exclamation-triangle';
     }
     
-    // Check for website audit data
-    const websiteData = localStorage.getItem('lastWebsiteAudit');
-    if (websiteData) {
-        const audit = JSON.parse(websiteData);
-        console.log('Found website audit data:', audit);
+    uploadCard.innerHTML = `
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <i class="fas ${statusIcon} ${statusClass}" style="font-size: 2rem;"></i>
+                <h3 class="mt-2">Data Loaded from Storage</h3>
+                <p class="mb-1"><strong>${info.dealerCount} dealers</strong> (${info.sizeInMB}MB)</p>
+                <p class="mb-1">Uploaded: ${uploadDate.toLocaleDateString()} (${daysAgo} days ago)</p>
+                <p class="${statusClass}">Expires in ${daysUntilExpiry} days</p>
+            </div>
+            <div class="d-flex flex-column gap-2">
+                <button class="btn btn-primary" onclick="uploadFile()">
+                    <i class="fas fa-upload"></i> Upload New Data
+                </button>
+                <button class="btn btn-outline-danger btn-sm" onclick="clearStoredData()">
+                    <i class="fas fa-trash"></i> Clear Stored Data
+                </button>
+            </div>
+        </div>
+        <div class="mt-3 p-3 bg-light rounded">
+            <small class="text-muted">
+                <i class="fas fa-shield-alt"></i> Data stored locally on this device only
+            </small>
+        </div>
+        <input type="file" id="fileInput" accept=".csv,.xlsx,.xlsm,.xls" onchange="handleFileSelect(event)" style="display: none;">
+    `;
+}
+
+function recalculateMetricsFromStoredData() {
+    // Recalculate network totals
+    let totalNetworkLeads = 0;
+    let totalNetworkSales = 0;
+    let totalResponded = 0;
+    let total15MinResponses = 0;
+    
+    let responseDistribution = {
+        time15min: 0,
+        time30min: 0,
+        time60min: 0,
+        time60plus: 0,
+        time24hr: 0,
+        time24plus: 0,
+        noResponse: 0,
+        responded: 0,
+        total: 0
+    };
+    
+    Object.values(uploadedDealerData).forEach(dealer => {
+        totalNetworkLeads += dealer.leads || 0;
+        totalNetworkSales += dealer.sales || 0;
+        totalResponded += dealer.responded || 0;
+        total15MinResponses += dealer.responseTime15min || 0;
+        
+        responseDistribution.time15min += dealer.responseTime15min || 0;
+        responseDistribution.time30min += dealer.responseTime30min || 0;
+        responseDistribution.time60min += dealer.responseTime60min || 0;
+        responseDistribution.time60plus += dealer.responseTime60plus || 0;
+        responseDistribution.time24hr += dealer.responseTime24hr || 0;
+        responseDistribution.time24plus += dealer.responseTime24plus || 0;
+        responseDistribution.noResponse += dealer.noResponse || 0;
+        responseDistribution.responded += dealer.responded || 0;
+    });
+    
+    responseDistribution.total = totalNetworkLeads;
+    
+    const avgConversionRate = totalNetworkLeads > 0 ? 
+        (totalNetworkSales / totalNetworkLeads * 100).toFixed(2) : 0;
+    
+    const responseRate = totalNetworkLeads > 0 ? 
+        (totalResponded / totalNetworkLeads * 100).toFixed(1) : 0;
+    const noResponseRate = totalNetworkLeads > 0 ? 
+        ((totalNetworkLeads - totalResponded) / totalNetworkLeads * 100).toFixed(1) : 0;
+    const quickResponseRate = totalNetworkLeads > 0 ? 
+        (total15MinResponses / totalNetworkLeads * 100).toFixed(1) : 0;
+    
+    // Update dashboard
+    updateDashboard({
+        totalLeads: totalNetworkLeads,
+        conversionRate: avgConversionRate,
+        responseRate: responseRate,
+        noResponseRate: noResponseRate,
+        quickResponseRate: quickResponseRate,
+        dealerCount: Object.keys(uploadedDealerData).length,
+        dealerName: 'Network Report (Stored)',
+        responseDistribution: responseDistribution
+    });
+    
+    // Update charts
+    updateCharts();
+}
+
+function setupSecurityFeatures() {
+    // Auto-clear on inactivity
+    let inactivityTimer;
+    const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+    
+    function resetInactivityTimer() {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(() => {
+            if (confirm('Your session has been inactive for 30 minutes. Clear stored data for security?')) {
+                clearStoredData();
+            }
+        }, INACTIVITY_TIMEOUT);
     }
+    
+    // Track user activity
+    document.addEventListener('click', resetInactivityTimer);
+    document.addEventListener('keypress', resetInactivityTimer);
+    document.addEventListener('scroll', resetInactivityTimer);
+    
+    resetInactivityTimer();
+}
+
+// Legacy function for backward compatibility
+function loadStoredData() {
+    checkAndLoadStoredData();
 }
 
 // Process multi-worksheet Excel file (network report)
@@ -1169,7 +1426,10 @@ function processMultiWorksheetFile(workbook, filename) {
     // Show success
     showUploadSuccess();
     
-    // Store data
+    // Save complete data to enhanced storage
+    saveDataToStorage(networkData);
+    
+    // Store summary data (legacy)
     localStorage.setItem('leadPerformanceData', JSON.stringify({
         uploadDate: new Date().toISOString(),
         dealerCount: Object.keys(networkData).length,
@@ -1344,6 +1604,7 @@ window.updateCurrentSales = updateCurrentSales;
 window.populateROIFromDealer = populateROIFromDealer;
 window.populateDealerSelect = populateDealerSelect;
 window.populateDealerDropdowns = populateDealerDropdowns;
+window.clearStoredData = clearStoredData;
 window.generateNetworkReport = generateNetworkReport;
 window.generateDealerReport = generateDealerReport;
 window.generateResponseReport = generateResponseReport;
