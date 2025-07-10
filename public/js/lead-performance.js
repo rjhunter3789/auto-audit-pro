@@ -618,6 +618,35 @@ function updateDealerAnalysis() {
     const dealer = uploadedDealerData[dealerName];
     if (!dealer) return;
     
+    // Calculate network averages from current data
+    let networkTotals = {
+        leads: 0,
+        sales: 0,
+        responded: 0,
+        responseTime15min: 0
+    };
+    
+    let dealerCount = 0;
+    Object.values(uploadedDealerData).forEach(d => {
+        networkTotals.leads += d.leads;
+        networkTotals.sales += d.sales;
+        networkTotals.responded += d.responded || 0;
+        networkTotals.responseTime15min += d.responseTime15min || 0;
+        dealerCount++;
+    });
+    
+    const networkAvgConversion = networkTotals.leads > 0 ? 
+        (networkTotals.sales / networkTotals.leads * 100).toFixed(2) : 0;
+    const networkResponseRate = networkTotals.leads > 0 ? 
+        (networkTotals.responded / networkTotals.leads * 100).toFixed(1) : 0;
+    const network15MinRate = networkTotals.leads > 0 ? 
+        (networkTotals.responseTime15min / networkTotals.leads * 100).toFixed(1) : 0;
+    
+    // Calculate dealer's rank
+    const sortedDealers = Object.values(uploadedDealerData)
+        .sort((a, b) => parseFloat(b.conversionRate) - parseFloat(a.conversionRate));
+    const dealerRank = sortedDealers.findIndex(d => d.name === dealerName) + 1;
+    
     // Build lead source table
     let leadSourceHTML = '<h4 class="mt-4">Lead Source Performance</h4><div class="table-responsive"><table class="table table-sm"><thead><tr><th>Lead Source</th><th>Leads</th><th>Sales</th><th>Conv %</th></tr></thead><tbody>';
     
@@ -635,23 +664,34 @@ function updateDealerAnalysis() {
     }
     leadSourceHTML += '</tbody></table></div>';
     
+    // Calculate response metrics
+    const dealerResponseRate = dealer.leads > 0 ? 
+        ((dealer.responded || 0) / dealer.leads * 100).toFixed(1) : 0;
+    const dealer15MinRate = dealer.leads > 0 ? 
+        ((dealer.responseTime15min || 0) / dealer.leads * 100).toFixed(1) : 0;
+    
     const analysisHTML = `
         <div class="chart-container">
             <h3>${dealerName} Performance Analysis</h3>
+            <p class="text-muted">PA Code: ${dealer.paCode || 'N/A'} | Network Rank: ${dealerRank} of ${dealerCount}</p>
+            
             <div class="metrics-grid">
                 <div class="metric-card">
-                    <h3>Total Leads</h3>
+                    <h3>Total Form Leads</h3>
                     <p class="metric-value">${dealer.leads}</p>
+                    <p class="metric-change">Network Total: ${networkTotals.leads.toLocaleString()}</p>
                 </div>
                 <div class="metric-card">
                     <h3>Total Sales</h3>
                     <p class="metric-value">${dealer.sales}</p>
+                    <p class="metric-change">Network Total: ${networkTotals.sales.toLocaleString()}</p>
                 </div>
                 <div class="metric-card">
                     <h3>Conversion Rate</h3>
                     <p class="metric-value">${dealer.conversionRate}%</p>
-                    <p class="metric-change ${parseFloat(dealer.conversionRate) >= networkBenchmarks.conversionRate ? 'positive' : 'negative'}">
-                        Network Avg: ${networkBenchmarks.conversionRate}%
+                    <p class="metric-change ${parseFloat(dealer.conversionRate) >= parseFloat(networkAvgConversion) ? 'positive' : 'negative'}">
+                        Network Avg: ${networkAvgConversion}%
+                        (${parseFloat(dealer.conversionRate) >= parseFloat(networkAvgConversion) ? '+' : ''}${(parseFloat(dealer.conversionRate) - parseFloat(networkAvgConversion)).toFixed(2)}%)
                     </p>
                 </div>
                 <div class="metric-card">
@@ -661,6 +701,32 @@ function updateDealerAnalysis() {
                         parseFloat(dealer.conversionRate) >= 16 ? 'Strong' :
                         parseFloat(dealer.conversionRate) >= 12 ? 'Average' : 'Challenge'
                     }</p>
+                    <p class="metric-change">Rank: ${dealerRank} of ${dealerCount}</p>
+                </div>
+            </div>
+            
+            <h4 class="mt-4">Response Metrics vs Network</h4>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <h3>Response Rate</h3>
+                    <p class="metric-value">${dealerResponseRate}%</p>
+                    <p class="metric-change ${parseFloat(dealerResponseRate) >= parseFloat(networkResponseRate) ? 'positive' : 'negative'}">
+                        Network: ${networkResponseRate}%
+                    </p>
+                </div>
+                <div class="metric-card">
+                    <h3>15-Min Response</h3>
+                    <p class="metric-value">${dealer15MinRate}%</p>
+                    <p class="metric-change ${parseFloat(dealer15MinRate) >= parseFloat(network15MinRate) ? 'positive' : 'negative'}">
+                        Network: ${network15MinRate}%
+                    </p>
+                </div>
+                <div class="metric-card">
+                    <h3>No Response</h3>
+                    <p class="metric-value">${dealer.noResponse}</p>
+                    <p class="metric-change">
+                        ${((dealer.noResponse / dealer.leads) * 100).toFixed(1)}% of leads
+                    </p>
                 </div>
             </div>
             
