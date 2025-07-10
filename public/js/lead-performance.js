@@ -45,6 +45,28 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             console.error('Test: response15min element not found after DOM ready!');
         }
+        
+        // DIRECT TEST: Can we parse response times at all?
+        console.log('=== DIRECT RESPONSE TIME PARSING TEST ===');
+        const testTimes = ['0h 30m', '0h30m', '30m', '2h', '1h 45m', '45 minutes'];
+        testTimes.forEach(time => {
+            let result = 'FAILED';
+            let match = time.match(/(\d+)h\s*(\d+)m/);
+            if (match) {
+                result = (parseInt(match[1]) * 60 + parseInt(match[2])) + ' minutes';
+            } else {
+                match = time.match(/(\d+)m/);
+                if (match) {
+                    result = parseInt(match[1]) + ' minutes';
+                } else {
+                    match = time.match(/(\d+)h/);
+                    if (match) {
+                        result = (parseInt(match[1]) * 60) + ' minutes';
+                    }
+                }
+            }
+            console.log(`  "${time}" -> ${result}`);
+        });
     }, 1000);
 });
 
@@ -764,6 +786,21 @@ function updateDashboard(metrics) {
         updateElement('response24plus', `${dist.time24plus} (${((dist.time24plus / total) * 100).toFixed(1)}%)`);
         updateElement('responseNone', `${dist.noResponse} (${((dist.noResponse / total) * 100).toFixed(1)}%)`);
         updateElement('responseTotal', `${dist.responded} (${((dist.responded / total) * 100).toFixed(1)}%)`);
+        
+        // FORCE CHECK: Let's see what's actually in the distribution
+        console.log('RESPONSE DISTRIBUTION CHECK:');
+        console.log('- noResponse:', dist.noResponse);
+        console.log('- responded:', dist.responded);
+        console.log('- time15min:', dist.time15min);
+        console.log('- time30min:', dist.time30min);
+        console.log('- time60min:', dist.time60min);
+        console.log('- total:', dist.total);
+        
+        // If all time buckets are 0 but responded > 0, we have a parsing problem
+        if (dist.responded > 0 && dist.time15min === 0 && dist.time30min === 0 && 
+            dist.time60min === 0 && dist.time60plus === 0) {
+            console.error('WARNING: Leads marked as responded but NO time categories! Response time parsing is failing.');
+        }
     } else {
         console.warn('No responseDistribution data in metrics!', metrics);
     }
@@ -1801,8 +1838,40 @@ function updateCurrentSales() {
     }
 }
 
+// Debug function to check stored dealer data
+function checkStoredDealerData() {
+    console.log('=== CHECKING STORED DEALER DATA ===');
+    const firstDealer = Object.values(uploadedDealerData)[0];
+    if (firstDealer) {
+        console.log('First dealer in stored data:', firstDealer.name);
+        console.log('Response time fields:');
+        console.log('- responseTime15min:', firstDealer.responseTime15min);
+        console.log('- responseTime30min:', firstDealer.responseTime30min);
+        console.log('- responseTime60min:', firstDealer.responseTime60min);
+        console.log('- responded:', firstDealer.responded);
+        console.log('- noResponse:', firstDealer.noResponse);
+        
+        // Check if old data might not have these fields
+        if (firstDealer.responseTime15min === undefined) {
+            console.error('WARNING: Stored data is missing response time fields!');
+            console.error('This data was saved before response times were implemented.');
+            console.error('Please clear stored data and re-upload your file.');
+        }
+    }
+    
+    // Count how many dealers have response time data
+    let dealersWithResponseData = 0;
+    Object.values(uploadedDealerData).forEach(dealer => {
+        if (dealer.responseTime15min !== undefined || dealer.responseTime30min !== undefined) {
+            dealersWithResponseData++;
+        }
+    });
+    console.log(`${dealersWithResponseData} out of ${Object.keys(uploadedDealerData).length} dealers have response time data`);
+}
+
 // Make functions available globally for onclick handlers
 window.uploadFile = uploadFile;
+window.checkStoredDealerData = checkStoredDealerData;
 window.showSection = showSection;
 window.handleFileSelect = handleFileSelect;
 window.updateDealerAnalysis = updateDealerAnalysis;
