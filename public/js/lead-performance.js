@@ -1704,6 +1704,16 @@ function updateCurrentSales() {
     const currentRate = parseFloat(document.getElementById('roiCurrentConversion').value) || 0;
     const currentSales = leads * (currentRate / 100);
     document.getElementById('currentMonthlySales').textContent = currentSales.toFixed(1);
+    
+    // Update custom target field to match current conversion rate
+    const customTargetField = document.getElementById('roiCustomTarget');
+    if (customTargetField && currentRate > 0) {
+        customTargetField.placeholder = `e.g. ${currentRate}`;
+        // If field is empty, set the value to current rate
+        if (!customTargetField.value) {
+            customTargetField.value = currentRate;
+        }
+    }
 }
 
 // Add event listeners for real-time updates
@@ -1814,6 +1824,12 @@ function populateROIFromDealer() {
     
     document.getElementById('roiMonthlyLeads').value = monthlyAverage;
     document.getElementById('roiCurrentConversion').value = dealer.conversionRate || 0;
+    
+    // Update custom target field with current conversion rate
+    const customTargetField = document.getElementById('roiCustomTarget');
+    if (customTargetField) {
+        customTargetField.value = dealer.conversionRate || 0;
+    }
     
     // Update current sales display
     updateCurrentSales();
