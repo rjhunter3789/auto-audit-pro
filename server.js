@@ -1734,6 +1734,11 @@ app.get('/lead-analysis', (req, res) => {
     res.render('lead-performance.html');
 });
 
+// Combined insights
+app.get('/insights', (req, res) => {
+    res.render('combined-insights.html');
+});
+
 // This shows the definitions page
 app.get('/definitions', (req, res) => {
     res.render('definitions.html');

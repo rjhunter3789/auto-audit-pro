@@ -209,8 +209,13 @@
             border: none;
             color: white;
             transition: all 0.3s ease;
-            opacity: 0.7;
-            cursor: not-allowed;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-insights:hover {
+            transform: translateY(-1px);
+            color: white;
         }
 
         .coming-soon {
@@ -341,12 +346,11 @@
             <p class="insights-subtitle">
                 See how your website performance impacts lead quality and conversion
             </p>
-            <button class="btn-insights" disabled>
-                <i class="fas fa-lock"></i> Unlock Insights
-                <span class="coming-soon">Coming Soon</span>
-            </button>
+            <a href="/insights" class="btn-insights">
+                <i class="fas fa-lightbulb"></i> View Combined Insights
+            </a>
             <p class="mt-3 text-muted">
-                Run both analyses to unlock powerful correlations between website health and lead performance
+                Discover powerful correlations between website health and lead performance
             </p>
         </div>
     </div>

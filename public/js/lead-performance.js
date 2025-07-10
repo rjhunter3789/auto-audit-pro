@@ -70,7 +70,8 @@ function handleFileSelect(event) {
                     data = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
                 }
                 
-                processUploadedData(data);
+                // Pass filename to help identify dealer
+                processUploadedData(data, file.name);
                 showUploadSuccess();
                 
                 // Store data for correlation with website audit
@@ -113,55 +114,126 @@ function parseCSV(csvText) {
     return result;
 }
 
-function processUploadedData(data) {
-    // Skip header rows (similar to original app.js)
-    const dataStartRow = 11; // Data starts at row 12 (0-indexed)
+function processUploadedData(data, filename = '') {
+    // Debug: Log the first few rows to understand structure
+    console.log('First 5 rows of data:', data.slice(0, 5));
+    console.log('Filename:', filename);
     
-    // Extract dealer data
-    const dealers = {};
-    let totalNetworkLeads = 0;
-    let totalConversions = 0;
+    // Find dealer name - check multiple possible locations
+    let dealerName = '';
+    
+    // Strategy 1: Look for dealer name in specific cells
+    // Check various common locations for dealer names in Ford reports
+    const possibleLocations = [
+        [1, 1], // Row 2, Column B
+        [0, 1], // Row 1, Column B
+        [2, 1], // Row 3, Column B
+        [1, 0], // Row 2, Column A
+        [0, 0], // Row 1, Column A
+    ];
+    
+    for (const [row, col] of possibleLocations) {
+        if (data.length > row && data[row] && data[row][col]) {
+            const cellValue = String(data[row][col]).trim();
+            // Check if this looks like a dealer name (not a header or report title)
+            if (cellValue && 
+                !cellValue.toLowerCase().includes('lead') && 
+                !cellValue.toLowerCase().includes('report') &&
+                !cellValue.toLowerCase().includes('performance') &&
+                !cellValue.toLowerCase().includes('summary') &&
+                cellValue.length > 3) {
+                dealerName = cellValue;
+                break;
+            }
+        }
+    }
+    
+    // Strategy 2: Try to extract from filename if no dealer name found
+    if (!dealerName && filename) {
+        // Remove file extension and common report keywords
+        let cleanFilename = filename.replace(/\.(xlsx?|csv)$/i, '');
+        cleanFilename = cleanFilename.replace(/lead|performance|report|summary|data|export/gi, '');
+        cleanFilename = cleanFilename.replace(/[_-]+/g, ' ').trim();
+        
+        if (cleanFilename && cleanFilename.length > 3) {
+            dealerName = cleanFilename;
+        }
+    }
+    
+    // Strategy 3: If we see what looks like lead source data, use a prompt
+    if (!dealerName) {
+        // Check if the data looks like lead sources (not dealer names)
+        const firstDataRow = data[11]; // Where data typically starts
+        if (firstDataRow && firstDataRow[1] && 
+            (firstDataRow[1].includes('Ford') || firstDataRow[1].includes('LVDS') || 
+             firstDataRow[1].includes('Credit') || firstDataRow[1].includes('Website'))) {
+            // This looks like lead source data, prompt user for dealer name
+            dealerName = prompt('Please enter the dealer name for this report:') || 'Unknown Dealer';
+        }
+    }
+    
+    // Final fallback
+    if (!dealerName) {
+        dealerName = 'Dealership ' + new Date().toLocaleDateString();
+    }
+    
+    // Skip header rows - data starts at row 12 (0-indexed row 11)
+    const dataStartRow = 11;
+    
+    // Extract lead source data for this dealer
+    const leadSources = {};
+    let totalLeads = 0;
+    let totalSales = 0;
     
     for (let i = dataStartRow; i < data.length; i++) {
         const row = data[i];
         if (!row || row.length < 10) continue;
         
-        const dealerName = row[1]; // Column B
-        if (!dealerName || dealerName === 'Grand Total') continue;
+        const leadSource = row[1]; // Column B - Lead Source
+        if (!leadSource || leadSource === 'Grand Total' || leadSource.toLowerCase().includes('total')) continue;
         
-        const leads = parseInt(row[2]) || 0; // Column C
-        const appointments = parseInt(row[6]) || 0; // Column G
-        const shows = parseInt(row[7]) || 0; // Column H
-        const sales = parseInt(row[8]) || 0; // Column I
+        const leads = parseInt(row[2]) || 0; // Column C - Leads
+        const appointments = parseInt(row[6]) || 0; // Column G - Appointments
+        const shows = parseInt(row[7]) || 0; // Column H - Shows  
+        const sales = parseInt(row[8]) || 0; // Column I - Sales
         
-        if (!dealers[dealerName]) {
-            dealers[dealerName] = {
-                name: dealerName,
-                leads: 0,
-                appointments: 0,
-                shows: 0,
-                sales: 0
+        if (leads > 0) {
+            leadSources[leadSource] = {
+                leads: leads,
+                appointments: appointments,
+                shows: shows,
+                sales: sales,
+                conversionRate: leads > 0 ? (sales / leads * 100).toFixed(2) : 0
             };
+            
+            totalLeads += leads;
+            totalSales += sales;
         }
-        
-        dealers[dealerName].leads += leads;
-        dealers[dealerName].appointments += appointments;
-        dealers[dealerName].shows += shows;
-        dealers[dealerName].sales += sales;
-        
-        totalNetworkLeads += leads;
-        totalConversions += sales;
     }
     
-    // Calculate metrics
+    // Create dealer summary
+    const dealers = {};
+    if (dealerName) {
+        dealers[dealerName] = {
+            name: dealerName,
+            leads: totalLeads,
+            sales: totalSales,
+            leadSources: leadSources,
+            conversionRate: totalLeads > 0 ? (totalSales / totalLeads * 100).toFixed(2) : 0
+        };
+    }
+    
+    console.log('Processed dealer data:', dealers);
+    
+    // For now, just use the single dealer
     uploadedDealerData = dealers;
-    const conversionRate = totalNetworkLeads > 0 ? (totalConversions / totalNetworkLeads * 100).toFixed(2) : 0;
     
     // Update dashboard
     updateDashboard({
-        totalLeads: totalNetworkLeads,
-        conversionRate: conversionRate,
-        dealerCount: Object.keys(dealers).length
+        totalLeads: totalLeads,
+        conversionRate: dealers[dealerName]?.conversionRate || 0,
+        dealerCount: Object.keys(dealers).length,
+        dealerName: dealerName
     });
     
     // Update dealer dropdown
@@ -212,9 +284,22 @@ function updateDealerAnalysis() {
     const dealer = uploadedDealerData[dealerName];
     if (!dealer) return;
     
-    const conversionRate = dealer.leads > 0 ? (dealer.sales / dealer.leads * 100).toFixed(2) : 0;
-    const appointmentRate = dealer.leads > 0 ? (dealer.appointments / dealer.leads * 100).toFixed(2) : 0;
-    const showRate = dealer.appointments > 0 ? (dealer.shows / dealer.appointments * 100).toFixed(2) : 0;
+    // Build lead source table
+    let leadSourceHTML = '<h4 class="mt-4">Lead Source Performance</h4><div class="table-responsive"><table class="table table-sm"><thead><tr><th>Lead Source</th><th>Leads</th><th>Sales</th><th>Conv %</th></tr></thead><tbody>';
+    
+    if (dealer.leadSources) {
+        Object.entries(dealer.leadSources).forEach(([source, data]) => {
+            leadSourceHTML += `
+                <tr>
+                    <td>${source}</td>
+                    <td>${data.leads}</td>
+                    <td>${data.sales}</td>
+                    <td>${data.conversionRate}%</td>
+                </tr>
+            `;
+        });
+    }
+    leadSourceHTML += '</tbody></table></div>';
     
     const analysisHTML = `
         <div class="chart-container">
@@ -225,21 +310,27 @@ function updateDealerAnalysis() {
                     <p class="metric-value">${dealer.leads}</p>
                 </div>
                 <div class="metric-card">
+                    <h3>Total Sales</h3>
+                    <p class="metric-value">${dealer.sales}</p>
+                </div>
+                <div class="metric-card">
                     <h3>Conversion Rate</h3>
-                    <p class="metric-value">${conversionRate}%</p>
-                    <p class="metric-change ${conversionRate >= networkBenchmarks.conversionRate ? 'positive' : 'negative'}">
+                    <p class="metric-value">${dealer.conversionRate}%</p>
+                    <p class="metric-change ${parseFloat(dealer.conversionRate) >= networkBenchmarks.conversionRate ? 'positive' : 'negative'}">
                         Network Avg: ${networkBenchmarks.conversionRate}%
                     </p>
                 </div>
                 <div class="metric-card">
-                    <h3>Appointment Rate</h3>
-                    <p class="metric-value">${appointmentRate}%</p>
-                </div>
-                <div class="metric-card">
-                    <h3>Show Rate</h3>
-                    <p class="metric-value">${showRate}%</p>
+                    <h3>Performance Tier</h3>
+                    <p class="metric-value">${
+                        parseFloat(dealer.conversionRate) >= 20 ? 'Elite' :
+                        parseFloat(dealer.conversionRate) >= 16 ? 'Strong' :
+                        parseFloat(dealer.conversionRate) >= 12 ? 'Average' : 'Challenge'
+                    }</p>
                 </div>
             </div>
+            
+            ${leadSourceHTML}
             
             <!-- Check for website audit data -->
             ${checkForWebsiteAudit(dealerName)}

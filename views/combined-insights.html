@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Combined Insights - Auto Audit Pro Suite</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --primary-purple: #6B46C1;
+            --secondary-purple: #9333EA;
+            --accent-blue: #3B82F6;
+            --accent-green: #10B981;
+            --accent-red: #EF4444;
+            --dark-bg: #1F2937;
+        }
+
+        body {
+            background: #F3F4F6;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        /* Navigation */
+        .suite-nav {
+            background: var(--dark-bg);
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .suite-nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .suite-brand {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            margin: 0;
+        }
+
+        .nav-links a {
+            color: #9CA3AF;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: white;
+        }
+
+        /* Main Content */
+        .insights-header {
+            background: linear-gradient(135deg, var(--primary-purple) 0%, var(--secondary-purple) 100%);
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .insights-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .insights-header p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+        }
+
+        /* Status Cards */
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .status-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-card.connected {
+            border-top: 4px solid var(--accent-green);
+        }
+
+        .status-card.missing {
+            border-top: 4px solid var(--accent-red);
+        }
+
+        .status-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .status-icon.check {
+            color: var(--accent-green);
+        }
+
+        .status-icon.warning {
+            color: var(--accent-red);
+        }
+
+        /* Insights Section */
+        .insight-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .insight-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .insight-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .insight-icon.correlation {
+            background: #EBF8FF;
+            color: var(--accent-blue);
+        }
+
+        .insight-icon.impact {
+            background: #FEF2F2;
+            color: var(--accent-red);
+        }
+
+        .insight-icon.opportunity {
+            background: #F0FDF4;
+            color: var(--accent-green);
+        }
+
+        .insight-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--dark-bg);
+            margin: 0;
+        }
+
+        .insight-metric {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary-purple);
+            margin: 1rem 0;
+        }
+
+        .insight-description {
+            color: #6B7280;
+            line-height: 1.6;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-container h3 {
+            margin-bottom: 1.5rem;
+            color: var(--dark-bg);
+        }
+
+        /* ROI Calculator */
+        .roi-section {
+            background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%);
+            border-radius: 12px;
+            padding: 3rem;
+            margin: 2rem 0;
+        }
+
+        .roi-value {
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--accent-green);
+            margin: 1rem 0;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 12px;
+            margin: 2rem 0;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(135deg, var(--primary-purple) 0%, var(--secondary-purple) 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-1px);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="suite-nav">
+        <div class="container">
+            <a href="/" class="suite-brand">Auto Audit Pro Suite</a>
+            <div class="nav-links">
+                <a href="/website-audit">Website Analysis</a>
+                <a href="/lead-analysis">Lead Performance</a>
+                <a href="/insights" class="active">Combined Insights</a>
+                <a href="/definitions">Definitions</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <div class="insights-header">
+        <div class="container">
+            <h1>Combined Insights</h1>
+            <p>Discover how your website performance impacts lead conversion</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Data Status -->
+        <div class="status-grid">
+            <div class="status-card" id="websiteStatus">
+                <i class="fas fa-globe status-icon"></i>
+                <h3>Website Analysis</h3>
+                <p class="status-text">No website audit data found</p>
+                <a href="/website-audit" class="btn btn-sm btn-outline-primary mt-2">Run Website Audit</a>
+            </div>
+            
+            <div class="status-card" id="leadStatus">
+                <i class="fas fa-chart-bar status-icon"></i>
+                <h3>Lead Performance</h3>
+                <p class="status-text">No lead data uploaded</p>
+                <a href="/lead-analysis" class="btn btn-sm btn-outline-primary mt-2">Upload Lead Data</a>
+            </div>
+        </div>
+
+        <!-- Insights Container -->
+        <div id="insightsContainer" style="display: none;">
+            <!-- Correlation Insight -->
+            <div class="insight-card">
+                <div class="insight-header">
+                    <div class="insight-icon correlation">
+                        <i class="fas fa-link"></i>
+                    </div>
+                    <h2 class="insight-title">Website Score vs. Lead Conversion</h2>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="insight-metric" id="correlationScore">--</div>
+                        <p class="insight-description">
+                            Your website score directly correlates with lead conversion performance.
+                            <span id="correlationDetail"></span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <canvas id="correlationChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Impact Analysis -->
+            <div class="insight-card">
+                <div class="insight-header">
+                    <div class="insight-icon impact">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h2 class="insight-title">Top Website Issues Impacting Conversions</h2>
+                </div>
+                <div id="impactList">
+                    <!-- Dynamic content -->
+                </div>
+            </div>
+
+            <!-- Opportunity Analysis -->
+            <div class="insight-card">
+                <div class="insight-header">
+                    <div class="insight-icon opportunity">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <h2 class="insight-title">Improvement Opportunities</h2>
+                </div>
+                <div id="opportunityList">
+                    <!-- Dynamic content -->
+                </div>
+            </div>
+
+            <!-- Performance Comparison -->
+            <div class="chart-container">
+                <h3>Performance Comparison</h3>
+                <canvas id="comparisonChart" height="300"></canvas>
+            </div>
+
+            <!-- ROI Calculator -->
+            <div class="roi-section">
+                <h2>Potential Return on Investment</h2>
+                <p>Based on your current performance and identified improvements:</p>
+                <div class="roi-value" id="roiValue">$0</div>
+                <p>Estimated annual revenue increase from fixing top website issues</p>
+                
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <h5>Lead Increase</h5>
+                        <p class="h3" id="leadIncrease">+0%</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h5>Conversion Improvement</h5>
+                        <p class="h3" id="conversionIncrease">+0%</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h5>Additional Sales</h5>
+                        <p class="h3" id="additionalSales">+0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Plan -->
+            <div class="cta-section">
+                <h2>Ready to Improve Your Performance?</h2>
+                <p>Based on our analysis, here's your recommended action plan:</p>
+                <div class="cta-buttons">
+                    <a href="/website-audit" class="btn-primary-custom">
+                        <i class="fas fa-tools"></i> Fix Website Issues
+                    </a>
+                    <button class="btn-primary-custom" onclick="downloadReport()">
+                        <i class="fas fa-download"></i> Download Full Report
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- No Data State -->
+        <div id="noDataState" class="text-center py-5">
+            <i class="fas fa-chart-pie" style="font-size: 4rem; color: #E5E7EB; margin-bottom: 1rem;"></i>
+            <h3>Complete Both Analyses to Unlock Insights</h3>
+            <p class="text-muted">Run a website audit and upload lead data to see powerful correlations</p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-5 py-4 bg-dark text-white text-center">
+        <div class="container">
+            <p class="mb-2">© 2025 JL Robinson. All Rights Reserved.</p>
+            <p class="small mb-0">Auto Audit Pro™ - Complete Dealership Performance Suite</p>
+            <p class="small mb-0"><a href="https://autoauditpro.io" class="text-white">autoauditpro.io</a></p>
+        </div>
+    </footer>
+
+    <script src="/js/combined-insights.js"></script>
+</body>
+</html>
