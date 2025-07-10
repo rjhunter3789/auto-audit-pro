@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lead Performance Analysis - Auto Audit Pro Suite</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary-purple: #6B46C1;
+            --secondary-purple: #9333EA;
+            --accent-green: #10B981;
+            --accent-red: #EF4444;
+            --dark-bg: #1F2937;
+        }
+
+        body {
+            background: #F3F4F6;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        /* Navigation Bar */
+        .suite-nav {
+            background: var(--dark-bg);
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .suite-nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .suite-brand {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .suite-brand:hover {
+            color: #E5E7EB;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            margin: 0;
+        }
+
+        .nav-links a {
+            color: #9CA3AF;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: white;
+        }
+
+        /* Main Content */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .page-header {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .page-header h1 {
+            color: var(--dark-bg);
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-header p {
+            color: #6B7280;
+            font-size: 1.125rem;
+            margin: 0;
+        }
+
+        /* Tab Navigation */
+        .tab-nav {
+            background: white;
+            border-radius: 12px;
+            padding: 0.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: transparent;
+            color: #6B7280;
+            font-weight: 500;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover {
+            background: #F3F4F6;
+        }
+
+        .tab-btn.active {
+            background: var(--primary-purple);
+            color: white;
+        }
+
+        /* Content Sections */
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        /* Upload Area */
+        .upload-card {
+            background: white;
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            border: 2px dashed #E5E7EB;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 2rem;
+        }
+
+        .upload-card:hover {
+            border-color: var(--primary-purple);
+            background: #F9FAFB;
+        }
+
+        .upload-card i {
+            font-size: 3rem;
+            color: var(--primary-purple);
+            margin-bottom: 1rem;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .metric-card h3 {
+            color: #6B7280;
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--dark-bg);
+            margin: 0;
+        }
+
+        .metric-change {
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+
+        .metric-change.positive {
+            color: var(--accent-green);
+        }
+
+        .metric-change.negative {
+            color: var(--accent-red);
+        }
+
+        /* Charts */
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-container h3 {
+            color: var(--dark-bg);
+            margin-bottom: 1.5rem;
+        }
+
+        /* Dealer Dropdown */
+        .dealer-select-container {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .dealer-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 1rem;
+            color: var(--dark-bg);
+        }
+
+        .dealer-select:focus {
+            outline: none;
+            border-color: var(--primary-purple);
+        }
+
+        /* Performance Tiers */
+        .tier-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .tier-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 2px solid;
+        }
+
+        .tier-card.elite {
+            border-color: #10B981;
+            background: #F0FDF4;
+        }
+
+        .tier-card.strong {
+            border-color: #3B82F6;
+            background: #EFF6FF;
+        }
+
+        .tier-card.average {
+            border-color: #F59E0B;
+            background: #FEF3C7;
+        }
+
+        .tier-card.challenge {
+            border-color: #EF4444;
+            background: #FEF2F2;
+        }
+
+        /* Back Button */
+        .back-to-suite {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-purple);
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            transition: opacity 0.2s;
+        }
+
+        .back-to-suite:hover {
+            opacity: 0.8;
+            color: var(--primary-purple);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="suite-nav">
+        <div class="container">
+            <a href="/" class="suite-brand">Auto Audit Pro Suite</a>
+            <div class="nav-links">
+                <a href="/website-audit">Website Analysis</a>
+                <a href="/lead-analysis" class="active">Lead Performance</a>
+                <a href="/definitions">Definitions</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <!-- Back Link -->
+        <a href="/" class="back-to-suite">
+            <i class="fas fa-arrow-left"></i> Back to Suite
+        </a>
+
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1>Lead Performance Intelligence</h1>
+            <p>Upload and analyze Ford dealer lead reports to uncover performance insights</p>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="showSection('dashboard')">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </button>
+            <button class="tab-btn" onclick="showSection('analysis')">
+                <i class="fas fa-chart-bar"></i> Lead Analysis
+            </button>
+            <button class="tab-btn" onclick="showSection('calculator')">
+                <i class="fas fa-calculator"></i> ROI Calculator
+            </button>
+            <button class="tab-btn" onclick="showSection('reports')">
+                <i class="fas fa-file-alt"></i> Reports
+            </button>
+            <button class="tab-btn" onclick="showSection('settings')">
+                <i class="fas fa-cog"></i> Settings
+            </button>
+        </div>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="content-section active">
+            <!-- Data Upload -->
+            <div class="upload-card" onclick="uploadFile()">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <h3>Upload Dealer Lead Data</h3>
+                <p>Drag & drop your Excel/CSV file here or click to browse</p>
+                <p class="text-muted small">Supports .xlsx, .xls, and .csv files</p>
+                <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" onchange="handleFileSelect(event)">
+            </div>
+
+            <!-- Key Metrics -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <h3>Total Network Leads</h3>
+                    <p class="metric-value" id="totalLeads">-</p>
+                    <p class="metric-change">Q1-Q2 2025</p>
+                </div>
+                <div class="metric-card">
+                    <h3>Network Conversion Rate</h3>
+                    <p class="metric-value" id="conversionRate">-</p>
+                    <p class="metric-change positive">Industry Avg: 12%</p>
+                </div>
+                <div class="metric-card">
+                    <h3>No Response Rate</h3>
+                    <p class="metric-value" id="noResponseRate">-</p>
+                    <p class="metric-change negative">Target: <30%</p>
+                </div>
+                <div class="metric-card">
+                    <h3>15-Min Response Rate</h3>
+                    <p class="metric-value" id="quickResponseRate">-</p>
+                    <p class="metric-change">Target: 40%+</p>
+                </div>
+            </div>
+
+            <!-- Performance Tiers -->
+            <div class="chart-container">
+                <h3>Dealer Performance Tiers</h3>
+                <div class="tier-grid">
+                    <div class="tier-card elite">
+                        <h4>Elite</h4>
+                        <p class="tier-count" id="eliteCount">0 Dealers</p>
+                        <p class="tier-criteria">20%+ Conversion</p>
+                    </div>
+                    <div class="tier-card strong">
+                        <h4>Strong</h4>
+                        <p class="tier-count" id="strongCount">0 Dealers</p>
+                        <p class="tier-criteria">16-20% Conversion</p>
+                    </div>
+                    <div class="tier-card average">
+                        <h4>Average</h4>
+                        <p class="tier-count" id="averageCount">0 Dealers</p>
+                        <p class="tier-criteria">12-16% Conversion</p>
+                    </div>
+                    <div class="tier-card challenge">
+                        <h4>Challenge</h4>
+                        <p class="tier-count" id="challengeCount">0 Dealers</p>
+                        <p class="tier-criteria"><12% Conversion</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="chart-container">
+                        <h3>Top 10 Dealers by Lead Volume</h3>
+                        <canvas id="volumeChart"></canvas>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="chart-container">
+                        <h3>Response Time Distribution</h3>
+                        <canvas id="responseChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Lead Analysis Section -->
+        <section id="analysis" class="content-section">
+            <div class="dealer-select-container">
+                <label for="dealerSelect" class="form-label">Select Dealer:</label>
+                <select id="dealerSelect" class="dealer-select" onchange="updateDealerAnalysis()">
+                    <option value="">Choose a dealer...</option>
+                </select>
+            </div>
+
+            <div id="dealerAnalysisContent">
+                <p class="text-center text-muted">Select a dealer to view detailed analysis</p>
+            </div>
+        </section>
+
+        <!-- ROI Calculator Section -->
+        <section id="calculator" class="content-section">
+            <div class="chart-container">
+                <h3>ROI Calculator</h3>
+                <p>Calculate potential return on investment from lead performance improvements</p>
+                <!-- ROI Calculator content will go here -->
+            </div>
+        </section>
+
+        <!-- Reports Section -->
+        <section id="reports" class="content-section">
+            <div class="chart-container">
+                <h3>Generate Reports</h3>
+                <p>Create custom reports for dealer performance analysis</p>
+                <!-- Reports content will go here -->
+            </div>
+        </section>
+
+        <!-- Settings Section -->
+        <section id="settings" class="content-section">
+            <div class="chart-container">
+                <h3>Settings</h3>
+                <p>Configure benchmarks and analysis parameters</p>
+                <!-- Settings content will go here -->
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-5 py-4 bg-dark text-white text-center">
+        <div class="container">
+            <p class="mb-2">© 2025 JL Robinson. All Rights Reserved.</p>
+            <p class="small mb-0">Auto Audit Pro™ - Complete Dealership Performance Suite</p>
+            <p class="small mb-0"><a href="https://autoauditpro.io" class="text-white">autoauditpro.io</a></p>
+        </div>
+    </footer>
+
+    <!-- Lead Performance JavaScript -->
+    <script src="/js/lead-performance.js"></script>
+</body>
+</html>

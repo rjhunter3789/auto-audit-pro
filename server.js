@@ -31,6 +31,11 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // This lets our server understand the form data
 
+// Serve static files
+app.use('/js', express.static(path.join(__dirname, 'public/js')));
+app.use('/css', express.static(path.join(__dirname, 'public/css')));
+app.use('/images', express.static(path.join(__dirname, 'public/images')));
+
 // Add proper CSP headers for the app
 app.use((req, res, next) => {
     res.setHeader(
@@ -1714,9 +1719,19 @@ app.get('/api/health', (req, res) => {
 const { runComprehensiveAudit } = require('./lib/audit-tests');
 const { auditVDP, auditServicePage, auditInventoryPage, auditSpecialsPage } = require('./lib/page-specific-tests');
 
-// This shows the main page with the form (index.html)
+// This shows the main suite landing page
 app.get('/', (req, res) => {
+    res.render('suite-home.html');
+});
+
+// Website audit tool (original functionality)
+app.get('/website-audit', (req, res) => {
     res.render('index-new.html');
+});
+
+// Lead performance tool
+app.get('/lead-analysis', (req, res) => {
+    res.render('lead-performance.html');
 });
 
 // This shows the definitions page
@@ -1884,6 +1899,14 @@ app.post('/audit', async (req, res) => {
         
         // Calculate potential ROI
         auditResults.potentialROI = calculatePotentialROI(auditResults.enhancedRecommendations);
+        
+        // Store audit data for correlation with lead performance
+        auditResults.correlationData = {
+            domain: auditResults.domain,
+            brand: auditResults.brand,
+            score: auditResults.overallScore,
+            timestamp: new Date().toISOString()
+        };
         
         // If contact page found, check it for business hours and contact info
         if (discoveredPages.contact) {

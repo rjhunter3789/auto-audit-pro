@@ -598,6 +598,17 @@
                 html: true
             });
         });
+        
+        // Store audit data for correlation with lead performance
+        <% if (results.correlationData) { %>
+        localStorage.setItem('lastWebsiteAudit', JSON.stringify({
+            domain: '<%= results.domain %>',
+            brand: '<%= results.brand %>',
+            score: <%= results.overallScore %>,
+            timestamp: '<%= results.correlationData.timestamp %>',
+            issues: <%= results.issues.length %>
+        }));
+        <% } %>
     </script>
 </body>
 </html>
