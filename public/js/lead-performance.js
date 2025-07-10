@@ -147,10 +147,19 @@ function handleFileSelect(event) {
                     console.log('Processing Excel file');
                     const workbook = XLSX.read(e.target.result, { type: 'binary' });
                     console.log('Workbook sheets:', workbook.SheetNames);
-                    const sheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[sheetName];
-                    data = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                    console.log('Data extracted, rows:', data.length);
+                    
+                    // Check if this is a multi-worksheet file (network report)
+                    if (workbook.SheetNames.length > 1) {
+                        console.log('Multi-worksheet file detected - processing as network report');
+                        processMultiWorksheetFile(workbook, file.name);
+                        return; // Exit here, different processing path
+                    } else {
+                        // Single worksheet - process normally
+                        const sheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[sheetName];
+                        data = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                        console.log('Data extracted, rows:', data.length);
+                    }
                 }
                 
                 // Pass filename to help identify dealer
@@ -792,6 +801,170 @@ function loadStoredData() {
         const audit = JSON.parse(websiteData);
         console.log('Found website audit data:', audit);
     }
+}
+
+// Process multi-worksheet Excel file (network report)
+function processMultiWorksheetFile(workbook, filename) {
+    console.log(`Processing ${workbook.SheetNames.length} worksheets as network report`);
+    
+    const networkData = {};
+    let totalNetworkLeads = 0;
+    let totalNetworkSales = 0;
+    
+    // Process each worksheet
+    workbook.SheetNames.forEach((sheetName, index) => {
+        console.log(`Processing worksheet ${index + 1}: ${sheetName}`);
+        
+        const worksheet = workbook.Sheets[sheetName];
+        const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        
+        // Get dealer name from cell B2
+        let dealerName = '';
+        if (data.length > 1 && data[1] && data[1][1]) {
+            dealerName = data[1][1].trim();
+            console.log(`PA Code ${sheetName} = ${dealerName}`);
+        } else {
+            dealerName = `Dealer ${sheetName}`; // Fallback
+        }
+        
+        // Process this dealer's data
+        let dealerData = {
+            name: dealerName,
+            paCode: sheetName,
+            leads: 0,
+            sales: 0,
+            responded: 0,
+            noResponse: 0,
+            responseTime15min: 0,
+            leadSources: {}
+        };
+        
+        // Process leads (same logic as single dealer)
+        for (let i = 11; i < data.length; i++) {
+            const row = data[i];
+            if (!row || !row[0] || !row[1]) continue;
+            
+            const leadType = row[2]; // Column C
+            if (!leadType || leadType !== 'Form') continue;
+            
+            const leadSource = row[1]; // Column B
+            if (!leadSource || leadSource.toLowerCase().includes('total')) continue;
+            
+            // Initialize lead source if needed
+            if (!dealerData.leadSources[leadSource]) {
+                dealerData.leadSources[leadSource] = {
+                    leads: 0,
+                    sales: 0,
+                    appointments: 0,
+                    shows: 0,
+                    conversionRate: 0
+                };
+            }
+            
+            // Count the lead
+            dealerData.leadSources[leadSource].leads += 1;
+            dealerData.leads += 1;
+            
+            // Check response
+            const responseDate = row[7]; // Column H
+            if (responseDate && responseDate !== 'N/A' && responseDate !== '') {
+                dealerData.responded += 1;
+                
+                // Check 15-min response
+                const dateTimeActionable = row[5]; // Column F
+                try {
+                    const actionableTime = new Date(dateTimeActionable);
+                    const responseTime = new Date(responseDate);
+                    const diffMinutes = Math.floor((responseTime - actionableTime) / (1000 * 60));
+                    
+                    if (diffMinutes >= 0 && diffMinutes <= 15) {
+                        dealerData.responseTime15min += 1;
+                    }
+                } catch (e) {
+                    // Date parsing error
+                }
+            } else {
+                dealerData.noResponse += 1;
+            }
+            
+            // Check for sale
+            const saleDate = row[9]; // Column J
+            if (saleDate && saleDate !== '' && saleDate !== 'N/A') {
+                dealerData.leadSources[leadSource].sales += 1;
+                dealerData.sales += 1;
+            }
+        }
+        
+        // Calculate conversion rates
+        Object.keys(dealerData.leadSources).forEach(source => {
+            const sourceData = dealerData.leadSources[source];
+            sourceData.conversionRate = sourceData.leads > 0 ? 
+                (sourceData.sales / sourceData.leads * 100).toFixed(2) : '0';
+        });
+        
+        dealerData.conversionRate = dealerData.leads > 0 ? 
+            (dealerData.sales / dealerData.leads * 100).toFixed(2) : '0';
+        
+        // Add to network data
+        if (dealerData.leads > 0) {
+            networkData[dealerName] = dealerData;
+            totalNetworkLeads += dealerData.leads;
+            totalNetworkSales += dealerData.sales;
+        }
+    });
+    
+    console.log(`Processed ${Object.keys(networkData).length} dealers with data`);
+    
+    // Update global data
+    uploadedDealerData = networkData;
+    
+    // Calculate network metrics
+    const avgConversionRate = totalNetworkLeads > 0 ? 
+        (totalNetworkSales / totalNetworkLeads * 100).toFixed(2) : 0;
+    
+    let totalResponded = 0;
+    let total15MinResponses = 0;
+    Object.values(networkData).forEach(dealer => {
+        totalResponded += dealer.responded || 0;
+        total15MinResponses += dealer.responseTime15min || 0;
+    });
+    
+    const responseRate = totalNetworkLeads > 0 ? 
+        (totalResponded / totalNetworkLeads * 100).toFixed(1) : 0;
+    const noResponseRate = totalNetworkLeads > 0 ? 
+        ((totalNetworkLeads - totalResponded) / totalNetworkLeads * 100).toFixed(1) : 0;
+    const quickResponseRate = totalNetworkLeads > 0 ? 
+        (total15MinResponses / totalNetworkLeads * 100).toFixed(1) : 0;
+    
+    // Update dashboard
+    updateDashboard({
+        totalLeads: totalNetworkLeads,
+        conversionRate: avgConversionRate,
+        responseRate: responseRate,
+        noResponseRate: noResponseRate,
+        quickResponseRate: quickResponseRate,
+        dealerCount: Object.keys(networkData).length,
+        dealerName: 'Network Report'
+    });
+    
+    // Update dealer dropdown
+    updateDealerDropdown();
+    
+    // Update charts
+    updateCharts();
+    
+    // Show success
+    showUploadSuccess();
+    
+    // Store data
+    localStorage.setItem('leadPerformanceData', JSON.stringify({
+        uploadDate: new Date().toISOString(),
+        dealerCount: Object.keys(networkData).length,
+        summary: {
+            totalLeads: totalNetworkLeads,
+            avgConversion: avgConversionRate
+        }
+    }));
 }
 
 // ROI Calculator function
