@@ -1376,6 +1376,12 @@ function processMultiWorksheetFile(workbook, filename) {
             const responseDate = row[7]; // Column H - Response Date
             const responseTimeText = row[6]; // Column G - Response Time in "0h 30m" format
             
+            // Debug first row of first dealer
+            if (index === 0 && i === 11) {
+                console.log(`First data row - Col G (Response Time): "${responseTimeText}", Col H (Response Date): "${responseDate}"`);
+                console.log('Full row data:', row);
+            }
+            
             // Check if there was a response
             if (responseDate === 'N/A' || responseDate === '' || !responseDate) {
                 // No response
