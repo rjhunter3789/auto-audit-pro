@@ -272,6 +272,25 @@ function processUploadedData(data, filename = '') {
         leadSources: {}
     };
     
+    // First, check if this looks like a network report
+    // Network reports typically have dealer names in column A with no data in columns B-I
+    let possibleNetworkReport = false;
+    for (let i = 11; i < Math.min(data.length, 20); i++) {
+        const row = data[i];
+        if (row && row[0] && typeof row[0] === 'string' && row[0].trim().length > 3) {
+            // Check if this row has a dealer name pattern (text in col A, empty cols B-I)
+            const hasEmptyDataCols = !row[2] || row[2] === '';
+            const looksLikeDealerName = !row[0].toLowerCase().includes('total') && 
+                                       !row[0].toLowerCase().includes('lead') &&
+                                       !row[0].toLowerCase().includes('source');
+            if (hasEmptyDataCols && looksLikeDealerName) {
+                possibleNetworkReport = true;
+                console.log('Detected possible network report format');
+                break;
+            }
+        }
+    }
+    
     // Start scanning from row 12 (index 11) where lead data begins
     for (let i = 11; i < data.length; i++) {
         const row = data[i];
@@ -281,10 +300,11 @@ function processUploadedData(data, filename = '') {
         const colB = row[1]; // Column B - Lead Source or dealer name
         
         // Check if this row is a dealer name (network report format)
-        if (colA && typeof colA === 'string' && colA.trim().length > 3 &&
+        // In network reports: dealer name in col A, empty data cols
+        if (possibleNetworkReport && colA && typeof colA === 'string' && colA.trim().length > 3 &&
             !colA.toLowerCase().includes('total') &&
             !colA.toLowerCase().includes('lead') &&
-            (i === 11 || (row[2] === undefined || row[2] === ''))) {
+            (!row[2] || row[2] === '')) {
             
             // Save previous dealer if exists
             if (currentDealer && currentDealerData.leads > 0) {
@@ -304,6 +324,7 @@ function processUploadedData(data, filename = '') {
                 leadSources: {}
             };
             isNetworkReport = true;
+            console.log('Found dealer in network report:', currentDealer);
             continue;
         }
         
@@ -347,7 +368,16 @@ function processUploadedData(data, filename = '') {
     // If no dealers found, try to help debug
     if (Object.keys(dealers).length === 0) {
         console.error('No dealers found! Showing data structure for debugging:');
-        console.log('Sample rows 10-15:', data.slice(10, 16));
+        console.log('Sample rows 10-20:', data.slice(10, 21));
+        
+        // Check what's in column A for potential dealer names
+        console.log('Column A values (rows 11-20):');
+        for (let i = 11; i < Math.min(data.length, 21); i++) {
+            if (data[i] && data[i][0]) {
+                console.log(`Row ${i+1}: "${data[i][0]}" (Col C: ${data[i][2] || 'empty'})`);
+            }
+        }
+        
         alert('No dealer data found in the file. Please check the browser console for debugging information.');
     }
     
