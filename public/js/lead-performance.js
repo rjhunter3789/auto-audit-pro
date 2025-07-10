@@ -127,11 +127,11 @@ function handleFileSelect(event) {
     console.log('File selected:', file.name, 'Type:', file.type, 'Size:', file.size);
     
     // Check file type
-    const validTypes = ['.csv', '.xlsx', '.xls'];
+    const validTypes = ['.csv', '.xlsx', '.xlsm', '.xls'];
     const fileExtension = file.name.toLowerCase().substr(file.name.lastIndexOf('.'));
     
     if (!validTypes.includes(fileExtension)) {
-        alert('Please upload a valid Excel (.xlsx, .xls) or CSV file.');
+        alert('Please upload a valid Excel (.xlsx, .xlsm, .xls) or CSV file.');
         return;
     }
     
