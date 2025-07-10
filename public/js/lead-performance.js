@@ -1008,18 +1008,23 @@ function processMultiWorksheetFile(workbook, filename) {
             dealerData.leadSources[leadSource].leads += 1;
             dealerData.leads += 1;
             
-            // Check response - Column H contains response time in "0h 30m" format
-            const responseTimeText = row[7]; // Column H - Response Time
+            // Check response - Column H contains Response Date, Column G contains Response Time
+            const responseDate = row[7]; // Column H - Response Date
+            const responseTimeText = row[6]; // Column G - Response Time in "0h 30m" format
             
-            if (responseTimeText && responseTimeText !== 'N/A' && responseTimeText !== '') {
-                // Parse the "0h 30m" format directly from Column H
-                const match = responseTimeText.match(/(\d+)h (\d+)m/);
-                if (match) {
-                    const totalMinutes = parseInt(match[1]) * 60 + parseInt(match[2]);
-                    
-                    // Only count as responded if there's actual response time > 0
-                    if (totalMinutes > 0 || responseTimeText === '0h 0m') {
-                        dealerData.responded += 1;
+            // Check if there was a response
+            if (responseDate === 'N/A' || responseDate === '' || !responseDate) {
+                // No response
+                dealerData.noResponse += 1;
+            } else {
+                // There was a response
+                dealerData.responded += 1;
+                
+                // Now categorize the response time from Column G
+                if (responseTimeText && responseTimeText !== 'N/A' && responseTimeText !== '') {
+                    const match = responseTimeText.match(/(\d+)h (\d+)m/);
+                    if (match) {
+                        const totalMinutes = parseInt(match[1]) * 60 + parseInt(match[2]);
                         
                         // Categorize based on minutes
                         if (totalMinutes <= 15) {
@@ -1035,15 +1040,8 @@ function processMultiWorksheetFile(workbook, filename) {
                         } else {
                             dealerData.responseTime24plus += 1;
                         }
-                    } else {
-                        dealerData.noResponse += 1;
                     }
-                } else {
-                    // Can't parse the response time format
-                    dealerData.noResponse += 1;
                 }
-            } else {
-                dealerData.noResponse += 1;
             }
             
             // Check for sale
@@ -1063,6 +1061,16 @@ function processMultiWorksheetFile(workbook, filename) {
         
         dealerData.conversionRate = dealerData.leads > 0 ? 
             (dealerData.sales / dealerData.leads * 100).toFixed(2) : '0';
+        
+        // Debug log for first dealer
+        if (index === 0) {
+            console.log(`First dealer (${dealerName}) stats:`, {
+                leads: dealerData.leads,
+                responded: dealerData.responded,
+                noResponse: dealerData.noResponse,
+                responseRate: ((dealerData.responded / dealerData.leads) * 100).toFixed(1) + '%'
+            });
+        }
         
         // Add to network data
         if (dealerData.leads > 0) {
@@ -1136,6 +1144,9 @@ function processMultiWorksheetFile(workbook, filename) {
         (total15MinResponses / totalNetworkLeads * 100).toFixed(1) : 0;
     
     console.log('Final response distribution:', responseDistribution);
+    console.log('Total no responses:', responseDistribution.noResponse);
+    console.log('Total responded:', totalResponded);
+    console.log('Total network leads:', totalNetworkLeads);
     
     // Update dashboard
     updateDashboard({
