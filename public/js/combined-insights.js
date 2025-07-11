@@ -45,19 +45,52 @@ function findMatchingDealer() {
     }
     
     const websiteBrand = websiteData.brand?.toLowerCase() || '';
+    console.log('Looking for dealer matching brand:', websiteBrand);
+    console.log('Available dealers:', Object.keys(leadData.dealers || {}));
     
-    // Try to find exact match
+    // Try different matching strategies
     for (const dealerName in leadData.dealers) {
         const dealer = leadData.dealers[dealerName];
-        if (dealerName.toLowerCase().includes(websiteBrand) || 
-            websiteBrand.includes(dealerName.split(' ')[0].toLowerCase())) {
+        const dealerLower = dealerName.toLowerCase();
+        
+        // Strategy 1: Dealer name contains brand
+        if (dealerLower.includes(websiteBrand)) {
+            console.log('Match found (contains brand):', dealerName);
             return {
                 name: dealerName,
                 ...dealer
             };
         }
+        
+        // Strategy 2: Brand contains first word of dealer
+        const dealerFirstWord = dealerName.split(' ')[0].toLowerCase();
+        if (websiteBrand.includes(dealerFirstWord) && dealerFirstWord.length > 3) {
+            console.log('Match found (brand contains dealer):', dealerName);
+            return {
+                name: dealerName,
+                ...dealer
+            };
+        }
+        
+        // Strategy 3: Check if it's a Ford dealer and brand is Ford
+        if (websiteBrand === 'ford' && dealerLower.includes('ford')) {
+            // Store this as a potential match but keep looking for better ones
+            // This prevents matching the first Ford dealer when there might be a better match
+            continue;
+        }
     }
     
+    // If no exact match found but we have a stored selection from lead analysis
+    const lastSelectedDealer = localStorage.getItem('lastSelectedDealer');
+    if (lastSelectedDealer && leadData.dealers[lastSelectedDealer]) {
+        console.log('Using last selected dealer:', lastSelectedDealer);
+        return {
+            name: lastSelectedDealer,
+            ...leadData.dealers[lastSelectedDealer]
+        };
+    }
+    
+    console.log('No dealer match found');
     return null;
 }
 
@@ -545,4 +578,24 @@ function createComparisonChart() {
 function downloadReport() {
     alert('Report download feature coming soon!');
     // In production, this would generate a PDF report
+}
+
+// Rerun website audit for the same domain
+function rerunWebsiteAudit() {
+    if (websiteData && websiteData.domain) {
+        // Store the domain for re-analysis
+        sessionStorage.setItem('rerunDomain', websiteData.domain);
+        window.location.href = '/website-audit';
+    } else {
+        window.location.href = '/website-audit';
+    }
+}
+
+// Update lead analysis - go to lead analysis tab with current dealer selected
+function updateLeadAnalysis() {
+    if (window.currentDealerMatch) {
+        // Store the dealer to re-select
+        sessionStorage.setItem('selectDealer', window.currentDealerMatch.name);
+    }
+    window.location.href = '/lead-analysis';
 }

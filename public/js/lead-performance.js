@@ -36,6 +36,21 @@ document.addEventListener('DOMContentLoaded', function() {
     setupDragAndDrop();
     setupSecurityFeatures();
     
+    // Check if we should select a specific dealer
+    setTimeout(() => {
+        const selectDealer = sessionStorage.getItem('selectDealer');
+        if (selectDealer && uploadedDealerData) {
+            const dealerSelect = document.getElementById('dealerSelect');
+            if (dealerSelect) {
+                dealerSelect.value = selectDealer;
+                updateDealerAnalysis();
+                // Switch to analysis tab
+                showSection('analysis');
+                sessionStorage.removeItem('selectDealer');
+            }
+        }
+    }, 1000);
+    
     // Test: Try to update response time display after a short delay
     setTimeout(() => {
         const testElem = document.getElementById('response15min');
@@ -842,6 +857,9 @@ function updateDealerAnalysis() {
     
     const dealer = uploadedDealerData[dealerName];
     if (!dealer) return;
+    
+    // Store selected dealer for combined insights
+    localStorage.setItem('lastSelectedDealer', dealerName);
     
     // Auto-populate ROI calculator with selected dealer
     const roiDealerSelect = document.getElementById('roiDealerSelect');

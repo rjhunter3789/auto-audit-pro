@@ -470,6 +470,20 @@
             document.querySelector('.btn-audit').disabled = true;
             document.querySelector('.btn-audit').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
         });
+        
+        // Check if we should rerun a domain
+        window.addEventListener('DOMContentLoaded', function() {
+            const rerunDomain = sessionStorage.getItem('rerunDomain');
+            if (rerunDomain) {
+                document.getElementById('url').value = rerunDomain;
+                sessionStorage.removeItem('rerunDomain');
+                // Highlight the field
+                document.getElementById('url').style.backgroundColor = '#FEF3C7';
+                setTimeout(() => {
+                    document.getElementById('url').style.backgroundColor = '';
+                }, 2000);
+            }
+        });
     </script>
 </body>
 </html>
