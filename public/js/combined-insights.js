@@ -44,44 +44,11 @@ function findMatchingDealer() {
         return null;
     }
     
-    const websiteBrand = websiteData.brand?.toLowerCase() || '';
-    console.log('Looking for dealer matching brand:', websiteBrand);
+    // ONLY use explicit dealer selection from lead analysis - no auto-matching
+    const lastSelectedDealer = localStorage.getItem('lastSelectedDealer');
+    console.log('Last selected dealer from storage:', lastSelectedDealer);
     console.log('Available dealers:', Object.keys(leadData.dealers || {}));
     
-    // Try different matching strategies
-    for (const dealerName in leadData.dealers) {
-        const dealer = leadData.dealers[dealerName];
-        const dealerLower = dealerName.toLowerCase();
-        
-        // Strategy 1: Dealer name contains brand
-        if (dealerLower.includes(websiteBrand)) {
-            console.log('Match found (contains brand):', dealerName);
-            return {
-                name: dealerName,
-                ...dealer
-            };
-        }
-        
-        // Strategy 2: Brand contains first word of dealer
-        const dealerFirstWord = dealerName.split(' ')[0].toLowerCase();
-        if (websiteBrand.includes(dealerFirstWord) && dealerFirstWord.length > 3) {
-            console.log('Match found (brand contains dealer):', dealerName);
-            return {
-                name: dealerName,
-                ...dealer
-            };
-        }
-        
-        // Strategy 3: Check if it's a Ford dealer and brand is Ford
-        if (websiteBrand === 'ford' && dealerLower.includes('ford')) {
-            // Store this as a potential match but keep looking for better ones
-            // This prevents matching the first Ford dealer when there might be a better match
-            continue;
-        }
-    }
-    
-    // If no exact match found but we have a stored selection from lead analysis
-    const lastSelectedDealer = localStorage.getItem('lastSelectedDealer');
     if (lastSelectedDealer && leadData.dealers[lastSelectedDealer]) {
         console.log('Using last selected dealer:', lastSelectedDealer);
         return {
@@ -90,7 +57,9 @@ function findMatchingDealer() {
         };
     }
     
-    console.log('No dealer match found');
+    // NO AUTO-MATCHING - Always require explicit dealer selection
+    // This prevents showing wrong dealers like "Bellingham Ford" when analyzing a generic "Ford" site
+    console.log('No explicit dealer selection found - user must select dealer in Lead Performance first');
     return null;
 }
 
@@ -116,32 +85,58 @@ function checkDataAvailability() {
     
     // Update lead status
     if (leadData) {
-        leadStatus.classList.add('connected');
-        leadStatus.querySelector('.status-icon').classList.add('check');
-        leadStatus.querySelector('.status-icon').innerHTML = '<i class="fas fa-check-circle"></i>';
+        // Check if we have a specific dealer selected
+        const matchingDealer = window.currentDealerMatch || findMatchingDealer();
         
-        // Show specific dealer info if matched
-        if (window.currentDealerMatch) {
+        if (matchingDealer) {
+            leadStatus.classList.remove('missing');
+            leadStatus.classList.add('connected');
+            leadStatus.querySelector('.status-icon').classList.add('check');
+            leadStatus.querySelector('.status-icon').classList.remove('warning');
+            leadStatus.querySelector('.status-icon').innerHTML = '<i class="fas fa-check-circle"></i>';
             leadStatus.querySelector('.status-text').innerHTML = 
-                `<strong>${window.currentDealerMatch.name}</strong><br>` +
-                `${window.currentDealerMatch.leads} leads - ${window.currentDealerMatch.conversionRate}% conversion`;
+                `<strong>${matchingDealer.name}</strong><br>` +
+                `${matchingDealer.leads} leads - ${matchingDealer.conversionRate}% conversion`;
+            leadStatus.querySelector('.btn').textContent = 'Update Data';
         } else {
-            leadStatus.querySelector('.status-text').textContent = 
-                `${leadData.dealerCount || 0} dealers analyzed - ${leadData.summary?.totalLeads || 0} total leads`;
+            // Data uploaded but no dealer selected
+            leadStatus.classList.remove('connected');
+            leadStatus.classList.add('missing');
+            leadStatus.querySelector('.status-icon').classList.remove('check');
+            leadStatus.querySelector('.status-icon').classList.add('warning');
+            leadStatus.querySelector('.status-icon').innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+            leadStatus.querySelector('.status-text').innerHTML = 
+                `<strong>No dealer selected</strong><br>` +
+                `${leadData.dealerCount || Object.keys(leadData.dealers || {}).length} dealers available - Please select one`;
+            leadStatus.querySelector('.btn').textContent = 'Select Dealer';
         }
-        leadStatus.querySelector('.btn').textContent = 'Update Data';
     } else {
         leadStatus.classList.add('missing');
         leadStatus.querySelector('.status-icon').classList.add('warning');
+        leadStatus.querySelector('.status-icon').innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+        leadStatus.querySelector('.status-text').textContent = 'No lead data uploaded';
+        leadStatus.querySelector('.btn').textContent = 'Upload Lead Data';
     }
     
-    // Show/hide insights
-    if (websiteData && leadData) {
+    // Show/hide insights - require both data AND a selected dealer
+    if (websiteData && leadData && window.currentDealerMatch) {
         insightsContainer.style.display = 'block';
         noDataState.style.display = 'none';
     } else {
         insightsContainer.style.display = 'none';
         noDataState.style.display = 'block';
+        
+        // Update the no data state message based on what's missing
+        const noDataTitle = document.querySelector('#noDataState h3');
+        const noDataText = document.querySelector('#noDataState p');
+        
+        if (websiteData && leadData && !window.currentDealerMatch) {
+            noDataTitle.textContent = 'Select a Dealer to View Insights';
+            noDataText.textContent = 'Please select a specific dealer in the Lead Performance section';
+        } else {
+            noDataTitle.textContent = 'Complete Both Analyses to Unlock Insights';
+            noDataText.textContent = 'Run a website audit and upload lead data to see powerful correlations';
+        }
     }
 }
 
@@ -230,7 +225,15 @@ function updateCorrelationInsight(score, conversion, matchingDealer) {
             const diff = Math.abs(conversion - 16.12).toFixed(1);
             detailElement.textContent = `${matchingDealer.name} is ${diff}% ${vsNetwork} the network average. ${correlation.detail}`;
         } else {
-            detailElement.textContent = correlation.detail;
+            detailElement.innerHTML = `
+                <div class="alert alert-warning mt-3">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>No specific dealer selected.</strong> 
+                    To see dealer-specific insights, please select a dealer in the 
+                    <a href="/lead-analysis" class="alert-link">Lead Performance</a> section first.
+                    Currently showing network averages.
+                </div>
+            `;
         }
     }
 }
@@ -524,12 +527,62 @@ function generateCorrelationData() {
 // Create comparison chart
 function createComparisonChart() {
     const ctx = document.getElementById('comparisonChart');
-    if (!ctx) return;
+    if (!ctx) {
+        console.error('Comparison chart canvas not found');
+        return;
+    }
     
     // Destroy existing chart
     if (comparisonChart) {
         comparisonChart.destroy();
     }
+    
+    // Calculate actual metrics for the dealer
+    let conversionRate = 16.12;
+    let responseScore = 50;
+    let leadVolumeScore = 50;
+    
+    console.log('Creating comparison chart - currentDealerMatch:', window.currentDealerMatch);
+    
+    if (window.currentDealerMatch) {
+        const dealer = window.currentDealerMatch;
+        conversionRate = parseFloat(dealer.conversionRate) || 16.12;
+        
+        // Calculate response score based on 15-min response rate
+        if (dealer.responseTime15min && dealer.leads) {
+            const quickResponseRate = (dealer.responseTime15min / dealer.leads * 100);
+            responseScore = Math.min(100, quickResponseRate * 2.5); // Scale to 100
+        }
+        
+        // Calculate lead volume score (relative to network)
+        const avgLeadsPerDealer = (leadData?.summary?.totalLeads || 26000) / (leadData?.dealerCount || 31);
+        leadVolumeScore = Math.min(100, (dealer.leads / avgLeadsPerDealer) * 50);
+    }
+    
+    // Extract website category scores if available
+    let mobileScore = websiteData?.score * 0.8 || 50;
+    let uxScore = websiteData?.score * 0.9 || 50;
+    
+    if (websiteData?.categories) {
+        const mobileCategory = websiteData.categories.find(c => 
+            c.name.toLowerCase().includes('mobile') || c.name.toLowerCase().includes('performance')
+        );
+        const uxCategory = websiteData.categories.find(c => 
+            c.name.toLowerCase().includes('user') || c.name.toLowerCase().includes('experience')
+        );
+        
+        if (mobileCategory) mobileScore = mobileCategory.score * 20;
+        if (uxCategory) uxScore = uxCategory.score * 20;
+    }
+    
+    console.log('Chart data values:', {
+        websiteScore: websiteData?.score || 0,
+        leadVolumeScore,
+        conversionRate: conversionRate * 5,
+        responseScore,
+        mobileScore,
+        uxScore
+    });
     
     comparisonChart = new Chart(ctx, {
         type: 'radar',
@@ -543,14 +596,14 @@ function createComparisonChart() {
                 'User Experience'
             ],
             datasets: [{
-                label: 'Your Performance',
+                label: window.currentDealerMatch ? window.currentDealerMatch.name : 'Your Performance',
                 data: [
                     websiteData?.score || 0,
-                    85, // Normalized lead volume
-                    (leadData?.summary?.avgConversion || 16) * 5, // Normalized conversion
-                    70, // Response time score
-                    websiteData?.score * 0.8 || 0, // Mobile estimate
-                    websiteData?.score * 0.9 || 0  // UX estimate
+                    leadVolumeScore,
+                    conversionRate * 5, // Scale to 100
+                    responseScore,
+                    mobileScore,
+                    uxScore
                 ],
                 borderColor: 'rgba(107, 70, 193, 1)',
                 backgroundColor: 'rgba(107, 70, 193, 0.2)'
