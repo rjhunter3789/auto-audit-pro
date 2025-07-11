@@ -554,148 +554,40 @@ function createComparisonChart() {
     try {
         // Destroy existing chart
         if (comparisonChart) {
-            console.log('Destroying existing comparison chart');
             comparisonChart.destroy();
             comparisonChart = null;
         }
     
-    // Calculate actual metrics for the dealer
-    let conversionRate = 16.12;
-    let responseScore = 50;
-    let leadVolumeScore = 50;
-    
-    console.log('Creating comparison chart - currentDealerMatch:', window.currentDealerMatch);
-    
-    if (window.currentDealerMatch) {
-        const dealer = window.currentDealerMatch;
-        conversionRate = parseFloat(dealer.conversionRate) || 16.12;
-        
-        // Calculate response score based on 15-min response rate
-        if (dealer.responseTime15min && dealer.leads) {
-            const quickResponseRate = (dealer.responseTime15min / dealer.leads * 100);
-            responseScore = Math.min(100, quickResponseRate * 2.5); // Scale to 100
-        }
-        
-        // Calculate lead volume score (relative to network)
-        const avgLeadsPerDealer = (leadData?.summary?.totalLeads || 26000) / (leadData?.dealerCount || 31);
-        leadVolumeScore = Math.min(100, (dealer.leads / avgLeadsPerDealer) * 50);
-    }
-    
-    // Extract website category scores if available
-    let mobileScore = websiteData?.score * 0.8 || 50;
-    let uxScore = websiteData?.score * 0.9 || 50;
-    
-    if (websiteData?.categories) {
-        const mobileCategory = websiteData.categories.find(c => 
-            c.name.toLowerCase().includes('mobile') || c.name.toLowerCase().includes('performance')
-        );
-        const uxCategory = websiteData.categories.find(c => 
-            c.name.toLowerCase().includes('user') || c.name.toLowerCase().includes('experience')
-        );
-        
-        if (mobileCategory) mobileScore = mobileCategory.score * 20;
-        if (uxCategory) uxScore = uxCategory.score * 20;
-    }
-    
-    const chartData = [
-        websiteData?.score || 0,
-        leadVolumeScore || 0,
-        Math.min(100, (conversionRate || 0) * 5), // Scale to 100
-        responseScore || 0,
-        mobileScore || 0,
-        uxScore || 0
-    ].map(v => isNaN(v) ? 0 : v); // Ensure no NaN values
-    
-    console.log('Performance Comparison Chart Debug:');
-    console.log('- Canvas element:', ctx);
-    console.log('- Chart.js loaded:', typeof Chart !== 'undefined');
-    console.log('- Current dealer:', window.currentDealerMatch?.name || 'None');
-    console.log('- Chart data:', chartData);
-    console.log('- Data has NaN:', chartData.some(v => isNaN(v)));
-    
-    // Check if Chart.js is loaded
-    if (typeof Chart === 'undefined') {
-        console.error('Chart.js library not loaded!');
-        return;
-    }
-    
-    // Check if canvas is visible
-    const canvasRect = ctx.getBoundingClientRect();
-    console.log('Canvas dimensions:', { width: canvasRect.width, height: canvasRect.height });
-    
-    // Ensure canvas has size
-    if (canvasRect.width === 0 || canvasRect.height === 0) {
-        console.warn('Canvas has no size, chart may not render');
-        // Try to set explicit size
-        ctx.style.width = '100%';
-        ctx.style.height = '300px';
-    }
-    
-    comparisonChart = new Chart(ctx.getContext('2d'), {
-        type: 'radar',
-        data: {
-            labels: [
-                'Website Score',
-                'Lead Volume',
-                'Conversion Rate',
-                'Response Time',
-                'Mobile Performance',
-                'User Experience'
-            ],
-            datasets: [{
-                label: window.currentDealerMatch ? window.currentDealerMatch.name : 'Your Performance',
-                data: chartData,
-                borderColor: 'rgba(107, 70, 193, 1)',
-                backgroundColor: 'rgba(107, 70, 193, 0.2)',
-                borderWidth: 2,
-                pointBackgroundColor: 'rgba(107, 70, 193, 1)',
-                pointBorderColor: '#fff',
-                pointHoverBackgroundColor: '#fff',
-                pointHoverBorderColor: 'rgba(107, 70, 193, 1)'
-            }, {
-                label: 'Top Performers',
-                data: [85, 90, 90, 85, 88, 87],
-                borderColor: 'rgba(16, 185, 129, 1)',
-                backgroundColor: 'rgba(16, 185, 129, 0.2)',
-                borderWidth: 2,
-                pointBackgroundColor: 'rgba(16, 185, 129, 1)',
-                pointBorderColor: '#fff',
-                pointHoverBackgroundColor: '#fff',
-                pointHoverBorderColor: 'rgba(16, 185, 129, 1)'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'top',
-                }
+        // Simple test data
+        comparisonChart = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: ['Website', 'Leads', 'Conversion', 'Response', 'Mobile', 'UX'],
+                datasets: [{
+                    label: 'Current',
+                    data: [73, 60, 85, 70, 60, 70],
+                    borderColor: 'rgb(107, 70, 193)',
+                    backgroundColor: 'rgba(107, 70, 193, 0.2)'
+                }, {
+                    label: 'Top Performers',
+                    data: [85, 90, 90, 85, 88, 87],
+                    borderColor: 'rgb(16, 185, 129)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.2)'
+                }]
             },
-            scales: {
-                r: {
-                    beginAtZero: true,
-                    max: 100,
-                    ticks: {
-                        stepSize: 20
-                    },
-                    pointLabels: {
-                        font: {
-                            size: 12
-                        }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100
                     }
                 }
             }
-        }
-    });
-    
-    console.log('Comparison chart created successfully:', !!comparisonChart);
-    if (comparisonChart) {
-        console.log('Chart instance:', comparisonChart);
-        console.log('Chart data:', comparisonChart.data);
-        // Force update
-        comparisonChart.update();
-    }
+        });
+        
+        console.log('Test chart created:', !!comparisonChart);
     } catch (error) {
         console.error('Error creating comparison chart:', error);
     }
