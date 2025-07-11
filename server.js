@@ -76,6 +76,26 @@ function getChromeOptions() {
     options.addArguments('--disable-features=VizDisplayCompositor');
     options.addArguments('--window-size=1920,1080');
     
+    // Additional arguments to avoid detection as bot
+    options.addArguments('--disable-blink-features=AutomationControlled');
+    options.addArguments('--disable-web-security');
+    options.addArguments('--disable-features=IsolateOrigins,site-per-process');
+    options.addArguments('--allow-running-insecure-content');
+    options.addArguments('--disable-setuid-sandbox');
+    options.addArguments('--disable-dev-shm-usage');
+    options.addArguments('--disable-accelerated-2d-canvas');
+    options.addArguments('--disable-gpu-sandbox');
+    options.addArguments('--no-first-run');
+    options.addArguments('--no-zygote');
+    options.addArguments('--single-process');
+    options.addArguments('--disable-background-timer-throttling');
+    options.addArguments('--disable-renderer-backgrounding');
+    options.addArguments('--disable-features=TranslateUI');
+    options.addArguments('--disable-ipc-flooding-protection');
+    
+    // Set user agent to appear more like a real browser
+    options.addArguments('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+    
     // For Railway/Linux environments
     if (process.env.CHROME_BIN) {
         options.setChromeBinaryPath(process.env.CHROME_BIN);
