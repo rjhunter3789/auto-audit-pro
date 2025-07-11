@@ -75,7 +75,7 @@
 - **Lead Volume Scoring**: Relative performance against network average
 - **Mobile & UX Scoring**: Extracted from website audit categories
 
-### 🛠️ Bug Fixes
+### 🛠️ Bug Fixes (Updated)
 - **Fixed**: ROI Calculator container expansion covering footer
 - **Fixed**: Custom target rate field now defaults to current conversion rate
 - **Fixed**: Report buttons showing "coming soon" - all reports now functional
@@ -84,6 +84,10 @@
 - **Fixed**: Performance Comparison chart not displaying
 - **Fixed**: Random dark screen flashing during navigation
 - **Fixed**: Mobile layout issues with CTAs extending beyond viewport
+- **Fixed**: Dealer group health score showing 348/100 - corrected weight calculation from 15 to 0.15
+- **Fixed**: "window is not defined" error in group analysis - removed browser-specific code
+- **Fixed**: Enhanced Chrome options to reduce bot detection and website blocking
+- **In Progress**: Dealer group detection patterns - improved selectors and added debugging
 
 ### 📝 Implementation Details
 

@@ -252,11 +252,32 @@ npm start
 4. Use ROI projections in proposals
 5. Track improvements across client portfolio
 
+## Troubleshooting
+
+### Dealer Group Analysis Issues
+
+#### "Window is not defined" Error
+- **Fixed**: Updated group-analysis.js to use Node.js URL parsing instead of browser APIs
+
+#### Health Score Over 100
+- **Fixed**: Corrected weight calculation in server.js (was 15, now 0.15 with normalization)
+
+#### Group Tests Showing "No clear... found"
+- **Cause**: Detection patterns may not match site structure or sites blocking automation
+- **Solution**: Enhanced detection patterns and added debugging
+- **Debug**: Check console output for HTML content and link analysis
+
+### Website Blocking Issues
+- Many sites use Cloudflare or similar protection
+- Enhanced Chrome options added to reduce detection
+- Try demo/test sites if production sites are blocked
+
 ## Support & Feedback
 
 For issues, feature requests, or contributions:
 - GitHub: https://github.com/rjhunter3789/auto-audit-pro/issues
 - Email: nakapaahu@gmail.com
+- Recovery Instructions: See RECOVERY-INSTRUCTIONS.md for session continuity
 
 ## License
 
