@@ -25,11 +25,40 @@ function loadStoredData() {
         websiteData = JSON.parse(storedWebsite);
     }
     
-    // Load lead performance data
-    const storedLead = localStorage.getItem('leadPerformanceData');
+    // Load lead performance data with enhanced storage
+    const storedLead = localStorage.getItem('leadPerformanceDataEnhanced');
     if (storedLead) {
         leadData = JSON.parse(storedLead);
+    } else {
+        // Fallback to old storage format
+        const oldStoredLead = localStorage.getItem('leadPerformanceData');
+        if (oldStoredLead) {
+            leadData = JSON.parse(oldStoredLead);
+        }
     }
+}
+
+// Find matching dealer in lead data based on website audit
+function findMatchingDealer() {
+    if (!websiteData || !leadData || !leadData.dealers) {
+        return null;
+    }
+    
+    const websiteBrand = websiteData.brand?.toLowerCase() || '';
+    
+    // Try to find exact match
+    for (const dealerName in leadData.dealers) {
+        const dealer = leadData.dealers[dealerName];
+        if (dealerName.toLowerCase().includes(websiteBrand) || 
+            websiteBrand.includes(dealerName.split(' ')[0].toLowerCase())) {
+            return {
+                name: dealerName,
+                ...dealer
+            };
+        }
+    }
+    
+    return null;
 }
 
 // Check data availability and update UI
@@ -77,16 +106,20 @@ function checkDataAvailability() {
 
 // Generate insights from combined data
 function generateInsights() {
+    // Try to find matching dealer data
+    const matchingDealer = findMatchingDealer();
+    
     // Calculate correlations
     const websiteScore = websiteData.score;
-    const avgConversion = leadData.summary?.avgConversion || 16.12; // Network average
+    const avgConversion = matchingDealer ? 
+        parseFloat(matchingDealer.conversionRate) : 
+        (leadData.summary?.avgConversion || 16.12);
     
-    // Simulate correlation based on website score
-    // In reality, this would be calculated from multiple data points
-    const correlation = calculateCorrelation(websiteScore);
+    // Store dealer info for display
+    window.currentDealerMatch = matchingDealer;
     
     // Update correlation insight
-    updateCorrelationInsight(websiteScore, avgConversion, correlation);
+    updateCorrelationInsight(websiteScore, avgConversion, matchingDealer);
     
     // Generate impact analysis
     generateImpactAnalysis();

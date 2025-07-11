@@ -1022,20 +1022,68 @@ function updateDealerAnalysis() {
 function checkForWebsiteAudit(dealerName) {
     // Check if we have website audit data for this dealer
     const websiteData = localStorage.getItem('lastWebsiteAudit');
+    
     if (websiteData) {
         const audit = JSON.parse(websiteData);
-        // Simple matching - could be improved
-        if (audit.domain && dealerName.toLowerCase().includes(audit.brand?.toLowerCase())) {
+        // Check if this is the same dealer (improved matching)
+        const brandMatch = audit.brand && (
+            dealerName.toLowerCase().includes(audit.brand.toLowerCase()) ||
+            audit.brand.toLowerCase().includes(dealerName.split(' ')[0].toLowerCase())
+        );
+        
+        if (brandMatch) {
             return `
-                <div class="alert alert-info mt-3">
-                    <h5><i class="fas fa-link"></i> Website Audit Available!</h5>
-                    <p>This dealer's website scored <strong>${audit.score}/100</strong> in our website analysis.</p>
-                    <a href="/website-audit" class="btn btn-sm btn-primary">View Website Audit</a>
+                <div class="mt-4 p-4 bg-light rounded-3 text-center">
+                    <h4 class="mb-3">Complete Analysis Available!</h4>
+                    <p class="lead">Great news! We have website audit data for ${audit.brand}.</p>
+                    <p>Website Health Score: <strong class="text-primary">${audit.score}/100</strong></p>
+                    <p class="mb-4">Combine your lead performance data with website insights to see how site issues impact conversions.</p>
+                    <div class="d-flex gap-3 justify-content-center">
+                        <a href="/insights" class="btn btn-lg btn-success">
+                            <i class="fas fa-link"></i> View Combined Insights
+                        </a>
+                        <a href="/website-audit" class="btn btn-lg btn-outline-secondary">
+                            <i class="fas fa-globe"></i> Update Website Audit
+                        </a>
+                    </div>
                 </div>
             `;
         }
     }
-    return '';
+    
+    // No matching website audit found
+    return `
+        <div class="mt-4 p-4 bg-light rounded-3 text-center">
+            <h4 class="mb-3">Complete Your Analysis</h4>
+            <p class="lead">Want to see how ${dealerName}'s website impacts their lead conversion?</p>
+            <p class="mb-4">Run a website audit to unlock powerful insights about how site performance affects lead quality.</p>
+            <div class="d-flex gap-3 justify-content-center">
+                <a href="/website-audit" class="btn btn-lg btn-primary">
+                    <i class="fas fa-globe"></i> Analyze Website
+                </a>
+                <button class="btn btn-lg btn-outline-secondary" onclick="checkForCombinedInsights()">
+                    <i class="fas fa-link"></i> Check Combined Insights
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+// Check for combined insights availability
+function checkForCombinedInsights() {
+    const websiteData = localStorage.getItem('lastWebsiteAudit');
+    const leadData = localStorage.getItem('leadPerformanceData');
+    
+    if (websiteData && leadData) {
+        // Both data sources available
+        window.location.href = '/insights';
+    } else if (!websiteData) {
+        if (confirm('No website audit data found. Would you like to run a website audit first?')) {
+            window.location.href = '/website-audit';
+        }
+    } else {
+        alert('Please select a dealer to analyze their lead performance first.');
+    }
 }
 
 function initializeCharts() {
@@ -1688,7 +1736,20 @@ function processMultiWorksheetFile(workbook, filename) {
     // Save complete data to enhanced storage
     saveDataToStorage(networkData);
     
-    // Store summary data (legacy)
+    // Store enhanced data for combined insights
+    localStorage.setItem('leadPerformanceDataEnhanced', JSON.stringify({
+        uploadDate: new Date().toISOString(),
+        dealerCount: Object.keys(networkData).length,
+        summary: {
+            totalLeads: totalNetworkLeads,
+            avgConversion: avgConversionRate,
+            responseRate: responseRate,
+            quickResponseRate: quickResponseRate
+        },
+        dealers: networkData // Include full dealer data
+    }));
+    
+    // Store summary data (legacy compatibility)
     localStorage.setItem('leadPerformanceData', JSON.stringify({
         uploadDate: new Date().toISOString(),
         dealerCount: Object.keys(networkData).length,

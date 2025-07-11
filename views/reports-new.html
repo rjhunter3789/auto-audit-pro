@@ -656,6 +656,20 @@
             <% }); %>
         </div>
         <% } %>
+        <!-- Lead Performance Prompt -->
+        <div class="mt-5 p-4 bg-light rounded-3 text-center">
+            <h3 class="mb-3">Complete Your Analysis</h3>
+            <p class="lead">Want to see how <%= results.brand %>'s website performance impacts their lead conversion?</p>
+            <p class="mb-4">Analyze their lead performance data to unlock powerful insights and ROI projections.</p>
+            <div class="d-flex gap-3 justify-content-center">
+                <a href="/lead-analysis" class="btn btn-lg btn-primary">
+                    <i class="fas fa-chart-bar"></i> Analyze Lead Performance
+                </a>
+                <button class="btn btn-lg btn-outline-secondary" onclick="checkForCombinedReport()">
+                    <i class="fas fa-link"></i> View Combined Insights
+                </button>
+            </div>
+        </div>
     </div>
     
     <!-- Copyright Footer -->
@@ -667,6 +681,48 @@
     </footer>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Store website audit data for combined insights
+        const auditData = {
+            brand: '<%= results.brand %>',
+            domain: '<%= results.domain %>',
+            score: <%= results.overallScore %>,
+            categories: <%- JSON.stringify(results.categories || []) %>,
+            timestamp: '<%= results.timestamp %>'
+        };
+        
+        // Save to localStorage for combined insights
+        localStorage.setItem('lastWebsiteAudit', JSON.stringify(auditData));
+        
+        // Check if lead data exists and prompt for combined report
+        function checkForCombinedReport() {
+            const leadData = localStorage.getItem('leadPerformanceData');
+            if (leadData) {
+                // Lead data exists, go to combined insights
+                window.location.href = '/insights';
+            } else {
+                // No lead data, prompt to upload
+                if (confirm('No lead performance data found. Would you like to upload lead data first?')) {
+                    window.location.href = '/lead-analysis';
+                }
+            }
+        }
+        
+        // Auto-check on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            const leadData = localStorage.getItem('leadPerformanceData');
+            if (leadData) {
+                // Show a subtle notification that combined insights are available
+                const promptDiv = document.querySelector('.mt-5.p-4.bg-light');
+                if (promptDiv) {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge bg-success ms-2';
+                    badge.textContent = 'Lead data available!';
+                    promptDiv.querySelector('h3').appendChild(badge);
+                }
+            }
+        });
+    </script>
     <script>
         // Initialize tooltips
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
