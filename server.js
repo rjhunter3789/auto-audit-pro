@@ -1838,11 +1838,17 @@ app.post('/audit', async (req, res) => {
                 auditResults.categories.push({
                     name: 'Group Structure',
                     score: Math.round(groupTestResults.score / 20), // Convert to 0-5 scale
-                    weight: 15,
+                    weight: 0.15, // Fixed: Changed from 15 to 0.15
                     testsCompleted: groupTestResults.tests.length
                 });
                 
-                // Recalculate overall score
+                // Normalize weights to ensure they sum to 1.0
+                const totalWeight = auditResults.categories.reduce((sum, cat) => sum + cat.weight, 0);
+                auditResults.categories.forEach(cat => {
+                    cat.weight = cat.weight / totalWeight;
+                });
+                
+                // Recalculate overall score with normalized weights
                 let totalScore = 0;
                 auditResults.categories.forEach(cat => {
                     totalScore += (cat.score / 5) * cat.weight * 100;

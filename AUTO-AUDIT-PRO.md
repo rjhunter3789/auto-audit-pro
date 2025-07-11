@@ -12,6 +12,7 @@ Auto Audit Pro is a comprehensive web application that performs in-depth analysi
 - **Quick Audit** (30 seconds) - Homepage analysis only for rapid assessments
 - **Comprehensive Audit** (60-90 seconds) - Deep analysis of Homepage + VDP + Service + Inventory pages
 - **Custom Audit** - Select specific pages to analyze based on your needs
+- **Dealer Group Detection** - Automatic identification and specialized analysis for multi-location dealer groups
 
 ### 📊 8-Category Testing System
 1. **Basic Connectivity** - SSL security, server response, DNS resolution
@@ -51,13 +52,55 @@ Auto Audit Pro is a comprehensive web application that performs in-depth analysi
 - Legal disclaimer compliance
 - CTA effectiveness on each offer
 
+### 🏢 Dealer Group Analysis
+
+#### Automatic Group Detection
+- Pattern recognition for multi-location dealer groups
+- Identifies "family of dealerships" and "automotive group" websites
+- Specialized testing suite for group-specific features
+
+#### Group-Specific Tests
+1. **Location Directory Assessment**
+   - Validates all dealership locations are visible
+   - Checks for dedicated location/dealer pages
+   - Tests navigation to individual dealer sites
+
+2. **Multi-Brand Representation**
+   - Detects all represented automotive brands
+   - Validates brand logo display and visibility
+   - Ensures proper brand hierarchy
+
+3. **Group Information Structure**
+   - Leadership and management team visibility
+   - Group history and achievements
+   - Community involvement showcase
+   - Awards and recognition display
+
+4. **Contact Consistency**
+   - Unified contact methods across the group
+   - Department-specific contact options
+   - Clear routing to individual locations
+
+5. **Navigation Architecture**
+   - Multi-location navigation effectiveness
+   - Inventory search across locations
+   - Service scheduling for all dealerships
+   - Career opportunities visibility
+
+#### Dealer Link Discovery
+- Automatically extracts all dealer locations
+- Categorizes as internal pages or external sites
+- Tests accessibility of up to 10 dealer links
+- Reports on broken or inaccessible locations
+
 ### 📈 Enhanced Reporting
 
 #### Professional Report Header
 - Dealership name prominently displayed
 - Website URL clearly shown
-- Audit type specified (Quick/Comprehensive/Custom)
+- Audit type specified (Quick/Comprehensive/Custom/Group)
 - Clean score presentation in styled box
+- Dealer group identification when applicable
 
 #### Detailed Implementation Guides
 - Step-by-step solutions for each issue
@@ -75,6 +118,13 @@ Auto Audit Pro is a comprehensive web application that performs in-depth analysi
 - Conversion rate improvements
 - Traffic growth projections
 - Annual value calculations
+
+#### Dealer Group Reports
+- Dedicated group analysis section
+- All discovered dealer locations listed with links
+- Group-specific test results and scores
+- Multi-location improvement recommendations
+- Consolidated ROI across all locations
 
 ### 💡 Interactive Features
 - **Tooltip Definitions** - Hover over '?' icons for instant explanations

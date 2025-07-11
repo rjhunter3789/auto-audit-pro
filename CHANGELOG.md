@@ -4,6 +4,24 @@
 
 ### 🚀 New Features & Enhancements
 
+#### Dealer Group Analysis (NEW)
+- **Specialized Group Detection**: Automatically identifies dealer group websites through pattern recognition
+- **Multi-Location Discovery**: Extracts and validates all dealer locations within a group
+  - Finds dealer links through navigation patterns and content analysis
+  - Categorizes locations as internal pages or external sites
+  - Tests up to 10 dealer links for accessibility
+- **Group-Specific Testing Suite**: Five dedicated tests for dealer groups:
+  - Location Directory: Validates presence and visibility of all dealership locations
+  - Brand Representation: Detects and scores multi-brand presence (Ford, Chevrolet, Toyota, etc.)
+  - Group Information: Evaluates leadership info, history, awards, and community involvement
+  - Contact Consistency: Ensures unified contact methods across the group
+  - Navigation Structure: Validates proper navigation for multi-location businesses
+- **Enhanced Group Reporting**: Dedicated report template showing:
+  - Group structure analysis with detailed test results
+  - Discovered dealer locations with direct links (displays up to 12)
+  - Group-specific recommendations and implementation roadmap
+  - Tailored ROI projections for multi-location improvements
+
 #### Combined Insights Platform
 - **Intelligent Data Correlation**: New Combined Insights dashboard that correlates website performance with lead conversion data
 - **Performance Comparison Chart**: Interactive radar chart comparing dealer metrics against top performers
@@ -77,6 +95,9 @@
 - `/public/js/combined-insights.js` - ROI calculations, chart implementations
 - `/views/index-new.html` - Navigation consistency
 - `/views/reports-new.html` - Bidirectional navigation flow
+- `/lib/group-analysis.js` - NEW: Dealer group detection and analysis module
+- `/views/reports-group.html` - NEW: Dedicated dealer group report template
+- `/server.js` - Added group analysis integration and routing
 
 #### Technical Specifications
 - **Responsive Breakpoints**: 430px, 576px, 768px, 991px
