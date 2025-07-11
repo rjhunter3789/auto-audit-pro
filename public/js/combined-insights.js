@@ -86,8 +86,16 @@ function checkDataAvailability() {
         leadStatus.classList.add('connected');
         leadStatus.querySelector('.status-icon').classList.add('check');
         leadStatus.querySelector('.status-icon').innerHTML = '<i class="fas fa-check-circle"></i>';
-        leadStatus.querySelector('.status-text').textContent = 
-            `${leadData.dealerCount || 0} dealers analyzed - ${leadData.summary?.totalLeads || 0} total leads`;
+        
+        // Show specific dealer info if matched
+        if (window.currentDealerMatch) {
+            leadStatus.querySelector('.status-text').innerHTML = 
+                `<strong>${window.currentDealerMatch.name}</strong><br>` +
+                `${window.currentDealerMatch.leads} leads - ${window.currentDealerMatch.conversionRate}% conversion`;
+        } else {
+            leadStatus.querySelector('.status-text').textContent = 
+                `${leadData.dealerCount || 0} dealers analyzed - ${leadData.summary?.totalLeads || 0} total leads`;
+        }
         leadStatus.querySelector('.btn').textContent = 'Update Data';
     } else {
         leadStatus.classList.add('missing');
@@ -161,9 +169,37 @@ function calculateCorrelation(websiteScore) {
 }
 
 // Update correlation insight UI
-function updateCorrelationInsight(score, conversion, correlation) {
-    document.getElementById('correlationScore').textContent = correlation.strength;
-    document.getElementById('correlationDetail').textContent = correlation.detail;
+function updateCorrelationInsight(score, conversion, matchingDealer) {
+    const correlation = calculateCorrelation(score);
+    
+    // Update the correlation score display
+    const correlationElement = document.getElementById('correlationScore');
+    if (correlationElement) {
+        if (matchingDealer) {
+            // Show specific dealer data
+            correlationElement.innerHTML = `
+                <div style="font-size: 1.5rem; line-height: 1.2;">
+                    ${matchingDealer.name}<br>
+                    <span style="font-size: 2.5rem; color: var(--primary-purple);">${conversion}%</span><br>
+                    <span style="font-size: 1rem; color: #6B7280;">Conversion Rate</span>
+                </div>
+            `;
+        } else {
+            correlationElement.textContent = `${conversion}% Network Avg`;
+        }
+    }
+    
+    // Update detail text
+    const detailElement = document.getElementById('correlationDetail');
+    if (detailElement) {
+        if (matchingDealer) {
+            const vsNetwork = conversion > 16.12 ? 'above' : 'below';
+            const diff = Math.abs(conversion - 16.12).toFixed(1);
+            detailElement.textContent = `${matchingDealer.name} is ${diff}% ${vsNetwork} the network average. ${correlation.detail}`;
+        } else {
+            detailElement.textContent = correlation.detail;
+        }
+    }
 }
 
 // Generate impact analysis
@@ -173,26 +209,55 @@ function generateImpactAnalysis() {
     // Analyze website issues and their potential impact
     const impacts = [];
     
-    if (websiteData.score < 50) {
-        impacts.push({
-            issue: 'Poor Website Performance',
-            impact: '~35% fewer form submissions',
-            priority: 'high'
+    // Use actual website data if available
+    if (websiteData.categories) {
+        // Find lowest scoring categories
+        const sortedCategories = [...websiteData.categories].sort((a, b) => a.score - b.score);
+        
+        sortedCategories.slice(0, 3).forEach(category => {
+            if (category.score < 4) {
+                impacts.push({
+                    issue: `${category.name} Issues`,
+                    impact: `Score: ${category.score}/5 - ${category.testsCompleted} tests completed`,
+                    priority: category.score < 3 ? 'high' : 'medium'
+                });
+            }
         });
     }
     
-    if (websiteData.issues > 10) {
-        impacts.push({
-            issue: 'Multiple Technical Issues',
-            impact: '~22% lower engagement',
-            priority: 'high'
-        });
+    // Add dealer-specific insights if available
+    if (window.currentDealerMatch) {
+        const dealer = window.currentDealerMatch;
+        
+        // Response time impact
+        if (dealer.noResponse && dealer.leads) {
+            const noResponseRate = (dealer.noResponse / dealer.leads * 100).toFixed(1);
+            if (noResponseRate > 30) {
+                impacts.push({
+                    issue: 'High No-Response Rate',
+                    impact: `${noResponseRate}% of leads never receive a response`,
+                    priority: 'high'
+                });
+            }
+        }
+        
+        // Quick response impact
+        if (dealer.responseTime15min && dealer.leads) {
+            const quickResponseRate = (dealer.responseTime15min / dealer.leads * 100).toFixed(1);
+            if (quickResponseRate < 30) {
+                impacts.push({
+                    issue: 'Slow Response Times',
+                    impact: `Only ${quickResponseRate}% of leads get 15-min response`,
+                    priority: 'medium'
+                });
+            }
+        }
     }
     
-    // Always add some insights
+    // Always add mobile insight
     impacts.push({
-        issue: 'Mobile Optimization',
-        impact: '67% of leads browse on mobile',
+        issue: 'Mobile Experience',
+        impact: '67% of leads browse on mobile devices',
         priority: 'medium'
     });
     
@@ -273,34 +338,54 @@ function generateOpportunities() {
 
 // Calculate combined ROI
 function calculateCombinedROI() {
-    // Base calculations
-    const currentLeads = leadData.summary?.totalLeads || 1000;
-    const currentConversion = leadData.summary?.avgConversion || 16.12;
-    const avgSaleValue = 35000; // Average vehicle sale
+    // Use dealer-specific data if available
+    let currentLeads, currentConversion;
+    
+    if (window.currentDealerMatch) {
+        // Calculate monthly average from 6 months of data
+        currentLeads = Math.round((window.currentDealerMatch.leads * 2) / 12);
+        currentConversion = parseFloat(window.currentDealerMatch.conversionRate) || 16.12;
+    } else {
+        // Fall back to network averages
+        currentLeads = Math.round((leadData.summary?.totalLeads || 26000) / 12);
+        currentConversion = leadData.summary?.avgConversion || 16.12;
+    }
+    
+    const avgGrossProfit = 4250; // Average gross profit per vehicle
     
     // Potential improvements based on website score
     let leadIncrease = 0;
     let conversionIncrease = 0;
     
+    // More realistic improvement calculations
     if (websiteData.score < 80) {
-        leadIncrease = Math.round((80 - websiteData.score) * 0.5); // 0.5% per point
-        conversionIncrease = Math.round((80 - websiteData.score) * 0.15); // 0.15% per point
+        leadIncrease = Math.round((80 - websiteData.score) * 0.3); // 0.3% lead increase per point
+        conversionIncrease = ((80 - websiteData.score) * 0.1).toFixed(1); // 0.1% conversion increase per point
     }
     
-    // Calculate impact
-    const additionalLeads = Math.round(currentLeads * (leadIncrease / 100));
-    const newConversion = currentConversion * (1 + conversionIncrease / 100);
-    const currentSales = Math.round(currentLeads * (currentConversion / 100));
-    const projectedSales = Math.round((currentLeads + additionalLeads) * (newConversion / 100));
-    const additionalSales = projectedSales - currentSales;
+    // If dealer has poor response times, add additional improvement potential
+    if (window.currentDealerMatch) {
+        const quickResponseRate = (window.currentDealerMatch.responseTime15min / window.currentDealerMatch.leads * 100);
+        if (quickResponseRate < 30) {
+            conversionIncrease = (parseFloat(conversionIncrease) + 2).toFixed(1);
+        }
+    }
     
-    const roiValue = additionalSales * avgSaleValue;
+    // Calculate impact (monthly)
+    const additionalLeads = Math.round(currentLeads * (leadIncrease / 100));
+    const newConversion = currentConversion + parseFloat(conversionIncrease);
+    const currentSales = currentLeads * (currentConversion / 100);
+    const projectedSales = (currentLeads + additionalLeads) * (newConversion / 100);
+    const additionalSalesMonthly = projectedSales - currentSales;
+    const additionalSalesAnnual = Math.round(additionalSalesMonthly * 12);
+    
+    const roiValue = Math.round(additionalSalesAnnual * avgGrossProfit);
     
     // Update UI
     document.getElementById('roiValue').textContent = '$' + roiValue.toLocaleString();
     document.getElementById('leadIncrease').textContent = '+' + leadIncrease + '%';
     document.getElementById('conversionIncrease').textContent = '+' + conversionIncrease + '%';
-    document.getElementById('additionalSales').textContent = '+' + additionalSales;
+    document.getElementById('additionalSales').textContent = '+' + additionalSalesAnnual;
 }
 
 // Create correlation chart
@@ -360,18 +445,43 @@ function generateCorrelationData() {
     const others = [];
     const yours = [];
     
-    // Generate simulated dealer data
-    for (let i = 0; i < 30; i++) {
-        const score = Math.random() * 80 + 20; // 20-100
-        const conversion = (score / 100 * 15) + Math.random() * 5 + 5; // Correlation with noise
-        others.push({ x: score, y: conversion });
+    // Use actual dealer data if available
+    if (leadData && leadData.dealers) {
+        // Plot all dealers from the lead data
+        Object.entries(leadData.dealers).forEach(([name, dealer]) => {
+            if (dealer.conversionRate) {
+                // Check if this is the matching dealer
+                const isCurrentDealer = window.currentDealerMatch && 
+                    window.currentDealerMatch.name === name;
+                
+                const dataPoint = {
+                    x: isCurrentDealer ? websiteData.score : Math.random() * 60 + 30, // Use actual score for matched dealer
+                    y: parseFloat(dealer.conversionRate)
+                };
+                
+                if (isCurrentDealer) {
+                    yours.push(dataPoint);
+                } else {
+                    others.push(dataPoint);
+                }
+            }
+        });
+    } else {
+        // Fallback to simulated data
+        for (let i = 0; i < 30; i++) {
+            const score = Math.random() * 80 + 20;
+            const conversion = (score / 100 * 15) + Math.random() * 5 + 5;
+            others.push({ x: score, y: conversion });
+        }
     }
     
-    // Add current dealer
-    if (websiteData && leadData) {
+    // If no matching dealer found, use website data with network average
+    if (yours.length === 0 && websiteData) {
         yours.push({
             x: websiteData.score,
-            y: leadData.summary?.avgConversion || 16.12
+            y: window.currentDealerMatch ? 
+                parseFloat(window.currentDealerMatch.conversionRate) : 
+                (leadData?.summary?.avgConversion || 16.12)
         });
     }
     
