@@ -17,9 +17,14 @@
             --dark-bg: #1F2937;
         }
 
-        body {
-            background: #F3F4F6;
+        html, body {
+            background: #F3F4F6 !important;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        /* Prevent any background flashing */
+        body::before, body::after {
+            display: none !important;
         }
 
         /* Navigation */
@@ -328,7 +333,9 @@
             <!-- Performance Comparison -->
             <div class="chart-container">
                 <h3>Performance Comparison</h3>
-                <canvas id="comparisonChart" height="300"></canvas>
+                <div style="position: relative; height: 300px;">
+                    <canvas id="comparisonChart"></canvas>
+                </div>
             </div>
 
             <!-- ROI Calculator -->

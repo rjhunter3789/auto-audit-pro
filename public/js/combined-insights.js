@@ -183,11 +183,24 @@ function generateInsights() {
     // Calculate ROI
     calculateCombinedROI();
     
-    // Create charts - delay slightly to ensure DOM is ready
-    setTimeout(() => {
-        createCorrelationChart();
-        createComparisonChart();
-    }, 100);
+    // Create charts - ensure DOM and Chart.js are ready
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js not loaded yet, waiting...');
+        // Wait for Chart.js to load
+        const checkChart = setInterval(() => {
+            if (typeof Chart !== 'undefined') {
+                clearInterval(checkChart);
+                createCorrelationChart();
+                createComparisonChart();
+            }
+        }, 100);
+    } else {
+        // Small delay to ensure DOM is ready
+        setTimeout(() => {
+            createCorrelationChart();
+            createComparisonChart();
+        }, 100);
+    }
 }
 
 // Calculate correlation between website score and conversion
