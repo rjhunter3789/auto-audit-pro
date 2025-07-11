@@ -76,22 +76,22 @@ function getChromeOptions() {
     options.addArguments('--disable-features=VizDisplayCompositor');
     options.addArguments('--window-size=1920,1080');
     
-    // Additional arguments to avoid detection as bot
+    // Additional arguments for stability and avoiding detection
     options.addArguments('--disable-blink-features=AutomationControlled');
-    options.addArguments('--disable-web-security');
-    options.addArguments('--disable-features=IsolateOrigins,site-per-process');
-    options.addArguments('--allow-running-insecure-content');
     options.addArguments('--disable-setuid-sandbox');
-    options.addArguments('--disable-dev-shm-usage');
-    options.addArguments('--disable-accelerated-2d-canvas');
-    options.addArguments('--disable-gpu-sandbox');
-    options.addArguments('--no-first-run');
-    options.addArguments('--no-zygote');
-    options.addArguments('--single-process');
-    options.addArguments('--disable-background-timer-throttling');
-    options.addArguments('--disable-renderer-backgrounding');
+    options.addArguments('--disable-infobars');
+    options.addArguments('--disable-extensions');
+    options.addArguments('--disable-default-apps');
+    options.addArguments('--disable-popup-blocking');
+    options.addArguments('--ignore-certificate-errors');
     options.addArguments('--disable-features=TranslateUI');
-    options.addArguments('--disable-ipc-flooding-protection');
+    options.addArguments('--disable-features=site-per-process');
+    options.addArguments('--disable-web-security');
+    options.addArguments('--disable-site-isolation-trials');
+    
+    // Memory optimization
+    options.addArguments('--memory-pressure-off');
+    options.addArguments('--max_old_space_size=4096');
     
     // Set user agent to appear more like a real browser
     options.addArguments('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
@@ -145,28 +145,50 @@ const getPageWithSelenium = async (pageUrl) => {
             .setChromeOptions(getChromeOptions())
             .build();
         
+        // Set timeouts to prevent hanging
+        await driver.manage().setTimeouts({
+            implicit: 5000,
+            pageLoad: 30000,
+            script: 10000
+        });
+        
         // Navigate to the page
         await driver.get(pageUrl);
         
-        // Wait for the page to load
-        await driver.wait(until.elementLocated(By.tagName('body')), 10000);
+        // Wait for the page to load with a shorter timeout
+        await driver.wait(until.elementLocated(By.tagName('body')), 5000);
+        
+        // Small delay to ensure content is loaded
+        await driver.sleep(1000);
         
         // Get the page source
         const pageSource = await driver.getPageSource();
         
-        // Close the driver
+        // Close the driver immediately
         await driver.quit();
+        driver = null;
         
         return cheerio.load(pageSource);
     } catch (error) {
+        // Ensure driver is closed
         if (driver) {
-            await driver.quit();
+            try {
+                await driver.quit();
+            } catch (quitError) {
+                console.error('Error closing driver:', quitError.message);
+            }
+            driver = null;
         }
         
+        // Handle specific error types
         if (error.message.includes('timeout')) {
             throw new Error('Website took too long to respond. Please try again.');
         } else if (error.message.includes('ERR_NAME_NOT_RESOLVED')) {
             throw new Error('Website not found. Please check the URL.');
+        } else if (error.message.includes('session deleted') || error.message.includes('invalid session id')) {
+            throw new Error('Browser session terminated unexpectedly. The website may be blocking automated access.');
+        } else if (error.message.includes('net::ERR_CONNECTION_REFUSED')) {
+            throw new Error('Connection refused. The website may be down or blocking access.');
         } else {
             throw new Error(`Unable to access website: ${error.message}`);
         }
@@ -174,11 +196,23 @@ const getPageWithSelenium = async (pageUrl) => {
 };
 
 // Fallback to axios if Selenium fails
-const getSoup = async (pageUrl) => {
+const getSoup = async (pageUrl, retryCount = 0) => {
+    const maxRetries = 2;
+    
     try {
         // Try Selenium first
         return await getPageWithSelenium(pageUrl);
     } catch (seleniumError) {
+        // If it's a session error and we haven't exceeded retries, try again
+        if ((seleniumError.message.includes('session deleted') || 
+             seleniumError.message.includes('invalid session id')) && 
+            retryCount < maxRetries) {
+            console.log(`Selenium session error, retrying (attempt ${retryCount + 2}/${maxRetries + 1})...`);
+            // Wait a bit before retrying
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            return getSoup(pageUrl, retryCount + 1);
+        }
+        
         console.log('Selenium failed, trying direct HTTP request...');
         // Fallback to axios
         const headers = { 
