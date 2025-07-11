@@ -14,7 +14,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Generate insights if we have both data and a dealer
     if (websiteData && leadData && window.currentDealerMatch) {
+        console.log('Generating insights with dealer:', window.currentDealerMatch.name);
         generateInsights();
+    } else {
+        console.log('Not generating insights - missing:', {
+            websiteData: !!websiteData,
+            leadData: !!leadData,
+            currentDealerMatch: !!window.currentDealerMatch
+        });
     }
 });
 
@@ -447,7 +454,7 @@ function createCorrelationChart() {
     // Simulated data points
     const dataPoints = generateCorrelationData();
     
-    correlationChart = new Chart(ctx, {
+    correlationChart = new Chart(ctx.getContext('2d'), {
         type: 'scatter',
         data: {
             datasets: [{
@@ -542,10 +549,11 @@ function createComparisonChart() {
         return;
     }
     
-    // Destroy existing chart
-    if (comparisonChart) {
-        comparisonChart.destroy();
-    }
+    try {
+        // Destroy existing chart
+        if (comparisonChart) {
+            comparisonChart.destroy();
+        }
     
     // Calculate actual metrics for the dealer
     let conversionRate = 16.12;
@@ -594,7 +602,13 @@ function createComparisonChart() {
         uxScore
     });
     
-    comparisonChart = new Chart(ctx, {
+    // Check if Chart.js is loaded
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js library not loaded!');
+        return;
+    }
+    
+    comparisonChart = new Chart(ctx.getContext('2d'), {
         type: 'radar',
         data: {
             labels: [
@@ -635,6 +649,9 @@ function createComparisonChart() {
             }
         }
     });
+    } catch (error) {
+        console.error('Error creating comparison chart:', error);
+    }
 }
 
 // Download report
