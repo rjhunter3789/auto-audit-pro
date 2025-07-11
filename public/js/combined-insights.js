@@ -12,7 +12,8 @@ document.addEventListener('DOMContentLoaded', function() {
     loadStoredData();
     checkDataAvailability();
     
-    if (websiteData && leadData) {
+    // Generate insights if we have both data and a dealer
+    if (websiteData && leadData && window.currentDealerMatch) {
         generateInsights();
     }
 });
@@ -70,6 +71,11 @@ function checkDataAvailability() {
     const insightsContainer = document.getElementById('insightsContainer');
     const noDataState = document.getElementById('noDataState');
     
+    // Try to find matching dealer early
+    if (websiteData && leadData) {
+        window.currentDealerMatch = findMatchingDealer();
+    }
+    
     // Update website status
     if (websiteData) {
         websiteStatus.classList.add('connected');
@@ -78,6 +84,7 @@ function checkDataAvailability() {
         websiteStatus.querySelector('.status-text').textContent = 
             `${websiteData.brand || 'Website'} analyzed - Score: ${websiteData.score}/100`;
         websiteStatus.querySelector('.btn').textContent = 'Update Analysis';
+        websiteStatus.querySelector('.btn').onclick = rerunWebsiteAudit;
     } else {
         websiteStatus.classList.add('missing');
         websiteStatus.querySelector('.status-icon').classList.add('warning');
@@ -98,6 +105,7 @@ function checkDataAvailability() {
                 `<strong>${matchingDealer.name}</strong><br>` +
                 `${matchingDealer.leads} leads - ${matchingDealer.conversionRate}% conversion`;
             leadStatus.querySelector('.btn').textContent = 'Update Data';
+            leadStatus.querySelector('.btn').onclick = updateLeadAnalysis;
         } else {
             // Data uploaded but no dealer selected
             leadStatus.classList.remove('connected');
@@ -109,6 +117,7 @@ function checkDataAvailability() {
                 `<strong>No dealer selected</strong><br>` +
                 `${leadData.dealerCount || Object.keys(leadData.dealers || {}).length} dealers available - Please select one`;
             leadStatus.querySelector('.btn').textContent = 'Select Dealer';
+            leadStatus.querySelector('.btn').onclick = updateLeadAnalysis;
         }
     } else {
         leadStatus.classList.add('missing');
@@ -116,6 +125,7 @@ function checkDataAvailability() {
         leadStatus.querySelector('.status-icon').innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
         leadStatus.querySelector('.status-text').textContent = 'No lead data uploaded';
         leadStatus.querySelector('.btn').textContent = 'Upload Lead Data';
+        leadStatus.querySelector('.btn').onclick = updateLeadAnalysis;
     }
     
     // Show/hide insights - require both data AND a selected dealer
