@@ -20,6 +20,9 @@ const path = require('path');
 const cheerio = require('cheerio');
 const url = require('url');
 
+// Load custom modules
+const groupAnalysis = require('./lib/group-analysis');
+
 // Load environment variables
 require('dotenv').config();
 
@@ -1749,6 +1752,7 @@ app.post('/audit', async (req, res) => {
     let siteUrl = req.body.url;
     const auditType = req.body.auditType || 'comprehensive';
     const customPages = req.body.customPages || [];
+    const siteType = req.body.siteType || 'individual'; // New parameter
     
     if (!siteUrl) { return res.redirect('/'); }
     if (!siteUrl.startsWith('http')) { siteUrl = 'https://' + siteUrl; }
@@ -1810,8 +1814,50 @@ app.post('/audit', async (req, res) => {
             }
         }
 
-        // Run comprehensive audit
-        const auditResults = await runComprehensiveAudit(siteUrl, homepageSoup);
+        // Run appropriate audit based on site type
+        let auditResults;
+        
+        if (siteType === 'group') {
+            // Run group-specific audit
+            auditResults = await runComprehensiveAudit(siteUrl, homepageSoup);
+            
+            // Add group-specific tests
+            const groupTestResults = await groupAnalysis.runGroupTests(homepageSoup, siteUrl);
+            
+            // Merge group results
+            auditResults.groupAnalysis = groupTestResults;
+            auditResults.siteType = 'group';
+            
+            // Extract dealer links
+            const dealerLinks = await groupAnalysis.extractDealerLinks(homepageSoup, null, siteUrl);
+            auditResults.dealerLinks = dealerLinks;
+            
+            // Adjust scoring to include group-specific metrics
+            if (groupTestResults.score) {
+                // Add group score as a new category
+                auditResults.categories.push({
+                    name: 'Group Structure',
+                    score: Math.round(groupTestResults.score / 20), // Convert to 0-5 scale
+                    weight: 15,
+                    testsCompleted: groupTestResults.tests.length
+                });
+                
+                // Recalculate overall score
+                let totalScore = 0;
+                auditResults.categories.forEach(cat => {
+                    totalScore += (cat.score / 5) * cat.weight * 100;
+                });
+                auditResults.overallScore = Math.round(totalScore);
+            }
+            
+            // Add group-specific issues
+            if (groupTestResults.issues) {
+                auditResults.issues.push(...groupTestResults.issues);
+            }
+        } else {
+            // Run standard individual dealership audit
+            auditResults = await runComprehensiveAudit(siteUrl, homepageSoup);
+        }
         
         // Add discovered pages to results
         auditResults.pagesFound = discoveredPages;
@@ -1943,8 +1989,12 @@ app.post('/audit', async (req, res) => {
             }
         }
         
-        // Render new comprehensive report
-        res.render('reports-new.html', { results: auditResults });
+        // Render appropriate report based on site type
+        if (siteType === 'group') {
+            res.render('reports-group.html', { results: auditResults });
+        } else {
+            res.render('reports-new.html', { results: auditResults });
+        }
 
     } catch (error) {
         console.error("Audit Error:", error.message);

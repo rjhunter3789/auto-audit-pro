@@ -338,8 +338,29 @@
         <div class="audit-form-section">
             <h2>Complete Website Health Analysis</h2>
             <form id="audit-form" action="/audit" method="post">
+                <!-- Site Type Toggle -->
+                <div class="mb-4">
+                    <label class="form-label">
+                        <i class="fas fa-building"></i> Select Site Type:
+                    </label>
+                    <div class="btn-group w-100" role="group" aria-label="Site type selection">
+                        <input type="radio" class="btn-check" name="siteType" id="individualSite" value="individual" checked>
+                        <label class="btn btn-outline-primary" for="individualSite">
+                            <i class="fas fa-store"></i> Individual Dealership
+                        </label>
+                        
+                        <input type="radio" class="btn-check" name="siteType" id="groupSite" value="group">
+                        <label class="btn btn-outline-primary" for="groupSite">
+                            <i class="fas fa-network-wired"></i> Dealer Group
+                        </label>
+                    </div>
+                    <small class="text-muted d-block mt-2" id="siteTypeHelp">
+                        Analyze a single dealership website for comprehensive performance metrics
+                    </small>
+                </div>
+                
                 <div class="mb-3">
-                    <label for="url" class="form-label">
+                    <label for="url" class="form-label" id="urlLabel">
                         <i class="fas fa-globe"></i> Dealership Website URL:
                     </label>
                     <input 
@@ -452,6 +473,36 @@
     </footer>
 
     <script>
+        // Handle site type toggle
+        document.querySelectorAll('input[name="siteType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const urlLabel = document.getElementById('urlLabel');
+                const urlInput = document.getElementById('url');
+                const siteTypeHelp = document.getElementById('siteTypeHelp');
+                const customOptions = document.getElementById('customOptions');
+                
+                if (this.value === 'group') {
+                    urlLabel.innerHTML = '<i class="fas fa-network-wired"></i> Dealer Group Website URL:';
+                    urlInput.placeholder = 'Enter dealer group domain (e.g., kendallautogroup.com)';
+                    siteTypeHelp.textContent = 'Analyze a dealer group website to evaluate multi-location presence and consistency';
+                    
+                    // Hide custom options for group analysis
+                    document.getElementById('quickAudit').checked = true;
+                    document.getElementById('comprehensiveAudit').disabled = true;
+                    document.getElementById('customAudit').disabled = true;
+                    customOptions.style.display = 'none';
+                } else {
+                    urlLabel.innerHTML = '<i class="fas fa-globe"></i> Dealership Website URL:';
+                    urlInput.placeholder = 'Enter dealership domain (e.g., smithford.com)';
+                    siteTypeHelp.textContent = 'Analyze a single dealership website for comprehensive performance metrics';
+                    
+                    // Re-enable options for individual analysis
+                    document.getElementById('comprehensiveAudit').disabled = false;
+                    document.getElementById('customAudit').disabled = false;
+                }
+            });
+        });
+        
         // Handle custom audit options visibility
         document.querySelectorAll('input[name="auditType"]').forEach(radio => {
             radio.addEventListener('change', function() {
