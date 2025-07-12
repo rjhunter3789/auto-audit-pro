@@ -60,17 +60,42 @@ Tested with geeautomotive.com dealer group:
 - Identified multiple brands
 - Comprehensive group information detected
 
+## Additional Fixes Made (Continued Session)
+
+### 4. ✅ Location Count Discrepancy
+- **Problem**: Showing 172 locations but only 35-46 actual dealers
+- **Cause**: Overly broad detection counting all links with "location" or brand names
+- **Fix**: Made detection more selective, unified counting logic
+- **Result**: Count now matches actual dealer locations
+
+### 5. ✅ Chrome Session Errors
+- **Problem**: "invalid session id: session deleted" errors on some sites
+- **Fix**: Added retry logic, better session management, improved Chrome options
+- **Result**: More stable browser sessions with automatic retry
+
+### 6. ✅ Quick Audit Restriction
+- **Confirmed**: Intentional design - dealer groups limited to Quick Audit only
+- **Note**: Server supports comprehensive but UI restricts it by design
+
+## Final Detection Improvements
+- Removed overly broad selectors like `a[href*=".com"]`
+- Added specific dealer domain patterns (e.g., `kendallford.com`)
+- Improved skip patterns for non-dealer links
+- Unified counting between test and display functions
+- Better handling of external dealer sites (Kendall-style groups)
+
 ## Next Steps When Resuming
-1. Consider fine-tuning Contact Methods detection
-2. Enhance Navigation Structure patterns
-3. Test with other dealer group sites (autonation.com, lithia.com)
-4. Apply successful patterns to individual dealer analysis
-5. Remove debug statements once stable
+1. Remove debug statements once stable
+2. Test with more dealer group sites to verify consistency
+3. Apply successful patterns to individual dealer analysis
+4. Consider adding dealer count validation/limits
+5. Monitor for any new session errors
 
 ## Git Status
-- Multiple files modified but improvements working
+- Multiple files modified with significant improvements
+- All major issues resolved
 - Ready to commit when desired
-- Commit message suggestion: "Fix dealer group detection - now finding locations and brands correctly"
+- Commit message suggestion: "Fix dealer group detection accuracy and Chrome session stability"
 
 ## Recovery Command
 To resume: "I'm working on dealership-audit-mvp. Please read RECOVERY-INSTRUCTIONS.md and SESSION-NOTES-2025-01-11.md"

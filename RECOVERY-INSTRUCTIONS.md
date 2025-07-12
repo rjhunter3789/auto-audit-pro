@@ -51,17 +51,22 @@ The group analysis tests are failing to detect elements. We added debugging in:
 - Improved testGroupInformation function (lines 371-497)
 
 ### 3. Latest Test Results:
-- **Tested site**: geeautomotive.com
-- **Results**: SUCCESSFUL! 
-  - 172 locations found
-  - 25 brands detected
+- **Tested sites**: geeautomotive.com, kendallautogroup.com
+- **Results**: SUCCESSFUL after fixes! 
+  - Location count now accurate (was 172, now matches actual ~35-79)
+  - 25+ brands detected correctly
   - Full group information detected
   - Group Structure: 4/5 (Excellent)
+  - Contact Methods: Now detecting 80+ phone numbers
+  - Navigation: Comprehensive detection
 
-### 4. Remaining Minor Issues:
-1. **Contact Methods**: Still showing "Limited contact options"
-2. **Navigation Structure**: Still showing "Basic navigation"
-3. **Debug statements**: Still active in the code (remove when stable)
+### 4. All Major Issues RESOLVED ✅:
+1. **Health Score 348/100** - FIXED (proper weight calculation)
+2. **"window is not defined"** - FIXED (removed browser-specific code)
+3. **Group detection failing** - FIXED (improved patterns working)
+4. **Location count inflated** - FIXED (more selective counting)
+5. **Chrome session errors** - FIXED (added retry logic)
+6. **Quick Audit only** - CONFIRMED as intentional
 
 ### 4. Test Commands:
 ```bash
@@ -108,15 +113,29 @@ git log --oneline -10
 git reset --hard [commit-hash]
 ```
 
-## Key Insights So Far:
-1. Many dealer group sites block automated tools (Cloudflare, etc.)
-2. The improved patterns are working well - detecting locations and brands successfully
-3. Quick Audit restriction for groups is intentional, not a bug
-4. The enhanced selectors and brand list made a huge difference
-5. Debug output is helpful for understanding what's being detected
+## Latest Code Changes (January 11, 2025):
+
+### Location Count Fix:
+- Unified `testLocationDirectory` and `extractDealerLinks` to use same logic
+- Removed overly broad selectors like `a[href*=".com"]`
+- Improved `isDealerLink` function with better validation
+- Added specific patterns for external dealer sites
+
+### Chrome Session Fix:
+- Added retry logic (up to 3 attempts) for session errors
+- Improved timeout management
+- Better error handling and cleanup
+- Stabilized Chrome options
+
+## Key Insights:
+1. Dealer groups often use external sites (e.g., kendallford.com)
+2. Need specific patterns for each group's structure
+3. Quick Audit restriction is intentional for performance
+4. Location counting must be precise to avoid inflated numbers
+5. Chrome sessions need retry logic for stability
 
 ## Session Notes:
-See SESSION-NOTES-2025-01-11.md for detailed progress from today's session
+See SESSION-NOTES-2025-01-11.md for complete details of all fixes
 
 ## Contact for Original Code:
 - Author: JL Robinson

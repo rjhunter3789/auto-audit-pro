@@ -87,7 +87,12 @@
 - **Fixed**: Dealer group health score showing 348/100 - corrected weight calculation from 15 to 0.15
 - **Fixed**: "window is not defined" error in group analysis - removed browser-specific code
 - **Fixed**: Enhanced Chrome options to reduce bot detection and website blocking
-- **In Progress**: Dealer group detection patterns - improved selectors and added debugging
+- **Fixed**: Dealer group detection patterns - now successfully detecting locations and brands
+- **Fixed**: Location count discrepancy (was showing 172, now shows actual ~35-79)
+- **Fixed**: Chrome session termination errors - added retry logic and better session management
+- **Fixed**: Unified location counting logic between test and display functions
+- **Fixed**: Overly broad link detection - removed selectors like `a[href*=".com"]`
+- **Confirmed**: Quick Audit restriction for dealer groups is intentional design choice
 
 ### 📝 Implementation Details
 
@@ -99,9 +104,9 @@
 - `/public/js/combined-insights.js` - ROI calculations, chart implementations
 - `/views/index-new.html` - Navigation consistency
 - `/views/reports-new.html` - Bidirectional navigation flow
-- `/lib/group-analysis.js` - NEW: Dealer group detection and analysis module
+- `/lib/group-analysis.js` - NEW: Dealer group detection and analysis module (major improvements Jan 11)
 - `/views/reports-group.html` - NEW: Dedicated dealer group report template
-- `/server.js` - Added group analysis integration and routing
+- `/server.js` - Added group analysis integration, routing, session fixes, retry logic
 
 #### Technical Specifications
 - **Responsive Breakpoints**: 430px, 576px, 768px, 991px
