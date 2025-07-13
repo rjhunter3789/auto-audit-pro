@@ -1,5 +1,48 @@
 # Auto Audit Pro Suite - Changelog & Feature Documentation
 
+## Version 2.2.1 - July 13, 2025 (Evening Update)
+
+### 🔧 Enhanced Recommendation System & Detection Improvements
+
+#### 📚 Expanded Definitions & Glossary
+- **Comprehensive Documentation** - All glossary sections now match SEO section depth
+  - Lead Generation section: Expanded from 3 to 19 terms
+  - Priority Levels section: Expanded from 3 to 17 terms
+  - Added detailed explanations and examples for all terms
+  - Better resource for understanding audit results
+
+#### 🎯 Fixed Detailed Action Items Display
+- **Improved Recommendations** - Enhanced how recommendations display in reports
+  - Shows "No Recommendations At This Time" instead of blank placeholders
+  - Displays exact number of recommendations (1-5) without empty slots
+  - Fixed data structure compatibility between engine and template
+  - Added proper recommendation mappings for common issues
+
+#### 📸 Smarter Vehicle Image Detection
+- **Reduced False Positives** - More accurate vehicle image analysis
+  - Detects image galleries, carousels, and thumbnail systems
+  - Recognizes dynamic/lazy loading implementations
+  - Looks for large images instead of specific keywords
+  - Acknowledges modern CDN patterns
+  - Changed priority from HIGH to LOW/MEDIUM for image issues
+  - Added manual review option for dynamic galleries
+
+#### 🔍 Enhanced Inventory Filter Detection
+- **Modern Filter Recognition** - Better detection of search functionality
+  - Expanded keywords: year, make, model, price, mileage, body style, etc.
+  - Detects filter UI containers and faceted search systems
+  - Recognizes AJAX/dynamic filter loading
+  - Changed "Limited search filters" from HIGH to MEDIUM priority
+  - More accurate for modern dealer inventory systems
+
+#### 📱 Fixed Mobile Optimization Detection
+- **Eliminated False Positives** - Accurate mobile readiness assessment
+  - No longer flags responsive sites as "Not mobile optimized"
+  - Checks for actual problems: Flash content, excessive fixed-width layouts
+  - Recognizes responsive design patterns (grid, flexbox, media queries)
+  - Appropriate priority levels (MEDIUM/LOW instead of HIGH)
+  - Acknowledges that modern dealer sites are typically mobile-ready
+
 ## Version 2.2 - July 13, 2025
 
 ### 🎯 New SEO Audit Feature
