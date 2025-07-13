@@ -679,7 +679,7 @@ function createComparisonChart() {
 }
 
 // Download report
-function downloadReport() {
+window.downloadReport = function() {
     console.log('Download report clicked', {
         websiteData: !!websiteData,
         leadData: !!leadData,
@@ -716,10 +716,10 @@ function generateReportHTML() {
     const dealer = window.currentDealerMatch;
     const date = new Date().toLocaleDateString();
     
-    // Calculate all metrics
-    const websiteScore = websiteData.score;
-    const conversionRate = parseFloat(dealer.conversionRate);
-    const leadCount = dealer.leads;
+    // Calculate all metrics with safety checks
+    const websiteScore = websiteData?.score || 0;
+    const conversionRate = parseFloat(dealer?.conversionRate || 0);
+    const leadCount = dealer?.leads || 0;
     const monthlyLeads = Math.round(leadCount / 6);
     
     // ROI calculations
@@ -887,13 +887,13 @@ function generateReportHTML() {
                     <th>Score</th>
                     <th>Tests Completed</th>
                 </tr>
-                ${websiteData.categories.map(cat => `
+                ${websiteData.categories ? websiteData.categories.map(cat => `
                     <tr>
                         <td>${cat.name}</td>
                         <td>${cat.score}/5</td>
                         <td>${cat.testsCompleted}/${cat.totalTests}</td>
                     </tr>
-                `).join('')}
+                `).join('') : '<tr><td colspan="3">No category data available</td></tr>'}
             </table>
         </div>
         
@@ -908,16 +908,16 @@ function generateReportHTML() {
                 <tr>
                     <td>Total Leads (6 months)</td>
                     <td>${leadCount}</td>
-                    <td>${Math.round((leadData.summary?.totalLeads || 26000) / (leadData.dealerCount || 31))}</td>
+                    <td>${Math.round((leadData?.summary?.totalLeads || 26000) / (leadData?.dealerCount || 31))}</td>
                 </tr>
                 <tr>
                     <td>Conversion Rate</td>
                     <td>${conversionRate}%</td>
-                    <td>${leadData.summary?.avgConversion || 16.12}%</td>
+                    <td>${leadData?.summary?.avgConversion || 16.12}%</td>
                 </tr>
                 <tr>
                     <td>15-min Response Rate</td>
-                    <td>${dealer.responseTime15min ? Math.round(dealer.responseTime15min / leadCount * 100) : 'N/A'}%</td>
+                    <td>${dealer?.responseTime15min ? Math.round(dealer.responseTime15min / leadCount * 100) : 'N/A'}%</td>
                     <td>30%</td>
                 </tr>
             </table>
@@ -931,7 +931,7 @@ function generateReportHTML() {
                     Score: ${issue.score}/5 - ${issue.tests} tests completed
                 </div>
             `).join('')}
-            ${dealer.noResponse && dealer.leads && (dealer.noResponse / dealer.leads * 100) > 30 ? `
+            ${dealer?.noResponse && dealer?.leads && (dealer.noResponse / dealer.leads * 100) > 30 ? `
                 <div class="issue-item">
                     <strong>High No-Response Rate</strong><br>
                     ${(dealer.noResponse / dealer.leads * 100).toFixed(1)}% of leads never receive a response
@@ -1014,7 +1014,7 @@ function generateReportHTML() {
 }
 
 // Rerun website audit for the same domain
-function rerunWebsiteAudit() {
+window.rerunWebsiteAudit = function() {
     if (websiteData && websiteData.domain) {
         // Store the domain for re-analysis
         sessionStorage.setItem('rerunDomain', websiteData.domain);
@@ -1025,7 +1025,7 @@ function rerunWebsiteAudit() {
 }
 
 // Update lead analysis - go to lead analysis tab with current dealer selected
-function updateLeadAnalysis() {
+window.updateLeadAnalysis = function() {
     if (window.currentDealerMatch) {
         // Store the dealer to re-select
         sessionStorage.setItem('selectDealer', window.currentDealerMatch.name);
