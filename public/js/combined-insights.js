@@ -680,8 +680,326 @@ function createComparisonChart() {
 
 // Download report
 function downloadReport() {
-    alert('Report download feature coming soon!');
-    // In production, this would generate a PDF report
+    // Check if we have the necessary data
+    if (!websiteData || !leadData || !window.currentDealerMatch) {
+        alert('Please complete both website analysis and lead performance analysis first.');
+        return;
+    }
+    
+    // Generate report content
+    const reportHtml = generateReportHTML();
+    
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(reportHtml);
+    printWindow.document.close();
+    
+    // Auto-trigger print dialog after a short delay
+    setTimeout(() => {
+        printWindow.print();
+    }, 500);
+}
+
+// Generate HTML content for the report
+function generateReportHTML() {
+    const dealer = window.currentDealerMatch;
+    const date = new Date().toLocaleDateString();
+    
+    // Calculate all metrics
+    const websiteScore = websiteData.score;
+    const conversionRate = parseFloat(dealer.conversionRate);
+    const leadCount = dealer.leads;
+    const monthlyLeads = Math.round(leadCount / 6);
+    
+    // ROI calculations
+    const roiValue = document.getElementById('roiValue').textContent;
+    const leadIncrease = document.getElementById('leadIncrease').textContent;
+    const conversionIncrease = document.getElementById('conversionIncrease').textContent;
+    const additionalSales = document.getElementById('additionalSales').textContent;
+    
+    // Get top issues
+    const topIssues = [];
+    if (websiteData.categories) {
+        const sortedCategories = [...websiteData.categories].sort((a, b) => a.score - b.score);
+        sortedCategories.slice(0, 3).forEach(category => {
+            if (category.score < 4) {
+                topIssues.push({
+                    name: category.name,
+                    score: category.score,
+                    tests: category.testsCompleted
+                });
+            }
+        });
+    }
+    
+    return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Combined Performance Report - ${dealer.name}</title>
+        <style>
+            @media print {
+                body { margin: 0; }
+                .page-break { page-break-after: always; }
+            }
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                color: #1F2937;
+                line-height: 1.6;
+                margin: 0;
+                padding: 20px;
+            }
+            .header {
+                background: #6B46C1;
+                color: white;
+                padding: 30px;
+                margin: -20px -20px 30px -20px;
+            }
+            .header h1 {
+                margin: 0;
+                font-size: 28px;
+            }
+            .header p {
+                margin: 10px 0 0 0;
+                opacity: 0.9;
+                font-size: 16px;
+            }
+            .section {
+                margin-bottom: 40px;
+            }
+            .section h2 {
+                color: #6B46C1;
+                border-bottom: 2px solid #E5E7EB;
+                padding-bottom: 10px;
+                margin-bottom: 20px;
+            }
+            .metric-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 20px;
+                margin-bottom: 30px;
+            }
+            .metric-card {
+                background: #F9FAFB;
+                padding: 20px;
+                border-radius: 8px;
+                text-align: center;
+            }
+            .metric-value {
+                font-size: 36px;
+                font-weight: bold;
+                color: #6B46C1;
+                margin: 10px 0;
+            }
+            .metric-label {
+                color: #6B7280;
+                font-size: 14px;
+            }
+            .issue-item {
+                background: #FEF2F2;
+                border-left: 4px solid #EF4444;
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+            .opportunity-item {
+                background: #F0FDF4;
+                border-left: 4px solid #10B981;
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+            .roi-section {
+                background: #F0FDF4;
+                padding: 30px;
+                border-radius: 8px;
+                text-align: center;
+                margin: 30px 0;
+            }
+            .roi-value {
+                font-size: 48px;
+                font-weight: bold;
+                color: #10B981;
+                margin: 20px 0;
+            }
+            .footer {
+                text-align: center;
+                color: #6B7280;
+                font-size: 12px;
+                margin-top: 50px;
+                padding-top: 20px;
+                border-top: 1px solid #E5E7EB;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 20px 0;
+            }
+            th, td {
+                text-align: left;
+                padding: 12px;
+                border-bottom: 1px solid #E5E7EB;
+            }
+            th {
+                background: #F9FAFB;
+                font-weight: 600;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>Combined Performance Report</h1>
+            <p>${dealer.name} - Generated ${date}</p>
+        </div>
+        
+        <div class="section">
+            <h2>Executive Summary</h2>
+            <div class="metric-grid">
+                <div class="metric-card">
+                    <div class="metric-label">Website Score</div>
+                    <div class="metric-value">${websiteScore}/100</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Conversion Rate</div>
+                    <div class="metric-value">${conversionRate}%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Monthly Leads</div>
+                    <div class="metric-value">${monthlyLeads}</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Website Performance Analysis</h2>
+            <table>
+                <tr>
+                    <th>Category</th>
+                    <th>Score</th>
+                    <th>Tests Completed</th>
+                </tr>
+                ${websiteData.categories.map(cat => `
+                    <tr>
+                        <td>${cat.name}</td>
+                        <td>${cat.score}/5</td>
+                        <td>${cat.testsCompleted}/${cat.totalTests}</td>
+                    </tr>
+                `).join('')}
+            </table>
+        </div>
+        
+        <div class="section">
+            <h2>Lead Performance Metrics</h2>
+            <table>
+                <tr>
+                    <th>Metric</th>
+                    <th>Value</th>
+                    <th>Network Average</th>
+                </tr>
+                <tr>
+                    <td>Total Leads (6 months)</td>
+                    <td>${leadCount}</td>
+                    <td>${Math.round((leadData.summary?.totalLeads || 26000) / (leadData.dealerCount || 31))}</td>
+                </tr>
+                <tr>
+                    <td>Conversion Rate</td>
+                    <td>${conversionRate}%</td>
+                    <td>${leadData.summary?.avgConversion || 16.12}%</td>
+                </tr>
+                <tr>
+                    <td>15-min Response Rate</td>
+                    <td>${dealer.responseTime15min ? Math.round(dealer.responseTime15min / leadCount * 100) : 'N/A'}%</td>
+                    <td>30%</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="section">
+            <h2>Top Issues Impacting Performance</h2>
+            ${topIssues.map(issue => `
+                <div class="issue-item">
+                    <strong>${issue.name}</strong><br>
+                    Score: ${issue.score}/5 - ${issue.tests} tests completed
+                </div>
+            `).join('')}
+            ${dealer.noResponse && dealer.leads && (dealer.noResponse / dealer.leads * 100) > 30 ? `
+                <div class="issue-item">
+                    <strong>High No-Response Rate</strong><br>
+                    ${(dealer.noResponse / dealer.leads * 100).toFixed(1)}% of leads never receive a response
+                </div>
+            ` : ''}
+        </div>
+        
+        <div class="page-break"></div>
+        
+        <div class="section">
+            <h2>Improvement Opportunities</h2>
+            <div class="opportunity-item">
+                <strong>Website Optimization</strong><br>
+                Improving to 80+ score could increase conversions by 15-20%
+            </div>
+            <div class="opportunity-item">
+                <strong>Response Time Improvement</strong><br>
+                Faster response times correlate with 2.5x higher conversion
+            </div>
+            <div class="opportunity-item">
+                <strong>Mobile Experience</strong><br>
+                Optimize for mobile users who represent 67% of traffic
+            </div>
+        </div>
+        
+        <div class="roi-section">
+            <h2>Projected Return on Investment</h2>
+            <div class="roi-value">${roiValue}</div>
+            <p>Estimated annual revenue increase from implementing recommended improvements</p>
+            <div class="metric-grid" style="margin-top: 30px;">
+                <div class="metric-card">
+                    <div class="metric-label">Lead Increase</div>
+                    <div class="metric-value" style="font-size: 24px;">${leadIncrease}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Conversion Improvement</div>
+                    <div class="metric-value" style="font-size: 24px;">${conversionIncrease}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Additional Sales</div>
+                    <div class="metric-value" style="font-size: 24px;">${additionalSales}</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Recommended Action Plan</h2>
+            <ol>
+                <li><strong>Immediate (Week 1-2):</strong>
+                    <ul>
+                        <li>Implement automated lead response system</li>
+                        <li>Fix critical mobile usability issues</li>
+                        <li>Optimize page load speed</li>
+                    </ul>
+                </li>
+                <li><strong>Short-term (Month 1):</strong>
+                    <ul>
+                        <li>Complete website optimization for ${topIssues.map(i => i.name).join(', ')}</li>
+                        <li>Train staff on faster lead response protocols</li>
+                        <li>Implement lead tracking improvements</li>
+                    </ul>
+                </li>
+                <li><strong>Medium-term (Month 2-3):</strong>
+                    <ul>
+                        <li>Launch enhanced mobile experience</li>
+                        <li>Implement A/B testing for conversion optimization</li>
+                        <li>Review and optimize lead distribution system</li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+        
+        <div class="footer">
+            <p>© 2025 JL Robinson. All Rights Reserved. | Auto Audit Pro™</p>
+            <p>This report contains confidential performance data and recommendations.</p>
+        </div>
+    </body>
+    </html>
+    `;
 }
 
 // Rerun website audit for the same domain
