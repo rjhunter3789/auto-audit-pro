@@ -429,15 +429,43 @@
         </div>
         <% } %>
         
-        <% if (results.enhancedRecommendations && results.enhancedRecommendations.length > 0) { %>
         <h3>Detailed Action Items</h3>
-        <% results.enhancedRecommendations.slice(0, 5).forEach(function(rec) { %>
+        <% if (!results.enhancedRecommendations || results.enhancedRecommendations.length === 0) { %>
+        <p style="color: #6B7280; font-style: italic; margin: 20px 0;">No Recommendations At This Time</p>
+        <% } else { %>
+        <% 
+        // Flatten recommendations from the nested structure
+        let flatRecommendations = [];
+        results.enhancedRecommendations.forEach(function(rec) {
+            if (rec.recommendations && rec.recommendations.length > 0) {
+                rec.recommendations.forEach(function(item) {
+                    flatRecommendations.push({
+                        category: rec.category,
+                        priority: rec.priority,
+                        title: item.title,
+                        description: item.details,
+                        implementation: item.implementation,
+                        expectedResult: item.expectedResult,
+                        effort: item.effort,
+                        timeframe: item.timeframe
+                    });
+                });
+            }
+        });
+        
+        // Show up to 5 recommendations
+        flatRecommendations.slice(0, 5).forEach(function(rec) { %>
         <div class="recommendation">
             <strong><%= rec.title %></strong>
             <p style="margin: 10px 0;"><%= rec.description %></p>
             <% if (rec.implementation) { %>
             <div style="background: rgba(255,255,255,0.5); padding: 10px; border-radius: 4px; margin-top: 10px;">
                 <strong>How to implement:</strong> <%= rec.implementation %>
+            </div>
+            <% } %>
+            <% if (rec.expectedResult) { %>
+            <div style="margin-top: 10px; color: #059669;">
+                <strong>Expected Result:</strong> <%= rec.expectedResult %>
             </div>
             <% } %>
         </div>
