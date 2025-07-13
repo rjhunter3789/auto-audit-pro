@@ -2126,7 +2126,8 @@ app.post('/audit', async (req, res) => {
         if (siteType === 'group') {
             res.render('reports-group.html', { results: auditResults });
         } else {
-            res.render('reports-new.html', { results: auditResults });
+            // Use dealer-style report for individual dealerships
+            res.render('reports-dealer-style.html', { results: auditResults });
         }
 
     } catch (error) {

@@ -10,6 +10,17 @@
   - Available for individual dealership websites
   - Maintains full SEO testing within Comprehensive Audit option
 
+### 🎨 Report Design Update
+- **Individual Dealer Report Style** - Updated website audit reports to match lead performance reports
+  - Clean, professional layout with consistent branding
+  - Performance tier badges (Elite/Strong/Average/Challenge)
+  - Metric rows with clear labels and values
+  - Color-coded category performance grid
+  - Organized issue prioritization (High/Medium/Low)
+  - Improved recommendations section
+  - Added Back button for better navigation
+  - Print-optimized styling
+
 ## Version 2.1 - January 13, 2025
 
 ### 🔄 Temporary Feature Removal

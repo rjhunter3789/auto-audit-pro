@@ -2,6 +2,33 @@
 
 ## Current Status (Updated: January 13, 2025)
 
+### New Features Added
+- **Date**: January 13, 2025
+
+#### SEO Audit Option
+- **Change**: Replaced "Quick Audit" with dedicated "SEO Audit" option
+- **Implementation**: 
+  - SEO-focused analysis that runs only SEO tests
+  - 30-second targeted analysis vs 60-90 seconds for comprehensive
+  - Skips VDP, Service, and Inventory page analysis
+- **Files Modified**:
+  - `/views/index-new.html` - Changed "Quick Audit" to "SEO Audit" with description
+  - `/lib/audit-tests.js` - Already had `runSEOAudit` function implemented
+  - `/server.js` - Added logic to skip page-specific tests for SEO audits (line 1998-2000)
+  - `/CHANGELOG.md` - Documented version 2.2 with SEO audit feature
+- **Backend**: Uses existing `runSEOAudit` function that was already in audit-tests.js
+
+#### Report Design Update
+- **Change**: Updated website audit reports to mirror Individual Dealer Report style
+- **Implementation**:
+  - Created new template with clean, professional design
+  - Added performance tier badges (Elite/Strong/Average/Challenge)
+  - Improved issue organization and recommendations
+- **Files Modified**:
+  - `/views/reports-dealer-style.html` - NEW: Individual dealer report template
+  - `/server.js` - Updated to use new template (line 2130)
+  - `/CHANGELOG.md` - Documented report design update
+
 ### Major Change: Dealer Group Analysis Temporarily Disabled
 - **Date**: January 13, 2025
 - **Reason**: Location counting was unreliable and only worked for pre-programmed major groups
