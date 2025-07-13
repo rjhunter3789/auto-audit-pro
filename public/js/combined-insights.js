@@ -644,11 +644,11 @@ function createComparisonChart() {
         }
         
         comparisonChart = new Chart(ctx, {
-            type: 'radar',
+            type: 'bar',
             data: {
                 labels: ['Website', 'Leads', 'Conversion', 'Response', 'Mobile', 'UX'],
                 datasets: [{
-                    label: window.currentDealerMatch ? window.currentDealerMatch.name : 'Current',
+                    label: window.currentDealerMatch ? window.currentDealerMatch.name : 'Your Dealership',
                     data: [
                         websiteScore,
                         Math.round(leadVolumeScore),
@@ -657,35 +657,63 @@ function createComparisonChart() {
                         Math.round(mobileScore),
                         Math.round(uxScore)
                     ],
-                    borderColor: 'rgb(107, 70, 193)',
-                    backgroundColor: 'rgba(107, 70, 193, 0.2)',
-                    borderWidth: 2
+                    backgroundColor: '#6B46C1',
+                    borderRadius: 4
                 }, {
-                    label: 'Top Performers',
+                    label: 'Top Performers Average',
                     data: [85, 90, 90, 85, 88, 87],
-                    borderColor: 'rgb(16, 185, 129)',
-                    backgroundColor: 'rgba(16, 185, 129, 0.2)',
-                    borderWidth: 2
+                    backgroundColor: '#10B981',
+                    borderRadius: 4
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                scales: {
-                    r: {
-                        beginAtZero: true,
-                        max: 100,
-                        ticks: {
-                            stepSize: 20
-                        }
-                    }
-                },
                 plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            padding: 20,
+                            font: {
+                                size: 14
+                            }
+                        }
+                    },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                return context.dataset.label + ': ' + context.parsed.r;
+                                const label = context.dataset.label || '';
+                                const value = context.parsed.y || 0;
+                                const diff = context.datasetIndex === 0 ? 
+                                    value - context.chart.data.datasets[1].data[context.dataIndex] :
+                                    value - context.chart.data.datasets[0].data[context.dataIndex];
+                                return `${label}: ${value}/100 (${diff > 0 ? '+' : ''}${Math.round(diff)} vs other)`;
                             }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            stepSize: 20,
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        },
+                        grid: {
+                            color: '#E5E7EB'
                         }
                     }
                 }
