@@ -322,12 +322,22 @@ function generateImpactAnalysis() {
         }
     }
     
-    // Always add mobile insight
-    impacts.push({
-        issue: 'Mobile Experience',
-        impact: '67% of leads browse on mobile devices',
-        priority: 'medium'
-    });
+    // Only add mobile as an issue if mobile performance is actually poor
+    if (websiteData.categories) {
+        const mobileCategory = websiteData.categories.find(c => 
+            c.name.toLowerCase().includes('mobile') || 
+            c.name.toLowerCase().includes('performance')
+        );
+        
+        // Only show as issue if mobile score is below 4/5 (80%)
+        if (mobileCategory && mobileCategory.score < 4) {
+            impacts.push({
+                issue: 'Mobile Experience Needs Improvement',
+                impact: `Score: ${mobileCategory.score}/5 - Critical since 65% of leads use mobile`,
+                priority: mobileCategory.score < 3 ? 'high' : 'medium'
+            });
+        }
+    }
     
     // Generate HTML
     let html = '<div class="list-group">';
@@ -374,12 +384,22 @@ function generateOpportunities() {
         impact: 'High'
     });
     
-    opportunities.push({
-        title: 'Mobile Experience',
-        description: 'Optimize for mobile users who represent 67% of traffic',
-        effort: 'Medium',
-        impact: 'Medium'
-    });
+    // Only suggest mobile optimization if it's actually an issue
+    if (websiteData.categories) {
+        const mobileCategory = websiteData.categories.find(c => 
+            c.name.toLowerCase().includes('mobile') || 
+            c.name.toLowerCase().includes('performance')
+        );
+        
+        if (mobileCategory && mobileCategory.score < 4) {
+            opportunities.push({
+                title: 'Mobile Experience Optimization',
+                description: `Current score ${mobileCategory.score}/5 - Critical with 65% mobile traffic`,
+                effort: 'Medium',
+                impact: 'High'
+            });
+        }
+    }
     
     // Generate HTML
     let html = '<div class="row">';
@@ -951,10 +971,25 @@ function generateReportHTML() {
                 <strong>Response Time Improvement</strong><br>
                 Faster response times correlate with 2.5x higher conversion
             </div>
-            <div class="opportunity-item">
-                <strong>Mobile Experience</strong><br>
-                Optimize for mobile users who represent 67% of traffic
-            </div>
+            ${(() => {
+                // Only include mobile optimization if it's actually needed
+                if (websiteData.categories) {
+                    const mobileCategory = websiteData.categories.find(c => 
+                        c.name.toLowerCase().includes('mobile') || 
+                        c.name.toLowerCase().includes('performance')
+                    );
+                    
+                    if (mobileCategory && mobileCategory.score < 4) {
+                        return `
+                            <div class="opportunity-item">
+                                <strong>Mobile Experience Optimization</strong><br>
+                                Current score ${mobileCategory.score}/5 - Critical since 65% of traffic is mobile
+                            </div>
+                        `;
+                    }
+                }
+                return '';
+            })()}
         </div>
         
         <div class="roi-section">
