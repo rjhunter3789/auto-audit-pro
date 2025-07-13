@@ -1,6 +1,6 @@
 # Auto Audit Pro Suite - Changelog & Feature Documentation
 
-## Version 2.2 - January 13, 2025
+## Version 2.2 - July 13, 2025
 
 ### 🎯 New SEO Audit Feature
 - **SEO-Focused Analysis** - Replaced "Quick Audit" with dedicated SEO audit option
@@ -13,15 +13,18 @@
 ### 🎨 Report Design Update
 - **Individual Dealer Report Style** - Updated website audit reports to match lead performance reports
   - Clean, professional layout with consistent branding
-  - Performance tier badges (Elite/Strong/Average/Challenge)
+  - Dealership name centered at top for clear identification
+  - Unified performance badge combining score and tier (e.g., "80/100 • Strong Performer")
+  - Color-coded badges: Elite (green), Strong (blue), Average (orange), Challenge (red)
   - Metric rows with clear labels and values
   - Color-coded category performance grid
   - Organized issue prioritization (High/Medium/Low)
   - Improved recommendations section
   - Added Back button for better navigation
   - Print-optimized styling
+  - Removed auto-print behavior from all reports for better UX
 
-## Version 2.1 - January 13, 2025
+## Version 2.1 - July 13, 2025
 
 ### 🔄 Temporary Feature Removal
 - **Dealer Group Analysis** - Temporarily disabled due to accuracy issues

@@ -1,5 +1,12 @@
-// Lead Performance Intelligence - Auto Audit Pro Suite
-// © 2025 JL Robinson. All Rights Reserved.
+/*
+ * Lead Performance Intelligence - Auto Audit Pro Suite
+ * Version 2.2
+ * © 2025 JL Robinson. All Rights Reserved.
+ * 
+ * Author: JL Robinson
+ * Contact: nakapaahu@gmail.com
+ * Last Modified: July 13, 2025
+ */
 
 // Global variables
 let currentDealerData = null;

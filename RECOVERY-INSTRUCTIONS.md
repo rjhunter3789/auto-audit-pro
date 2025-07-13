@@ -1,9 +1,9 @@
 # Recovery Instructions - Auto Audit Pro
 
-## Current Status (Updated: January 13, 2025)
+## Current Status (Updated: July 13, 2025)
 
 ### New Features Added
-- **Date**: January 13, 2025
+- **Date**: July 13, 2025
 
 #### SEO Audit Option
 - **Change**: Replaced "Quick Audit" with dedicated "SEO Audit" option
@@ -22,15 +22,20 @@
 - **Change**: Updated website audit reports to mirror Individual Dealer Report style
 - **Implementation**:
   - Created new template with clean, professional design
-  - Added performance tier badges (Elite/Strong/Average/Challenge)
+  - Dealership name centered at top as primary identifier
+  - Unified performance badge showing "Score/100 • Tier Performer"
+  - Color-coded badges: Elite (green), Strong (blue), Average (orange), Challenge (red)
   - Improved issue organization and recommendations
+  - Added print buttons to all reports
+  - Removed auto-print behavior for better UX
 - **Files Modified**:
   - `/views/reports-dealer-style.html` - NEW: Individual dealer report template
   - `/server.js` - Updated to use new template (line 2130)
+  - `/public/js/lead-performance.js` - Removed auto-print, added print buttons
   - `/CHANGELOG.md` - Documented report design update
 
 ### Major Change: Dealer Group Analysis Temporarily Disabled
-- **Date**: January 13, 2025
+- **Date**: July 13, 2025
 - **Reason**: Location counting was unreliable and only worked for pre-programmed major groups
 - **Implementation**: Shows "Coming Soon" message when dealer group option is selected
 - **Files Modified**: 
@@ -38,7 +43,7 @@
   - `/CHANGELOG.md` - Documented the temporary removal
 - **Note**: All dealer group backend code remains in place but is unused
 
-## Previous Status (January 11, 2025)
+## Previous Status (July 11, 2025)
 
 ### Issues We Were Working On:
 1. **Health Score Bug** - FIXED ✅
@@ -157,7 +162,7 @@ git log --oneline -10
 git reset --hard [commit-hash]
 ```
 
-## Latest Code Changes (January 11, 2025):
+## Latest Code Changes (July 11, 2025):
 
 ### Location Count Fix:
 - Unified `testLocationDirectory` and `extractDealerLinks` to use same logic
