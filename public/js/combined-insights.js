@@ -680,9 +680,20 @@ function createComparisonChart() {
 
 // Download report
 function downloadReport() {
+    console.log('Download report clicked', {
+        websiteData: !!websiteData,
+        leadData: !!leadData,
+        currentDealerMatch: !!window.currentDealerMatch
+    });
+    
     // Check if we have the necessary data
     if (!websiteData || !leadData || !window.currentDealerMatch) {
-        alert('Please complete both website analysis and lead performance analysis first.');
+        let missingItems = [];
+        if (!websiteData) missingItems.push('Website Analysis');
+        if (!leadData) missingItems.push('Lead Performance Data');
+        if (!window.currentDealerMatch) missingItems.push('Dealer Selection');
+        
+        alert(`Please complete the following before downloading the report:\n- ${missingItems.join('\n- ')}`);
         return;
     }
     
