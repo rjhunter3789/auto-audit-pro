@@ -110,15 +110,30 @@
     * Deep crawling with pagination support
     * Selenium-based JavaScript rendering
   - Should now detect 80-100% of dealer locations for major groups
+- **Fixed**: "Download Full Report" button in Combined Insights (Jan 11)
+  - Was showing "coming soon" message
+  - Now generates comprehensive HTML report with print-to-PDF functionality
+  - Includes all metrics, recommendations, and action plans
+- **Improved**: Removed misleading "Fix Website Issues" CTA (Jan 11)
+  - Button promised fixes but only redirected to analysis page
+  - Removed to avoid user frustration
+- **Fixed**: Mobile experience false positive reporting (Jan 11)
+  - Was showing "67% mobile traffic" as issue for all dealers
+  - Now only shows as issue if mobile score is actually poor (< 4/5)
+  - More accurate, data-driven approach
+- **Improved**: Replaced radar chart with grouped bar chart (Jan 11)
+  - Radar chart was confusing and hard to interpret
+  - New bar chart shows clear side-by-side comparison
+  - Uses brand colors (purple vs green) for consistency
 
 ### 📝 Implementation Details
 
 #### Key Files Modified
 - `/views/suite-home.html` - Mobile responsive overhaul
 - `/views/lead-performance.html` - Report generation, mobile fixes
-- `/views/combined-insights.html` - New correlation features, mobile optimization
+- `/views/combined-insights.html` - New correlation features, mobile optimization, removed Fix Website CTA, cache busting
 - `/public/js/lead-performance.js` - Enhanced dealer analysis, report functions
-- `/public/js/combined-insights.js` - ROI calculations, chart implementations
+- `/public/js/combined-insights.js` - ROI calculations, report generation, mobile logic fixes, chart type change
 - `/views/index-new.html` - Navigation consistency
 - `/views/reports-new.html` - Bidirectional navigation flow
 - `/lib/group-analysis.js` - NEW: Dealer group detection and analysis module (major improvements Jan 11)

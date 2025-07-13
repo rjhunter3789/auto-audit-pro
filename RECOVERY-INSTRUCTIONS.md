@@ -150,6 +150,17 @@ git reset --hard [commit-hash]
   - Selenium for JavaScript content
 - Should detect 80-100% of locations for major dealer groups
 
+### Combined Insights Improvements:
+- Fixed "Download Full Report" button - now generates comprehensive PDF report
+- Removed misleading "Fix Website Issues" CTA
+- Fixed mobile experience reporting:
+  - Only shows as issue if mobile score is actually poor
+  - No longer implies 65% mobile traffic is a problem
+- Replaced confusing radar chart with clear grouped bar chart:
+  - Side-by-side comparison (purple vs green bars)
+  - Easy to see performance gaps
+  - Professional and matches app branding
+
 ## Key Insights:
 1. Dealer groups often use external sites (e.g., kendallford.com)
 2. Need specific patterns for each group's structure
