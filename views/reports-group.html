@@ -437,16 +437,29 @@
             <% if (results.webSearchSummary && results.webSearchSummary.success) { %>
             <div class="row mb-4">
                 <div class="col-md-12">
-                    <div class="alert alert-info">
-                        <h5><i class="fas fa-search"></i> Web Search Results</h5>
-                        <p class="mb-1"><strong><%= results.webSearchSummary.message %></strong></p>
-                        <p class="mb-0"><%= results.webSearchSummary.coverage %></p>
+                    <div class="alert alert-<%= results.locationDiscrepancy ? 'warning' : 'info' %>">
+                        <h5><i class="fas fa-<%= results.locationDiscrepancy ? 'exclamation-triangle' : 'info-circle' %>"></i> 
+                            Actual Dealer Network Size</h5>
+                        <p class="mb-2"><strong><%= results.webSearchSummary.groupName %> operates <%= results.totalLocationCount || results.webSearchSummary.totalLocations %> dealerships nationwide</strong></p>
+                        <p class="mb-0 text-muted"><%= results.webSearchSummary.coverage %></p>
                         <% if (results.locationDiscrepancy) { %>
                         <hr>
-                        <p class="mb-0 text-warning">
-                            <i class="fas fa-exclamation-triangle"></i> 
-                            Note: Website crawling found <%= results.dealerLinks.length %> locations, 
-                            but web search indicates <%= results.totalLocationCount %> total locations exist.
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-0">
+                                    <i class="fas fa-globe text-primary"></i> 
+                                    <strong>Website shows:</strong> <%= results.dealerLinks.length %> locations
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-0">
+                                    <i class="fas fa-building text-success"></i> 
+                                    <strong>Actually has:</strong> <%= results.totalLocationCount %> locations
+                                </p>
+                            </div>
+                        </div>
+                        <p class="mt-2 mb-0 small">
+                            <strong>Impact:</strong> <%= Math.round(((results.totalLocationCount - results.dealerLinks.length) / results.totalLocationCount) * 100) %>% of locations are not easily discoverable on the website
                         </p>
                         <% } %>
                     </div>
@@ -457,7 +470,7 @@
             <% if (results.dealerLinks && results.dealerLinks.length > 0) { %>
             <div class="row">
                 <div class="col-md-12">
-                    <h5>Discovered Dealer Locations (<%= results.dealerLinks.length %>)</h5>
+                    <h5>Locations Found on Website (<%= results.dealerLinks.length %> displayed)</h5>
                     <div class="row">
                         <% results.dealerLinks.slice(0, 12).forEach((dealer, index) => { %>
                         <div class="col-md-4 mb-3">
