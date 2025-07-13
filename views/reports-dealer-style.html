@@ -26,9 +26,9 @@
         
         h1 { 
             color: #6B46C1; 
-            border-bottom: 3px solid #6B46C1; 
-            padding-bottom: 10px; 
-            margin-bottom: 20px;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
         }
         
         h2 { 
@@ -51,7 +51,7 @@
             border-radius: 25px; 
             font-weight: bold;
             font-size: 1.2em;
-            margin-left: 15px;
+            margin: 0 10px;
         }
         
         .performance-tier {
@@ -263,25 +263,29 @@
 </head>
 <body>
     <div class="report-container">
-        <h1>
+        <% 
+        let performanceTier = 'Challenge';
+        let tierClass = 'tier-challenge';
+        if (results.overallScore >= 85) {
+            performanceTier = 'Elite';
+            tierClass = 'tier-elite';
+        } else if (results.overallScore >= 75) {
+            performanceTier = 'Strong';
+            tierClass = 'tier-strong';
+        } else if (results.overallScore >= 65) {
+            performanceTier = 'Average';
+            tierClass = 'tier-average';
+        }
+        %>
+        
+        <h1 style="text-align: center; margin-bottom: 10px;">
             <%= results.domain %>
-            <span class="score-badge"><%= results.overallScore %>/100</span>
-            <% 
-            let performanceTier = 'Challenge';
-            let tierClass = 'tier-challenge';
-            if (results.overallScore >= 85) {
-                performanceTier = 'Elite';
-                tierClass = 'tier-elite';
-            } else if (results.overallScore >= 75) {
-                performanceTier = 'Strong';
-                tierClass = 'tier-strong';
-            } else if (results.overallScore >= 65) {
-                performanceTier = 'Average';
-                tierClass = 'tier-average';
-            }
-            %>
-            <span class="performance-tier <%= tierClass %>"><%= performanceTier %> Performer</span>
         </h1>
+        
+        <div style="text-align: center; margin-bottom: 30px;">
+            <span class="score-badge"><%= results.overallScore %>/100</span>
+            <span class="performance-tier <%= tierClass %>"><%= performanceTier %> Performer</span>
+        </div>
         
         <div class="metric-row">
             <span class="metric-label">Report Date:</span>
