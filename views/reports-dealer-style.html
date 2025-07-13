@@ -484,6 +484,9 @@
                 <i class="fas fa-chart-line"></i> Run Comprehensive Audit
             </button>
             <% } %>
+            <button onclick="goToCombinedInsights()" class="btn-action btn-secondary-action" title="Combine website data with lead performance insights">
+                <i class="fas fa-chart-pie"></i> View Combined Insights
+            </button>
             <button onclick="history.back()" class="btn-action btn-secondary-action">
                 <i class="fas fa-arrow-left"></i> Back
             </button>
@@ -502,6 +505,24 @@
             sessionStorage.setItem('rerunDomain', '<%= results.domain %>');
             sessionStorage.setItem('rerunType', 'comprehensive');
             window.location.href = '/website-audit';
+        }
+        
+        function goToCombinedInsights() {
+            // Store website audit data for combined insights
+            const auditData = {
+                domain: '<%= results.domain %>',
+                dealershipName: '<%= results.dealershipName %>',
+                overallScore: <%= results.overallScore %>,
+                issues: <%= JSON.stringify(results.issues || []) %>,
+                timestamp: '<%= new Date().toISOString() %>'
+            };
+            
+            // Store in session storage
+            sessionStorage.setItem('websiteAuditData', JSON.stringify(auditData));
+            sessionStorage.setItem('fromWebsiteAudit', 'true');
+            
+            // Navigate to combined insights
+            window.location.href = '/combined-insights';
         }
         
         // Auto-trigger print dialog if print parameter is present

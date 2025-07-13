@@ -27,10 +27,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Load data from localStorage
 function loadStoredData() {
-    // Load website audit data
-    const storedWebsite = localStorage.getItem('lastWebsiteAudit');
-    if (storedWebsite) {
-        websiteData = JSON.parse(storedWebsite);
+    // Check if coming from website audit (sessionStorage)
+    const fromWebsiteAudit = sessionStorage.getItem('fromWebsiteAudit');
+    const sessionWebsiteData = sessionStorage.getItem('websiteAuditData');
+    
+    if (fromWebsiteAudit === 'true' && sessionWebsiteData) {
+        // Use session data and move to localStorage
+        websiteData = JSON.parse(sessionWebsiteData);
+        localStorage.setItem('lastWebsiteAudit', sessionWebsiteData);
+        sessionStorage.removeItem('fromWebsiteAudit');
+        sessionStorage.removeItem('websiteAuditData');
+    } else {
+        // Load website audit data from localStorage
+        const storedWebsite = localStorage.getItem('lastWebsiteAudit');
+        if (storedWebsite) {
+            websiteData = JSON.parse(storedWebsite);
+        }
     }
     
     // Load lead performance data with enhanced storage
