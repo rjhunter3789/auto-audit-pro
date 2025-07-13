@@ -100,6 +100,16 @@ function getChromeOptions() {
     // For Railway/Linux environments
     if (process.env.CHROME_BIN) {
         options.setChromeBinaryPath(process.env.CHROME_BIN);
+    } else {
+        // Try to use Chromium if installed (common in WSL2)
+        const chromiumPath = '/usr/bin/chromium-browser';
+        try {
+            if (require('fs').existsSync(chromiumPath)) {
+                options.setChromeBinaryPath(chromiumPath);
+            }
+        } catch (e) {
+            // Ignore if fs module issue
+        }
     }
     
     return options;
@@ -1886,6 +1896,22 @@ app.post('/audit', async (req, res) => {
             // Extract dealer links
             const dealerLinks = await groupAnalysis.extractDealerLinks(homepageSoup, null, siteUrl);
             auditResults.dealerLinks = dealerLinks;
+            
+            // Try to find and analyze the dedicated locations page
+            try {
+                const locationAnalysis = await groupAnalysis.findAndAnalyzeLocationPage(homepageSoup, siteUrl);
+                if (locationAnalysis.success) {
+                    console.log(`[Dealer Group] Found location page with ${locationAnalysis.locationCount} locations`);
+                    auditResults.locationPageAnalysis = locationAnalysis;
+                    
+                    // If we found more locations on the dedicated page, update our count
+                    if (locationAnalysis.locationCount > dealerLinks.length) {
+                        console.log(`[Dealer Group] Location page shows ${locationAnalysis.locationCount} vs ${dealerLinks.length} found on homepage`);
+                    }
+                }
+            } catch (error) {
+                console.log('[Dealer Group] Location page analysis error:', error.message);
+            }
             
             // Perform web search for comprehensive location data
             try {
