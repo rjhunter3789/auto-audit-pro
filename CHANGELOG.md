@@ -93,6 +93,13 @@
 - **Fixed**: Unified location counting logic between test and display functions
 - **Fixed**: Overly broad link detection - removed selectors like `a[href*=".com"]`
 - **Confirmed**: Quick Audit restriction for dealer groups is intentional design choice
+- **Enhanced**: Added specialty location detection (Jan 11)
+  - Motorcycle dealerships (Ducati, Harley-Davidson, Yamaha, etc.)
+  - INEOS Grenadier and other specialty brands
+  - Used Car/Pre-Owned centers
+  - Commercial Service Centers and Fleet locations
+  - Collision centers, Body shops, Parts centers
+  - RV, Marine, and Powersports locations
 - **Enhanced**: Added comprehensive web crawler for large dealer groups (Jan 11)
   - AutoNation was showing 39/325 locations (12%)
   - Ken Garff, Asbury, Lithia, Group 1, Penske also severely undercounted

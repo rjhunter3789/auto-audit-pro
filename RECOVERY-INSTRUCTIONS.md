@@ -22,10 +22,12 @@
    - Server supports comprehensive but UI restricts it
 
 ### Files Modified:
-1. `/server.js` - Fixed scoring calculation, enhanced Chrome options
-2. `/lib/group-analysis.js` - Fixed window error, improved detection patterns, added debugging
-3. `/AUTO-AUDIT-PRO.md` - Added dealer group documentation
-4. `/CHANGELOG.md` - Documented new features and fixes
+1. `/server.js` - Fixed scoring calculation, enhanced Chrome options, retry logic
+2. `/lib/group-analysis.js` - Fixed window error, improved detection patterns, added debugging, integrated crawler
+3. `/lib/location-crawler.js` - NEW: Comprehensive web crawler for location discovery
+4. `/AUTO-AUDIT-PRO.md` - Added dealer group documentation
+5. `/CHANGELOG.md` - Documented new features and fixes
+6. `/SESSION-NOTES-2025-01-11.md` - Detailed progress tracking
 
 ## To Resume Where We Left Off:
 
@@ -67,6 +69,10 @@ The group analysis tests are failing to detect elements. We added debugging in:
 4. **Location count inflated** - FIXED (more selective counting)
 5. **Chrome session errors** - FIXED (added retry logic)
 6. **Quick Audit only** - CONFIRMED as intentional
+7. **Specialty locations missing** - FIXED (added motorcycle, commercial, service centers)
+8. **Large dealer groups undercounted** - FIXED (new LocationCrawler module)
+   - AutoNation was showing 39/325 (12%)
+   - Now uses web crawling for comprehensive discovery
 
 ### 4. Test Commands:
 ```bash
@@ -126,6 +132,23 @@ git reset --hard [commit-hash]
 - Improved timeout management
 - Better error handling and cleanup
 - Stabilized Chrome options
+
+### Specialty Location Detection:
+- Added motorcycle brands (Ducati, Harley-Davidson, Yamaha, etc.)
+- Added INEOS Grenadier and other specialty brands
+- Added Used Car/Pre-Owned location detection
+- Added Commercial Service Centers, Fleet, Collision centers
+- Added RV, Marine, and Powersports locations
+
+### Web Crawler Implementation:
+- Created new LocationCrawler module for comprehensive discovery
+- Implements multiple discovery methods:
+  - XML sitemap parsing
+  - Known location page patterns
+  - API endpoint discovery
+  - Deep crawling with pagination
+  - Selenium for JavaScript content
+- Should detect 80-100% of locations for major dealer groups
 
 ## Key Insights:
 1. Dealer groups often use external sites (e.g., kendallford.com)
