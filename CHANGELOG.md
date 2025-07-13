@@ -1,5 +1,15 @@
 # Auto Audit Pro Suite - Changelog & Feature Documentation
 
+## Version 2.1 - January 13, 2025
+
+### 🔄 Temporary Feature Removal
+- **Dealer Group Analysis** - Temporarily disabled due to accuracy issues
+  - Location counting was unreliable across different dealer group websites
+  - Web search only worked for pre-programmed major groups
+  - Feature now shows "Coming Soon" message when selected
+  - Individual dealership analysis remains fully functional
+  - Plan to redesign with more reliable approach in future update
+
 ## Version 2.0 - Major Update (2025)
 
 ### 🚀 New Features & Enhancements

@@ -1,6 +1,17 @@
-# Recovery Instructions - Dealer Group Analysis Issues
+# Recovery Instructions - Auto Audit Pro
 
-## Current Status (Updated: January 11, 2025)
+## Current Status (Updated: January 13, 2025)
+
+### Major Change: Dealer Group Analysis Temporarily Disabled
+- **Date**: January 13, 2025
+- **Reason**: Location counting was unreliable and only worked for pre-programmed major groups
+- **Implementation**: Shows "Coming Soon" message when dealer group option is selected
+- **Files Modified**: 
+  - `/views/index-new.html` - Added coming soon alert and prevents group submission
+  - `/CHANGELOG.md` - Documented the temporary removal
+- **Note**: All dealer group backend code remains in place but is unused
+
+## Previous Status (January 11, 2025)
 
 ### Issues We Were Working On:
 1. **Health Score Bug** - FIXED ✅

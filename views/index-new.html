@@ -482,15 +482,20 @@
                 const customOptions = document.getElementById('customOptions');
                 
                 if (this.value === 'group') {
-                    urlLabel.innerHTML = '<i class="fas fa-network-wired"></i> Dealer Group Website URL:';
-                    urlInput.placeholder = 'Enter dealer group domain (e.g., kendallautogroup.com)';
-                    siteTypeHelp.textContent = 'Analyze a dealer group website to evaluate multi-location presence and consistency';
+                    // Show coming soon message
+                    alert('Dealer Group Analysis - Coming Soon!\n\nWe\'re working on an enhanced dealer group analysis feature that will provide comprehensive insights for multi-location automotive groups.\n\nPlease select "Individual Dealership" for now.');
                     
-                    // Hide custom options for group analysis
-                    document.getElementById('quickAudit').checked = true;
-                    document.getElementById('comprehensiveAudit').disabled = true;
-                    document.getElementById('customAudit').disabled = true;
-                    customOptions.style.display = 'none';
+                    // Reset to individual dealership
+                    document.getElementById('individualSite').checked = true;
+                    
+                    // Keep individual settings
+                    urlLabel.innerHTML = '<i class="fas fa-globe"></i> Dealership Website URL:';
+                    urlInput.placeholder = 'Enter dealership domain (e.g., smithford.com)';
+                    siteTypeHelp.textContent = 'Analyze a single dealership website for comprehensive performance metrics';
+                    
+                    // Re-enable options
+                    document.getElementById('comprehensiveAudit').disabled = false;
+                    document.getElementById('customAudit').disabled = false;
                 } else {
                     urlLabel.innerHTML = '<i class="fas fa-globe"></i> Dealership Website URL:';
                     urlInput.placeholder = 'Enter dealership domain (e.g., smithford.com)';
@@ -517,6 +522,14 @@
         
         // Handle form submission
         document.getElementById('audit-form').addEventListener('submit', function(e) {
+            // Double-check dealer group isn't selected
+            const siteType = document.querySelector('input[name="siteType"]:checked').value;
+            if (siteType === 'group') {
+                e.preventDefault();
+                alert('Dealer Group Analysis is coming soon! Please select "Individual Dealership".');
+                return false;
+            }
+            
             document.getElementById('loadingSpinner').style.display = 'block';
             document.querySelector('.btn-audit').disabled = true;
             document.querySelector('.btn-audit').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
