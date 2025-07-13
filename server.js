@@ -1923,11 +1923,25 @@ app.post('/audit', async (req, res) => {
                 // Add search results to audit
                 auditResults.webSearchSummary = searchSummary;
                 
-                // If web search found more locations than crawler, update the count
-                if (searchSummary.success && searchSummary.totalLocations > dealerLinks.length) {
-                    console.log(`[Dealer Group] Web search found ${searchSummary.totalLocations} locations vs ${dealerLinks.length} from crawling`);
+                // Determine the most accurate location count
+                let bestLocationCount = dealerLinks.length;
+                let countSource = 'homepage links';
+                
+                // Prefer location page count if available
+                if (auditResults.locationPageAnalysis && auditResults.locationPageAnalysis.locationCount > 0) {
+                    bestLocationCount = auditResults.locationPageAnalysis.locationCount;
+                    countSource = 'locations page';
+                }
+                
+                // Web search data is most reliable if available
+                if (searchSummary.success && searchSummary.totalLocations) {
+                    if (searchSummary.totalLocations !== bestLocationCount) {
+                        console.log(`[Dealer Group] Web search shows ${searchSummary.totalLocations} vs ${bestLocationCount} from ${countSource}`);
+                        auditResults.locationDiscrepancy = true;
+                    }
                     auditResults.totalLocationCount = searchSummary.totalLocations;
-                    auditResults.locationDiscrepancy = true;
+                } else {
+                    auditResults.totalLocationCount = bestLocationCount;
                 }
             } catch (searchError) {
                 console.error('[Dealer Group] Web search error:', searchError);
