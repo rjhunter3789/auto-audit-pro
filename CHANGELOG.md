@@ -1,5 +1,15 @@
 # Auto Audit Pro Suite - Changelog & Feature Documentation
 
+## Version 2.2 - January 13, 2025
+
+### 🎯 New SEO Audit Feature
+- **SEO-Focused Analysis** - Replaced "Quick Audit" with dedicated SEO audit option
+  - Focused exclusively on search engine optimization factors
+  - 30-second targeted analysis of meta tags, schema markup, and content structure
+  - Streamlined report showing only SEO-relevant metrics and recommendations
+  - Available for individual dealership websites
+  - Maintains full SEO testing within Comprehensive Audit option
+
 ## Version 2.1 - January 13, 2025
 
 ### 🔄 Temporary Feature Removal

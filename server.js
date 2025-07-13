@@ -1784,7 +1784,7 @@ app.get('/api/health', (req, res) => {
 // --- Website Routes ---
 
 // Import comprehensive audit tests
-const { runComprehensiveAudit } = require('./lib/audit-tests');
+const { runComprehensiveAudit, runSEOAudit } = require('./lib/audit-tests');
 const { auditVDP, auditServicePage, auditInventoryPage, auditSpecialsPage } = require('./lib/page-specific-tests');
 
 // This shows the main suite landing page
@@ -1981,17 +1981,24 @@ app.post('/audit', async (req, res) => {
                 auditResults.issues.push(...groupTestResults.issues);
             }
         } else {
-            // Run standard individual dealership audit
-            auditResults = await runComprehensiveAudit(siteUrl, homepageSoup);
+            // Run appropriate audit based on type
+            if (auditType === 'seo') {
+                auditResults = await runSEOAudit(siteUrl, homepageSoup);
+            } else {
+                auditResults = await runComprehensiveAudit(siteUrl, homepageSoup);
+            }
         }
         
         // Add discovered pages to results
         auditResults.pagesFound = discoveredPages;
         
-        // Run page-specific tests based on audit type
+        // Run page-specific tests based on audit type (skip for SEO-only audits)
         auditResults.pageSpecificResults = {};
         
-        if (auditType === 'comprehensive' || (auditType === 'custom' && customPages.includes('vdp'))) {
+        if (auditType === 'seo') {
+            // Skip page-specific tests for SEO-only audits
+            console.log('[SEO Audit] Skipping page-specific tests - SEO analysis only');
+        } else if (auditType === 'comprehensive' || (auditType === 'custom' && customPages.includes('vdp'))) {
             if (discoveredPages.vdp) {
                 try {
                     const vdpSoup = await getSoup(discoveredPages.vdp);
@@ -2061,7 +2068,7 @@ app.post('/audit', async (req, res) => {
         
         // Store audit type for reporting
         auditResults.auditType = auditType;
-        auditResults.auditDepth = auditType === 'quick' ? 'Homepage Only' : 
+        auditResults.auditDepth = auditType === 'seo' ? 'SEO Analysis Only' : 
                                   auditType === 'comprehensive' ? 'Homepage + VDP + Service + Inventory' : 
                                   `Homepage + ${customPages.join(' + ')}`;
         
