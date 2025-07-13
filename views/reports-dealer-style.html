@@ -43,30 +43,16 @@
             margin-bottom: 15px;
         }
         
-        .score-badge { 
+        .performance-badge { 
             display: inline-block; 
-            background: <% if (results.overallScore >= 85) { %>#10B981<% } else if (results.overallScore >= 70) { %>#F59E0B<% } else { %>#EF4444<% } %>; 
+            background: <% if (results.overallScore >= 85) { %>#10B981<% } else if (results.overallScore >= 75) { %>#3B82F6<% } else if (results.overallScore >= 65) { %>#F59E0B<% } else { %>#EF4444<% } %>; 
             color: white; 
-            padding: 8px 20px; 
-            border-radius: 25px; 
+            padding: 12px 30px; 
+            border-radius: 30px; 
             font-weight: bold;
-            font-size: 1.2em;
-            margin: 0 10px;
+            font-size: 1.3em;
+            margin: 0 auto;
         }
-        
-        .performance-tier {
-            display: inline-block;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-weight: bold;
-            margin-left: 10px;
-            font-size: 0.9em;
-        }
-        
-        .tier-elite { background: #10B981; color: white; }
-        .tier-strong { background: #3B82F6; color: white; }
-        .tier-average { background: #F59E0B; color: white; }
-        .tier-challenge { background: #EF4444; color: white; }
         
         .metric-row { 
             display: flex; 
@@ -283,8 +269,9 @@
         </h1>
         
         <div style="text-align: center; margin-bottom: 30px;">
-            <span class="score-badge"><%= results.overallScore %>/100</span>
-            <span class="performance-tier <%= tierClass %>"><%= performanceTier %> Performer</span>
+            <span class="performance-badge">
+                <%= results.overallScore %>/100 • <%= performanceTier %> Performer
+            </span>
         </div>
         
         <div class="metric-row">
