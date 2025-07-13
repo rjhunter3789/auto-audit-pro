@@ -137,5 +137,24 @@ Tested with geeautomotive.com dealer group:
 - **Fix**: Replaced with grouped bar chart
 - **Result**: Clear side-by-side comparison with better visual hierarchy
 
+### 13. ✅ Added Web Search for Dealer Groups
+- **Problem**: Only finding fraction of actual dealer locations (e.g., 39/325 for AutoNation)
+- **Fix**: Created dealer-search.js module with known dealer group database
+- **Result**: Shows actual location counts vs what's visible on website
+
+### 14. ✅ Improved Dealer Group Data Clarity
+- **Problem**: Confusing display of location counts
+- **Fix**: Clear distinction between "found on website" vs "actually has"
+- **Result**: Shows impact percentage and warning alerts
+
+## Files Created/Modified Today:
+- `/lib/location-crawler.js` - NEW
+- `/lib/dealer-search.js` - NEW
+- `/lib/group-analysis.js` - Major updates
+- `/server.js` - Multiple fixes and integrations
+- `/public/js/combined-insights.js` - Report generation, charts
+- `/views/combined-insights.html` - UI improvements
+- `/views/reports-group.html` - Web search display
+
 ## Recovery Command
 To resume: "I'm working on dealership-audit-mvp. Please read RECOVERY-INSTRUCTIONS.md and SESSION-NOTES-2025-01-11.md"

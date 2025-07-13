@@ -161,6 +161,19 @@ git reset --hard [commit-hash]
   - Easy to see performance gaps
   - Professional and matches app branding
 
+### Dealer Group Web Search Implementation:
+- Created DealerSearcher module for finding actual dealer counts
+- Integrated web search when "Dealer Group" is selected
+- Shows actual vs website-visible location counts
+- Known dealer groups database:
+  - AutoNation (325), Lithia (300), Group 1 (263)
+  - Penske (203), Asbury (200), Sonic (140)
+  - Ken Garff (70), Gee (43), Kendall (30)
+- Improved data clarity in reports:
+  - "X locations found on website" vs "Actually has Y locations"
+  - Shows percentage of locations not discoverable
+  - Warning alerts when major discrepancies exist
+
 ## Key Insights:
 1. Dealer groups often use external sites (e.g., kendallford.com)
 2. Need specific patterns for each group's structure

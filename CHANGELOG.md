@@ -125,6 +125,17 @@
   - Radar chart was confusing and hard to interpret
   - New bar chart shows clear side-by-side comparison
   - Uses brand colors (purple vs green) for consistency
+- **Added**: Web search functionality for dealer groups (Jan 11)
+  - Created dealer-search.js module
+  - Automatically searches for actual dealer location counts
+  - Compares website-visible vs actual locations
+  - Database of major dealer groups with known counts
+  - Shows impact: "X% of locations not discoverable on website"
+- **Improved**: Dealer group report clarity (Jan 11)
+  - Changed "X dealer locations found" to "X locations found on website"
+  - Added "Actual Dealer Network Size" section
+  - Side-by-side comparison of website vs actual counts
+  - Warning alerts for major discrepancies
 
 ### 📝 Implementation Details
 
@@ -138,8 +149,9 @@
 - `/views/reports-new.html` - Bidirectional navigation flow
 - `/lib/group-analysis.js` - NEW: Dealer group detection and analysis module (major improvements Jan 11)
 - `/lib/location-crawler.js` - NEW: Advanced web crawler for comprehensive location discovery
-- `/views/reports-group.html` - NEW: Dedicated dealer group report template
-- `/server.js` - Added group analysis integration, routing, session fixes, retry logic
+- `/lib/dealer-search.js` - NEW: Web search module for actual dealer counts
+- `/views/reports-group.html` - NEW: Dedicated dealer group report template (updated with web search display)
+- `/server.js` - Added group analysis integration, web search, routing, session fixes, retry logic
 
 #### Technical Specifications
 - **Responsive Breakpoints**: 430px, 576px, 768px, 991px
