@@ -520,6 +520,14 @@
             window.auditResults.issues = [];
         }
         
+        // Store categories if available
+        try {
+            window.auditResults.categories = <%- JSON.stringify(results.categories || []) %>;
+        } catch (e) {
+            console.error('Error parsing categories:', e);
+            window.auditResults.categories = [];
+        }
+        
         function rerunAsComprehensive() {
             console.log('rerunAsComprehensive called');
             try {
@@ -545,6 +553,7 @@
                     brand: window.auditResults.brand,
                     score: window.auditResults.overallScore,
                     issues: window.auditResults.issues,
+                    categories: window.auditResults.categories,
                     timestamp: new Date().toISOString()
                 };
                 

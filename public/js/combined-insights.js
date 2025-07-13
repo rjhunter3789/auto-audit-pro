@@ -290,7 +290,7 @@ function generateImpactAnalysis() {
     const impacts = [];
     
     // Use actual website data if available
-    if (websiteData.categories) {
+    if (websiteData.categories && websiteData.categories.length > 0) {
         // Find lowest scoring categories
         const sortedCategories = [...websiteData.categories].sort((a, b) => a.score - b.score);
         
@@ -303,6 +303,30 @@ function generateImpactAnalysis() {
                 });
             }
         });
+    } else if (websiteData.issues && websiteData.issues.length > 0) {
+        // Fallback to issues if categories not available
+        const highPriorityIssues = websiteData.issues.filter(issue => issue.priority === 'high');
+        const mediumPriorityIssues = websiteData.issues.filter(issue => issue.priority === 'medium');
+        
+        // Add up to 3 high priority issues first
+        highPriorityIssues.slice(0, 3).forEach(issue => {
+            impacts.push({
+                issue: issue.title,
+                impact: issue.details || issue.description || 'High priority issue affecting conversions',
+                priority: 'high'
+            });
+        });
+        
+        // If less than 3 high priority, add medium priority
+        if (impacts.length < 3) {
+            mediumPriorityIssues.slice(0, 3 - impacts.length).forEach(issue => {
+                impacts.push({
+                    issue: issue.title,
+                    impact: issue.details || issue.description || 'Medium priority issue affecting user experience',
+                    priority: 'medium'
+                });
+            });
+        }
     }
     
     // Add dealer-specific insights if available

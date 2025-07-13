@@ -1,5 +1,27 @@
 # Auto Audit Pro Suite - Changelog & Feature Documentation
 
+## Version 2.2.2 - July 13, 2025 (Final Update)
+
+### 🔗 Combined Insights Integration Fixes
+
+#### 🚀 Fixed Navigation & CTAs
+- **View Combined Insights Button** - Now properly navigates to `/insights` (was trying `/combined-insights`)
+  - Added button to all website audit reports
+  - Fixed JavaScript execution issues with template data
+  - Stores audit data in sessionStorage for seamless transition
+
+#### 🛠️ Fixed Combined Insights Display
+- **Top Website Issues Section** - No longer blank
+  - Added proper data structure mapping between audit results and insights
+  - Implemented fallback logic to use `issues` when `categories` unavailable
+  - Now correctly displays top 3 issues impacting conversions
+
+#### ⚡ Run Comprehensive Audit CTA
+- **Fixed non-functional button** on SEO audit reports
+  - Now properly redirects to audit form with domain pre-filled
+  - Automatically selects "Comprehensive Audit" option
+  - Seamless user experience for upgrading from SEO to full audit
+
 ## Version 2.2.1 - July 13, 2025 (Evening Update)
 
 ### 🔧 Enhanced Recommendation System & Detection Improvements
