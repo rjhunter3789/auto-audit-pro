@@ -22,6 +22,7 @@ const url = require('url');
 
 // Load custom modules
 const groupAnalysis = require('./lib/group-analysis');
+const DealerSearcher = require('./lib/dealer-search');
 
 // Load environment variables
 require('dotenv').config();
@@ -1885,6 +1886,22 @@ app.post('/audit', async (req, res) => {
             // Extract dealer links
             const dealerLinks = await groupAnalysis.extractDealerLinks(homepageSoup, null, siteUrl);
             auditResults.dealerLinks = dealerLinks;
+            
+            // Perform web search for comprehensive location data
+            console.log('[Dealer Group] Performing web search for locations...');
+            const searcher = new DealerSearcher(siteUrl);
+            const searchResults = await searcher.searchForDealerLocations();
+            const searchSummary = searcher.getSearchSummary(searchResults);
+            
+            // Add search results to audit
+            auditResults.webSearchSummary = searchSummary;
+            
+            // If web search found more locations than crawler, update the count
+            if (searchSummary.success && searchSummary.totalLocations > dealerLinks.length) {
+                console.log(`[Dealer Group] Web search found ${searchSummary.totalLocations} locations vs ${dealerLinks.length} from crawling`);
+                auditResults.totalLocationCount = searchSummary.totalLocations;
+                auditResults.locationDiscrepancy = true;
+            }
             
             // Adjust scoring to include group-specific metrics
             if (groupTestResults.score) {

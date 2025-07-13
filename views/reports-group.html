@@ -434,6 +434,26 @@
                 </div>
             </div>
             
+            <% if (results.webSearchSummary && results.webSearchSummary.success) { %>
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-search"></i> Web Search Results</h5>
+                        <p class="mb-1"><strong><%= results.webSearchSummary.message %></strong></p>
+                        <p class="mb-0"><%= results.webSearchSummary.coverage %></p>
+                        <% if (results.locationDiscrepancy) { %>
+                        <hr>
+                        <p class="mb-0 text-warning">
+                            <i class="fas fa-exclamation-triangle"></i> 
+                            Note: Website crawling found <%= results.dealerLinks.length %> locations, 
+                            but web search indicates <%= results.totalLocationCount %> total locations exist.
+                        </p>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+            <% } %>
+            
             <% if (results.dealerLinks && results.dealerLinks.length > 0) { %>
             <div class="row">
                 <div class="col-md-12">
