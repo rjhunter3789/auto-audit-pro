@@ -480,11 +480,11 @@
                 <i class="fas fa-redo"></i> Run New Audit
             </button>
             <% if (results.auditType === 'seo') { %>
-            <button onclick="rerunAsComprehensive()" class="btn-action btn-secondary-action">
+            <button onclick="console.log('Comprehensive clicked'); rerunAsComprehensive()" class="btn-action btn-secondary-action">
                 <i class="fas fa-chart-line"></i> Run Comprehensive Audit
             </button>
             <% } %>
-            <button onclick="goToCombinedInsights()" class="btn-action btn-secondary-action" title="Combine website data with lead performance insights">
+            <button onclick="console.log('Combined insights clicked'); goToCombinedInsights()" class="btn-action btn-secondary-action" title="Combine website data with lead performance insights">
                 <i class="fas fa-chart-pie"></i> View Combined Insights
             </button>
             <button onclick="history.back()" class="btn-action btn-secondary-action">
@@ -500,29 +500,66 @@
     </div>
     
     <script>
+        // Debug: Log when script loads
+        console.log('Report script loaded');
+        
+        // Store audit results for use in functions
+        window.auditResults = {
+            domain: '<%= results.domain %>',
+            dealershipName: '<%= results.dealershipName || results.domain %>',
+            overallScore: <%= results.overallScore || 0 %>,
+            brand: '<%= results.brand || "" %>',
+            auditType: '<%= results.auditType || "comprehensive" %>'
+        };
+        
+        // Store issues separately to avoid JSON parsing issues in template
+        try {
+            window.auditResults.issues = <%- JSON.stringify(results.issues || []) %>;
+        } catch (e) {
+            console.error('Error parsing issues:', e);
+            window.auditResults.issues = [];
+        }
+        
         function rerunAsComprehensive() {
-            // Store domain for rerun
-            sessionStorage.setItem('rerunDomain', '<%= results.domain %>');
-            sessionStorage.setItem('rerunType', 'comprehensive');
-            window.location.href = '/website-audit';
+            console.log('rerunAsComprehensive called');
+            try {
+                // Store domain for rerun
+                sessionStorage.setItem('rerunDomain', window.auditResults.domain);
+                sessionStorage.setItem('rerunType', 'comprehensive');
+                console.log('Stored in session:', window.auditResults.domain);
+                window.location.href = '/website-audit';
+            } catch (error) {
+                console.error('Error in rerunAsComprehensive:', error);
+                alert('Error: Unable to run comprehensive audit. Please try again.');
+            }
         }
         
         function goToCombinedInsights() {
-            // Store website audit data for combined insights
-            const auditData = {
-                domain: '<%= results.domain %>',
-                dealershipName: '<%= results.dealershipName %>',
-                overallScore: <%= results.overallScore %>,
-                issues: <%= JSON.stringify(results.issues || []) %>,
-                timestamp: '<%= new Date().toISOString() %>'
-            };
-            
-            // Store in session storage
-            sessionStorage.setItem('websiteAuditData', JSON.stringify(auditData));
-            sessionStorage.setItem('fromWebsiteAudit', 'true');
-            
-            // Navigate to combined insights
-            window.location.href = '/combined-insights';
+            console.log('goToCombinedInsights called');
+            try {
+                // Store website audit data for combined insights
+                const auditData = {
+                    domain: window.auditResults.domain,
+                    dealershipName: window.auditResults.dealershipName,
+                    overallScore: window.auditResults.overallScore,
+                    brand: window.auditResults.brand,
+                    score: window.auditResults.overallScore,
+                    issues: window.auditResults.issues,
+                    timestamp: new Date().toISOString()
+                };
+                
+                console.log('Storing audit data:', auditData);
+                
+                // Store in session storage
+                sessionStorage.setItem('websiteAuditData', JSON.stringify(auditData));
+                sessionStorage.setItem('fromWebsiteAudit', 'true');
+                
+                // Navigate to combined insights
+                window.location.href = '/combined-insights';
+            } catch (error) {
+                console.error('Error in goToCombinedInsights:', error);
+                alert('Error: Unable to navigate to Combined Insights. Please try again.');
+            }
         }
         
         // Auto-trigger print dialog if print parameter is present

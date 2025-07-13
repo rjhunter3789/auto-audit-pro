@@ -547,9 +547,19 @@
         // Check if we should rerun a domain
         window.addEventListener('DOMContentLoaded', function() {
             const rerunDomain = sessionStorage.getItem('rerunDomain');
+            const rerunType = sessionStorage.getItem('rerunType');
+            
             if (rerunDomain) {
+                // Set the domain
                 document.getElementById('url').value = rerunDomain;
                 sessionStorage.removeItem('rerunDomain');
+                
+                // Set audit type if specified
+                if (rerunType === 'comprehensive') {
+                    document.getElementById('comprehensiveAudit').checked = true;
+                    sessionStorage.removeItem('rerunType');
+                }
+                
                 // Highlight the field
                 document.getElementById('url').style.backgroundColor = '#FEF3C7';
                 setTimeout(() => {
