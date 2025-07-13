@@ -93,6 +93,16 @@
 - **Fixed**: Unified location counting logic between test and display functions
 - **Fixed**: Overly broad link detection - removed selectors like `a[href*=".com"]`
 - **Confirmed**: Quick Audit restriction for dealer groups is intentional design choice
+- **Enhanced**: Added comprehensive web crawler for large dealer groups (Jan 11)
+  - AutoNation was showing 39/325 locations (12%)
+  - Ken Garff, Asbury, Lithia, Group 1, Penske also severely undercounted
+  - New LocationCrawler module uses multiple methods:
+    * Sitemap crawling (most reliable for large groups)
+    * Known location page patterns
+    * API endpoint discovery
+    * Deep crawling with pagination support
+    * Selenium-based JavaScript rendering
+  - Should now detect 80-100% of dealer locations for major groups
 
 ### 📝 Implementation Details
 
@@ -105,6 +115,7 @@
 - `/views/index-new.html` - Navigation consistency
 - `/views/reports-new.html` - Bidirectional navigation flow
 - `/lib/group-analysis.js` - NEW: Dealer group detection and analysis module (major improvements Jan 11)
+- `/lib/location-crawler.js` - NEW: Advanced web crawler for comprehensive location discovery
 - `/views/reports-group.html` - NEW: Dedicated dealer group report template
 - `/server.js` - Added group analysis integration, routing, session fixes, retry logic
 

@@ -97,5 +97,23 @@ Tested with geeautomotive.com dealer group:
 - Ready to commit when desired
 - Commit message suggestion: "Fix dealer group detection accuracy and Chrome session stability"
 
+## Additional Fixes Made (Extended Session)
+
+### 7. ✅ Added Specialty Location Detection
+- **Problem**: Missing motorcycle dealerships (Ducati), INEOS Grenadier, and Used Car locations
+- **Fix**: Added comprehensive patterns for various dealer types
+- **Added**: Commercial Service Centers, Fleet centers, Collision centers, RV/Marine, etc.
+
+### 8. 🚧 Major Dealer Group Detection Issues
+- **Problem**: Only detecting 39/325 AutoNation locations (12%)
+- **Other Groups**: Ken Garff 70+, Asbury ~200, Lithia 300+, Group 1 263, Penske 203
+- **Solution**: Created LocationCrawler module with multiple discovery methods:
+  - Sitemap crawling (XML parsing)
+  - Known location page patterns
+  - API endpoint discovery
+  - Deep crawling with pagination
+  - Selenium for JavaScript-rendered content
+- **Status**: Implemented and integrated into group-analysis.js
+
 ## Recovery Command
 To resume: "I'm working on dealership-audit-mvp. Please read RECOVERY-INSTRUCTIONS.md and SESSION-NOTES-2025-01-11.md"
