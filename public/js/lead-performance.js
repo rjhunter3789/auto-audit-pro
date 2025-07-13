@@ -1993,6 +1993,7 @@ function generateNetworkReport() {
         <html>
         <head>
             <title>Network Summary Report - Auto Audit Pro</title>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
             <style>
                 body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 1000px; margin: 0 auto; padding: 40px; }
                 h1 { color: #6B46C1; border-bottom: 3px solid #6B46C1; padding-bottom: 10px; }
@@ -2010,9 +2011,24 @@ function generateNetworkReport() {
                 .tier-average { color: #F59E0B; }
                 .tier-challenge { color: #EF4444; }
                 .footer { margin-top: 50px; text-align: center; color: #666; font-size: 0.9em; }
+                .print-button { 
+                    background: #6B46C1; 
+                    color: white; 
+                    padding: 12px 30px; 
+                    border-radius: 8px; 
+                    border: none; 
+                    font-weight: 600; 
+                    cursor: pointer; 
+                    font-size: 16px;
+                    transition: all 0.3s;
+                }
+                .print-button:hover {
+                    background: #553C9A;
+                    transform: translateY(-2px);
+                }
                 @media print {
                     body { padding: 20px; }
-                    .no-print { display: none; }
+                    .no-print, .print-button { display: none; }
                 }
             </style>
         </head>
@@ -2095,6 +2111,12 @@ function generateNetworkReport() {
                     `).join('')}
             </table>
             
+            <div style="text-align: center; margin: 40px 0;">
+                <button onclick="window.print()" class="print-button">
+                    <i class="fas fa-print"></i> Print Report
+                </button>
+            </div>
+            
             <div class="footer">
                 <p>© 2025 JL Robinson. All Rights Reserved.</p>
                 <p>Auto Audit Pro™ - Complete Dealership Performance Suite</p>
@@ -2108,10 +2130,8 @@ function generateNetworkReport() {
     reportWindow.document.write(reportHTML);
     reportWindow.document.close();
     
-    // Auto-open print dialog
-    setTimeout(() => {
-        reportWindow.print();
-    }, 100);
+    // User can click print button when ready
+    // Removed auto-print for better UX
 }
 
 function generateDealerReport() {
@@ -2163,6 +2183,7 @@ function generateDealerReport() {
         <html>
         <head>
             <title>${selectedDealer.name} - Performance Report</title>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
             <style>
                 body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 40px; }
                 h1 { color: #6B46C1; border-bottom: 3px solid #6B46C1; padding-bottom: 10px; }
@@ -2292,6 +2313,12 @@ function generateDealerReport() {
                 </div>
             `}
             
+            <div style="text-align: center; margin: 40px 0;">
+                <button onclick="window.print()" class="print-button">
+                    <i class="fas fa-print"></i> Print Report
+                </button>
+            </div>
+            
             <div class="footer">
                 <p>© 2025 JL Robinson. All Rights Reserved.</p>
                 <p>Auto Audit Pro™ - Complete Dealership Performance Suite</p>
@@ -2305,10 +2332,8 @@ function generateDealerReport() {
     reportWindow.document.write(reportHTML);
     reportWindow.document.close();
     
-    // Auto-open print dialog
-    setTimeout(() => {
-        reportWindow.print();
-    }, 100);
+    // User can click print button when ready
+    // Removed auto-print for better UX
 }
 
 function generateResponseReport() {
@@ -2365,6 +2390,7 @@ function generateResponseReport() {
         <html>
         <head>
             <title>Response Time Analysis Report - Auto Audit Pro</title>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
             <style>
                 body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 1000px; margin: 0 auto; padding: 40px; }
                 h1 { color: #6B46C1; border-bottom: 3px solid #6B46C1; padding-bottom: 10px; }
@@ -2498,6 +2524,12 @@ function generateResponseReport() {
                 `).join('')}
             </table>
             
+            <div style="text-align: center; margin: 40px 0;">
+                <button onclick="window.print()" class="print-button">
+                    <i class="fas fa-print"></i> Print Report
+                </button>
+            </div>
+            
             <div class="footer">
                 <p>© 2025 JL Robinson. All Rights Reserved.</p>
                 <p>Auto Audit Pro™ - Complete Dealership Performance Suite</p>
@@ -2511,10 +2543,8 @@ function generateResponseReport() {
     reportWindow.document.write(reportHTML);
     reportWindow.document.close();
     
-    // Auto-open print dialog
-    setTimeout(() => {
-        reportWindow.print();
-    }, 100);
+    // User can click print button when ready
+    // Removed auto-print for better UX
 }
 
 // Generate ROI Report
@@ -2538,6 +2568,7 @@ function generateROIReport() {
         <html>
         <head>
             <title>ROI Projection Report - ${dealerName}</title>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
             <style>
                 body { 
                     font-family: Arial, sans-serif; 
