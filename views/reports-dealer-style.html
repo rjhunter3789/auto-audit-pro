@@ -281,6 +281,9 @@
             <span class="performance-badge">
                 <%= results.overallScore %>/100 • <%= performanceTier %> Performer
             </span>
+            <div style="margin-top: 15px; font-size: 0.85em; color: #6B7280;">
+                Industry Benchmark: Average dealer scores 72/100
+            </div>
         </div>
         
         <div class="metric-row">
@@ -321,6 +324,30 @@
                 <% } %>
             </div>
             <% }); %>
+        </div>
+        
+        <!-- Category-Specific Disclaimers -->
+        <div style="margin: 20px 0; padding: 15px; background: #F3F4F6; border-radius: 8px; font-size: 0.9em; color: #6B7280;">
+            <% 
+            const hasPerformance = results.categories.some(c => c.name === 'Performance Testing');
+            const hasSEO = results.categories.some(c => c.name === 'SEO Analysis');
+            const hasLeadGen = results.categories.some(c => c.name === 'Lead Generation');
+            %>
+            <% if (hasPerformance) { %>
+            <p style="margin: 5px 0;">
+                <strong>Performance Note:</strong> Load times may vary based on user location, device, network speed, and CDN performance. Results represent a single test from our servers.
+            </p>
+            <% } %>
+            <% if (hasSEO) { %>
+            <p style="margin: 5px 0;">
+                <strong>SEO Note:</strong> Some SEO elements (schema markup, dynamic meta tags) may be implemented in ways not detected by automated scanning. Google Search Console provides the most accurate SEO data.
+            </p>
+            <% } %>
+            <% if (hasLeadGen) { %>
+            <p style="margin: 5px 0;">
+                <strong>Lead Generation Note:</strong> Many dealers use third-party chat tools, CRM integrations, and dynamic forms that load after initial page render. Manual verification recommended for complete assessment.
+            </p>
+            <% } %>
         </div>
         
         <% if (results.issues && results.issues.length > 0) { %>
@@ -407,6 +434,9 @@
             
             <% if (infoIssues.length > 0) { %>
             <h4 style="color: #6B7280; margin-top: 20px;">Manual Review Items</h4>
+            <div style="margin-bottom: 15px; padding: 10px; background: #F9FAFB; border-radius: 6px; font-size: 0.85em; color: #6B7280;">
+                <i class="fas fa-info-circle"></i> These items require manual verification as they often involve dynamic content, third-party integrations, or visual elements that automated tools cannot fully assess.
+            </div>
             <% infoIssues.forEach(function(issue) { %>
             <div class="issue-item" style="background: #F3F4F6; border-left-color: #6B7280;">
                 <span class="priority-badge" style="background: #6B7280; color: white;">Review</span>
@@ -467,6 +497,9 @@
         <% } %>
         
         <h3>Detailed Action Items</h3>
+        <div style="margin-bottom: 20px; padding: 12px; background: #FEF3C7; border-radius: 6px; font-size: 0.85em; color: #78716C;">
+            <i class="fas fa-lightbulb"></i> <strong>Implementation Note:</strong> Timeframes and effort estimates are approximations based on typical dealership websites. Your specific implementation may vary based on your CMS, technical resources, and existing infrastructure.
+        </div>
         <% if (!results.enhancedRecommendations || results.enhancedRecommendations.length === 0) { %>
         <p style="color: #6B7280; font-style: italic; margin: 20px 0;">No Recommendations At This Time</p>
         <% } else { %>
