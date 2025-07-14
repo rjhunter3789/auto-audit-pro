@@ -200,23 +200,25 @@
     <div class="dashboard-header">
         <div class="container">
             <div class="row align-items-center">
-                <div class="col-md-8">
+                <div class="col-lg-7 col-md-12 mb-3 mb-lg-0">
                     <h1><i class="bi bi-speedometer2"></i> Auto Audit Pro - Website Monitoring</h1>
-                    <p>Real-time website health monitoring - Your digital "Check Engine" light</p>
+                    <p class="mb-0">Real-time website health monitoring - Your digital "Check Engine" light</p>
                 </div>
-                <div class="col-md-4 text-md-end">
-                    <a href="/" class="btn btn-outline-light me-2">
-                        <i class="bi bi-house"></i> Back to Audits
-                    </a>
-                    <button class="btn btn-light" onclick="showAddProfileModal()">
-                        <i class="bi bi-plus-circle"></i> Add Website
-                    </button>
-                    <button class="btn btn-light ms-2" onclick="exportReport()">
-                        <i class="bi bi-download"></i> Export
-                    </button>
-                    <button class="btn btn-light ms-2" onclick="refreshDashboard()">
-                        <i class="bi bi-arrow-clockwise"></i> Refresh
-                    </button>
+                <div class="col-lg-5 col-md-12">
+                    <div class="d-flex justify-content-lg-end justify-content-center gap-2 flex-wrap">
+                        <a href="/" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-house"></i> <span class="d-none d-sm-inline">Back to Audits</span>
+                        </a>
+                        <button class="btn btn-light btn-sm" onclick="showAddProfileModal()">
+                            <i class="bi bi-plus-circle"></i> <span class="d-none d-sm-inline">Add Website</span>
+                        </button>
+                        <button class="btn btn-light btn-sm" onclick="exportReport()" title="Export monitoring data as CSV">
+                            <i class="bi bi-download"></i> <span class="d-none d-sm-inline">Export</span>
+                        </button>
+                        <button class="btn btn-light btn-sm" onclick="refreshDashboard()" title="Refresh dashboard">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
