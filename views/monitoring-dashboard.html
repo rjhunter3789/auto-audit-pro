@@ -193,6 +193,32 @@
             background-color: var(--light-bg);
             border-bottom: 1px solid #dee2e6;
         }
+        
+        /* Anti-LastPass Styles */
+        #alertPhone,
+        input[name="sms_contact_number"] {
+            background-image: none !important;
+            background-attachment: none !important;
+            background-color: white !important;
+            -webkit-appearance: none !important;
+        }
+        
+        #alertPhone:focus {
+            background-image: none !important;
+            background-color: white !important;
+        }
+        
+        /* Hide any LastPass elements */
+        [id*="__lpform"],
+        [class*="lastpass"],
+        [data-lastpass],
+        div[style*="lastpass"] {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
     </style>
 </head>
 <body>
@@ -315,7 +341,25 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">SMS Alert Phone (for RED alerts only)</label>
-                            <input type="tel" class="form-control" id="alertPhone" placeholder="+1 (555) 123-4567">
+                            <div style="position: relative;">
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="alertPhone" 
+                                       name="sms_contact_number"
+                                       placeholder="+1 (555) 123-4567"
+                                       autocomplete="off"
+                                       autocorrect="off"
+                                       autocapitalize="off"
+                                       spellcheck="false"
+                                       data-lpignore="true"
+                                       data-form-type="other"
+                                       readonly
+                                       onfocus="this.removeAttribute('readonly')"
+                                       style="background-image: none !important; background-attachment: none !important; background-color: white !important;"
+                                       pattern="[\+]?[0-9\s\-\(\)]+"
+                                       inputmode="tel">
+                                <input type="text" style="display: none;" name="fake_phone_field" autocomplete="tel">
+                            </div>
                             <small class="text-muted">SMS alerts are sent only for critical RED issues (site down, SSL expired, etc.)</small>
                         </div>
                         <div class="mb-3">
@@ -364,6 +408,44 @@
             loadDashboard();
             // Refresh every 60 seconds
             setInterval(loadDashboard, 60000);
+            
+            // Aggressive LastPass removal
+            function removeLastPass() {
+                // Remove any LastPass elements
+                document.querySelectorAll('[id*="__lpform"], [class*="lastpass"], [data-lastpass]').forEach(el => {
+                    el.remove();
+                });
+                
+                // Force clean background on phone field
+                const phoneField = document.getElementById('alertPhone');
+                if (phoneField) {
+                    phoneField.style.backgroundImage = 'none !important';
+                    phoneField.style.backgroundColor = 'white !important';
+                    phoneField.setAttribute('data-lpignore', 'true');
+                    
+                    // Clone and replace to break event listeners
+                    const newField = phoneField.cloneNode(true);
+                    phoneField.parentNode.replaceChild(newField, phoneField);
+                    
+                    // Re-add focus event
+                    newField.addEventListener('focus', function() {
+                        this.removeAttribute('readonly');
+                    });
+                }
+            }
+            
+            // Run immediately and repeatedly
+            removeLastPass();
+            setInterval(removeLastPass, 100);
+            
+            // Watch for DOM changes
+            const observer = new MutationObserver(removeLastPass);
+            observer.observe(document.body, { childList: true, subtree: true });
+            
+            // Stop after 10 seconds to save resources
+            setTimeout(() => {
+                observer.disconnect();
+            }, 10000);
         });
 
         async function loadDashboard() {
