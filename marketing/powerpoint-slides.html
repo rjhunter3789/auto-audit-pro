@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Audit Pro Suite - PowerPoint Presentation</title>
+    <style>
+        @page {
+            size: landscape;
+            margin: 0;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a1a;
+        }
+        
+        .slide {
+            width: 1920px;
+            height: 1080px;
+            background: white;
+            margin: 20px auto;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            page-break-after: always;
+            overflow: hidden;
+        }
+        
+        .slide-number {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            color: #9CA3AF;
+            font-size: 16px;
+        }
+        
+        /* Slide 1 - Title */
+        .slide-title {
+            background: linear-gradient(135deg, #6B46C1 0%, #9333EA 100%);
+            color: white;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 100px;
+        }
+        
+        .slide-title h1 {
+            font-size: 80px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            line-height: 1.1;
+        }
+        
+        .slide-title h2 {
+            font-size: 40px;
+            font-weight: 400;
+            opacity: 0.9;
+            margin-bottom: 60px;
+        }
+        
+        .slide-title .logo {
+            font-size: 36px;
+            font-weight: 700;
+            margin-top: 60px;
+        }
+        
+        /* Common Slide Styles */
+        .slide-header {
+            background: linear-gradient(135deg, #6B46C1 0%, #9333EA 100%);
+            color: white;
+            padding: 60px 80px;
+        }
+        
+        .slide-header h2 {
+            font-size: 60px;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .slide-content {
+            padding: 80px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        /* Slide 2 - Problem */
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            margin-top: 40px;
+        }
+        
+        .problem-stat {
+            background: #FEF2F2;
+            border: 3px solid #FCA5A5;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+        }
+        
+        .problem-stat .number {
+            font-size: 80px;
+            font-weight: 700;
+            color: #DC2626;
+            margin-bottom: 20px;
+        }
+        
+        .problem-stat .label {
+            font-size: 28px;
+            color: #7F1D1D;
+            line-height: 1.3;
+        }
+        
+        .alert-box {
+            background: #FEE2E2;
+            border: 3px solid #DC2626;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .alert-box h3 {
+            font-size: 48px;
+            color: #DC2626;
+            margin: 0;
+        }
+        
+        /* Slide 3 - Solution */
+        .solution-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+        }
+        
+        .solution-card {
+            background: linear-gradient(135deg, #F3E8FF 0%, #E9D5FF 100%);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+        }
+        
+        .solution-card .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        
+        .solution-card h3 {
+            font-size: 32px;
+            color: #6B46C1;
+            margin-bottom: 20px;
+        }
+        
+        .solution-card ul {
+            list-style: none;
+            padding: 0;
+            text-align: left;
+            font-size: 24px;
+            color: #4C1D95;
+        }
+        
+        .solution-card li {
+            margin-bottom: 15px;
+            padding-left: 30px;
+            position: relative;
+        }
+        
+        .solution-card li:before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #10B981;
+            font-weight: bold;
+        }
+        
+        /* Slide 4 - How It Works */
+        .steps-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-top: 60px;
+        }
+        
+        .step {
+            text-align: center;
+            flex: 1;
+            padding: 40px;
+        }
+        
+        .step-number {
+            width: 120px;
+            height: 120px;
+            background: #6B46C1;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            font-weight: 700;
+            margin: 0 auto 30px;
+        }
+        
+        .step h3 {
+            font-size: 36px;
+            color: #1F2937;
+            margin-bottom: 20px;
+        }
+        
+        .step p {
+            font-size: 24px;
+            color: #6B7280;
+            line-height: 1.4;
+        }
+        
+        .arrow {
+            font-size: 60px;
+            color: #9CA3AF;
+        }
+        
+        /* Slide 5 - Results */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+        
+        .result-card {
+            background: #F0FDF4;
+            border: 3px solid #10B981;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+        }
+        
+        .result-card .number {
+            font-size: 60px;
+            font-weight: 700;
+            color: #10B981;
+            margin-bottom: 10px;
+        }
+        
+        .result-card .label {
+            font-size: 22px;
+            color: #065F46;
+        }
+        
+        .testimonial-slide {
+            background: white;
+            padding: 40px;
+            border-left: 8px solid #6B46C1;
+            margin: 40px 0;
+            border-radius: 0 20px 20px 0;
+        }
+        
+        .testimonial-slide p {
+            font-size: 36px;
+            font-style: italic;
+            color: #4C1D95;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+        
+        .testimonial-slide .author {
+            font-size: 28px;
+            color: #6B7280;
+            font-weight: 600;
+        }
+        
+        /* Slide 6 - ROI */
+        .roi-visual {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            margin: 60px 0;
+        }
+        
+        .roi-box {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .roi-box h3 {
+            font-size: 32px;
+            color: #6B7280;
+            margin-bottom: 20px;
+        }
+        
+        .roi-box .value {
+            font-size: 72px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .roi-box.current .value {
+            color: #DC2626;
+        }
+        
+        .roi-box.potential .value {
+            color: #10B981;
+        }
+        
+        .roi-arrow {
+            font-size: 80px;
+            color: #6B46C1;
+        }
+        
+        /* Slide 7 - Pricing */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            margin-top: 40px;
+        }
+        
+        .price-card {
+            background: #F9FAFB;
+            border: 3px solid #E5E7EB;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .price-card.featured {
+            border-color: #6B46C1;
+            transform: scale(1.05);
+        }
+        
+        .price-card.featured:before {
+            content: 'MOST POPULAR';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #6B46C1;
+            color: white;
+            padding: 10px 30px;
+            border-radius: 20px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .price-card h3 {
+            font-size: 36px;
+            color: #1F2937;
+            margin-bottom: 20px;
+        }
+        
+        .price-card .price {
+            font-size: 72px;
+            font-weight: 700;
+            color: #6B46C1;
+            margin-bottom: 30px;
+        }
+        
+        .price-card .price span {
+            font-size: 28px;
+            color: #6B7280;
+        }
+        
+        .price-card ul {
+            list-style: none;
+            padding: 0;
+            font-size: 22px;
+            color: #4B5563;
+            text-align: left;
+        }
+        
+        .price-card li {
+            margin-bottom: 15px;
+            padding-left: 30px;
+            position: relative;
+        }
+        
+        .price-card li:before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #10B981;
+        }
+        
+        /* Slide 8 - CTA */
+        .cta-slide {
+            background: linear-gradient(135deg, #1F2937 0%, #374151 100%);
+            color: white;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 100px;
+        }
+        
+        .cta-slide h2 {
+            font-size: 80px;
+            font-weight: 700;
+            margin-bottom: 40px;
+        }
+        
+        .cta-slide p {
+            font-size: 36px;
+            margin-bottom: 60px;
+            opacity: 0.9;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: #10B981;
+            color: white;
+            padding: 30px 60px;
+            border-radius: 50px;
+            font-size: 32px;
+            font-weight: 600;
+            text-decoration: none;
+            margin-bottom: 40px;
+        }
+        
+        .guarantee {
+            font-size: 24px;
+            opacity: 0.8;
+        }
+        
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+            }
+            
+            .slide {
+                margin: 0;
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- Slide 1: Title Slide -->
+    <div class="slide slide-title">
+        <h1>Turn Your Dealership's Hidden Revenue Leaks Into Profit Streams</h1>
+        <h2>In Under 90 Seconds</h2>
+        <div class="logo">AUTO AUDIT PRO SUITE</div>
+    </div>
+    
+    <!-- Slide 2: The Problem -->
+    <div class="slide">
+        <div class="slide-header">
+            <h2>The $50,000 Monthly Problem You Don't Know You Have</h2>
+        </div>
+        <div class="slide-content">
+            <div class="alert-box">
+                <h3>⚠️ Every Month, Dealerships Lose Massive Revenue</h3>
+            </div>
+            <div class="problem-grid">
+                <div class="problem-stat">
+                    <div class="number">31%</div>
+                    <div class="label">of leads get<br>ZERO response</div>
+                </div>
+                <div class="problem-stat">
+                    <div class="number">65%</div>
+                    <div class="label">of shoppers use mobile<br>but sites fail them</div>
+                </div>
+                <div class="problem-stat">
+                    <div class="number">23%</div>
+                    <div class="label">respond within<br>15 minutes</div>
+                </div>
+                <div class="problem-stat">
+                    <div class="number">87%</div>
+                    <div class="label">have critical<br>website issues</div>
+                </div>
+                <div class="problem-stat">
+                    <div class="number">$1,250</div>
+                    <div class="label">lost per<br>missed lead</div>
+                </div>
+                <div class="problem-stat">
+                    <div class="number">78%</div>
+                    <div class="label">buy from<br>first responder</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-number">2</div>
+    </div>
+    
+    <!-- Slide 3: The Solution -->
+    <div class="slide">
+        <div class="slide-header">
+            <h2>The Only Platform That Connects Website to Revenue</h2>
+        </div>
+        <div class="slide-content">
+            <div class="solution-grid">
+                <div class="solution-card">
+                    <div class="icon">🚀</div>
+                    <h3>Lightning Fast</h3>
+                    <ul>
+                        <li>60-90 second analysis</li>
+                        <li>Instant insights</li>
+                        <li>Real-time correlation</li>
+                    </ul>
+                </div>
+                <div class="solution-card">
+                    <div class="icon">📊</div>
+                    <h3>Deep Intelligence</h3>
+                    <ul>
+                        <li>Website → Conversion link</li>
+                        <li>Network benchmarks</li>
+                        <li>ROI projections</li>
+                    </ul>
+                </div>
+                <div class="solution-card">
+                    <div class="icon">💡</div>
+                    <h3>Actionable Results</h3>
+                    <ul>
+                        <li>Prioritized fixes</li>
+                        <li>Revenue impact</li>
+                        <li>Step-by-step guide</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="slide-number">3</div>
+    </div>
+    
+    <!-- Slide 4: How It Works -->
+    <div class="slide">
+        <div class="slide-header">
+            <h2>3 Simple Steps to Revenue Recovery</h2>
+        </div>
+        <div class="slide-content">
+            <div class="steps-container">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Instant Analysis</h3>
+                    <p>Enter your website URL<br>or upload lead data</p>
+                    <p><strong>60 seconds later:<br>Complete report</strong></p>
+                </div>
+                <div class="arrow">→</div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>See Reality</h3>
+                    <p>Discover your true<br>performance metrics</p>
+                    <p><strong>"I had no idea we were<br>losing this much!"</strong></p>
+                </div>
+                <div class="arrow">→</div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Capture Revenue</h3>
+                    <p>Follow our prioritized<br>action plan</p>
+                    <p><strong>Track improvements<br>in real-time</strong></p>
+                </div>
+            </div>
+        </div>
+        <div class="slide-number">4</div>
+    </div>
+    
+    <!-- Slide 5: Results -->
+    <div class="slide">
+        <div class="slide-header">
+            <h2>Real Dealers. Real Results. Real Revenue.</h2>
+        </div>
+        <div class="slide-content">
+            <div class="results-grid">
+                <div class="result-card">
+                    <div class="number">+47%</div>
+                    <div class="label">15-min responses</div>
+                </div>
+                <div class="result-card">
+                    <div class="number">18%</div>
+                    <div class="label">conversion rate</div>
+                </div>
+                <div class="result-card">
+                    <div class="number">$127K</div>
+                    <div class="label">monthly increase</div>
+                </div>
+                <div class="result-card">
+                    <div class="number">32pt</div>
+                    <div class="label">score improvement</div>
+                </div>
+            </div>
+            <div class="testimonial-slide">
+                <p>"Found $85,000 in monthly revenue we were losing to slow response times. Fixed it in 2 weeks."</p>
+                <div class="author">- Mark Thompson, Thompson Auto Group</div>
+            </div>
+            <div class="testimonial-slide">
+                <p>"Discovered our mobile site was costing us 40% of our leads. Game changer!"</p>
+                <div class="author">- Sarah Chen, Premier Motors</div>
+            </div>
+        </div>
+        <div class="slide-number">5</div>
+    </div>
+    
+    <!-- Slide 6: ROI Visual -->
+    <div class="slide">
+        <div class="slide-header">
+            <h2>Your ROI is Waiting to Be Discovered</h2>
+        </div>
+        <div class="slide-content">
+            <div class="roi-visual">
+                <div class="roi-box current">
+                    <h3>Current State</h3>
+                    <div class="value">14%</div>
+                    <p>Conversion Rate</p>
+                    <div class="value">$450K</div>
+                    <p>Monthly Revenue</p>
+                </div>
+                <div class="roi-arrow">➔</div>
+                <div class="roi-box potential">
+                    <h3>With Auto Audit Pro</h3>
+                    <div class="value">18%</div>
+                    <p>Conversion Rate</p>
+                    <div class="value">$577K</div>
+                    <p>Monthly Revenue</p>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 40px;">
+                <h3 style="font-size: 48px; color: #10B981;">+$127,000 Monthly Revenue Increase</h3>
+                <p style="font-size: 28px; color: #6B7280;">That's $1.5 Million in Additional Annual Revenue</p>
+            </div>
+        </div>
+        <div class="slide-number">6</div>
+    </div>
+    
+    <!-- Slide 7: Pricing -->
+    <div class="slide">
+        <div class="slide-header">
+            <h2>Investment That Pays for Itself 100x Over</h2>
+        </div>
+        <div class="slide-content">
+            <div class="pricing-grid">
+                <div class="price-card">
+                    <h3>STARTER</h3>
+                    <div class="price">$297<span>/mo</span></div>
+                    <ul>
+                        <li>Website Analysis</li>
+                        <li>Basic Lead Metrics</li>
+                        <li>Monthly Reports</li>
+                    </ul>
+                </div>
+                <div class="price-card featured">
+                    <h3>PROFESSIONAL</h3>
+                    <div class="price">$597<span>/mo</span></div>
+                    <ul>
+                        <li>Everything in Starter</li>
+                        <li>Lead Performance Intel</li>
+                        <li>Weekly Reports</li>
+                        <li>ROI Calculator</li>
+                    </ul>
+                </div>
+                <div class="price-card">
+                    <h3>ENTERPRISE</h3>
+                    <div class="price">$997<span>/mo</span></div>
+                    <ul>
+                        <li>Everything in Pro</li>
+                        <li>Multi-location</li>
+                        <li>API Access</li>
+                        <li>Success Manager</li>
+                    </ul>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 40px;">
+                <p style="font-size: 32px; color: #6B46C1; font-weight: 600;">
+                    💡 Professional plan costs less than the profit from ONE car deal
+                </p>
+            </div>
+        </div>
+        <div class="slide-number">7</div>
+    </div>
+    
+    <!-- Slide 8: Call to Action -->
+    <div class="slide cta-slide">
+        <h2>See Your Hidden Revenue in 90 Seconds</h2>
+        <p>FREE Comprehensive Audit • No Credit Card Required</p>
+        <a href="#" class="cta-button">ANALYZE MY DEALERSHIP NOW →</a>
+        <div class="guarantee">
+            🛡️ 30-Day Money-Back Guarantee<br>
+            If you don't find at least $10,000 in recoverable revenue
+        </div>
+        <div style="margin-top: 60px;">
+            <p style="font-size: 28px;">Every day you wait costs you $1,667</p>
+            <p style="font-size: 24px; opacity: 0.7;">Join 500+ dealers who've discovered millions in hidden revenue</p>
+        </div>
+        <div style="position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);">
+            <p style="font-size: 20px; opacity: 0.6;">
+                🌐 autoauditpro.io | 📧 success@autoauditpro.io | 📱 1-800-AUTO-WIN
+            </p>
+        </div>
+    </div>
+    
+</body>
+</html>

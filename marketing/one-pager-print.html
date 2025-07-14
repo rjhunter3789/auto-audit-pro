@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Audit Pro Suite - One-Page Marketing Sheet</title>
+    <style>
+        @page {
+            size: letter;
+            margin: 0.5in;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 9pt;
+            line-height: 1.4;
+            color: #333;
+            background: white;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #6B46C1 0%, #9333EA 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin: -0.5in -0.5in 15px -0.5in;
+        }
+
+        .logo {
+            font-size: 18pt;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .tagline {
+            font-size: 14pt;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 10pt;
+            opacity: 0.9;
+        }
+
+        /* Content Grid */
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        /* Sections */
+        .section {
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            padding: 12px;
+            background: #FAFAFA;
+        }
+
+        .section-title {
+            font-size: 11pt;
+            font-weight: 700;
+            color: #6B46C1;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .section-icon {
+            font-size: 14pt;
+        }
+
+        /* Problem Stats */
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .stat-box {
+            background: white;
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+            border: 1px solid #FCA5A5;
+        }
+
+        .stat-number {
+            font-size: 16pt;
+            font-weight: 700;
+            color: #EF4444;
+        }
+
+        .stat-label {
+            font-size: 7pt;
+            color: #6B7280;
+            line-height: 1.2;
+        }
+
+        /* Features */
+        .feature-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .feature-list li {
+            padding: 4px 0;
+            padding-left: 20px;
+            position: relative;
+            font-size: 8.5pt;
+        }
+
+        .feature-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #10B981;
+            font-weight: bold;
+        }
+
+        /* Results */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .result-box {
+            background: #F0FDF4;
+            border: 1px solid #10B981;
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .result-number {
+            font-size: 14pt;
+            font-weight: 700;
+            color: #10B981;
+        }
+
+        .result-label {
+            font-size: 7pt;
+            color: #6B7280;
+        }
+
+        /* Testimonials */
+        .testimonial {
+            background: white;
+            padding: 8px;
+            border-left: 3px solid #6B46C1;
+            margin-bottom: 5px;
+            font-size: 8pt;
+        }
+
+        .testimonial-text {
+            font-style: italic;
+            margin-bottom: 3px;
+        }
+
+        .testimonial-author {
+            font-weight: 600;
+            color: #6B46C1;
+            font-size: 7pt;
+        }
+
+        /* Pricing */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .price-box {
+            background: white;
+            border: 1px solid #E5E7EB;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .price-box.featured {
+            border-color: #6B46C1;
+            border-width: 2px;
+        }
+
+        .plan-name {
+            font-weight: 700;
+            color: #1F2937;
+            margin-bottom: 5px;
+        }
+
+        .plan-price {
+            font-size: 16pt;
+            font-weight: 700;
+            color: #6B46C1;
+        }
+
+        .plan-features {
+            font-size: 7pt;
+            color: #6B7280;
+            margin-top: 5px;
+            line-height: 1.3;
+        }
+
+        /* CTA */
+        .cta-section {
+            background: #1F2937;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            margin: 0 -0.5in -0.5in -0.5in;
+            border-radius: 0;
+        }
+
+        .cta-title {
+            font-size: 14pt;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: #10B981;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            text-decoration: none;
+            margin: 8px 0;
+        }
+
+        .guarantee {
+            font-size: 8pt;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        /* Steps */
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .step {
+            text-align: center;
+            padding: 8px;
+        }
+
+        .step-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #6B46C1;
+            color: white;
+            border-radius: 50%;
+            line-height: 30px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .step-title {
+            font-weight: 600;
+            font-size: 9pt;
+            margin-bottom: 3px;
+        }
+
+        .step-desc {
+            font-size: 7pt;
+            color: #6B7280;
+        }
+
+        /* Contact */
+        .contact-info {
+            font-size: 8pt;
+            margin-top: 5px;
+        }
+
+        @media print {
+            body {
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="logo">AUTO AUDIT PRO SUITE</div>
+        <div class="tagline">Turn Your Dealership's Hidden Revenue Leaks Into Profit Streams in Under 90 Seconds</div>
+        <div class="subtitle">The Only Platform That Connects Your Website Performance to Lead Conversion Reality</div>
+    </div>
+
+    <!-- Problem Section -->
+    <div class="section full-width">
+        <div class="section-title">
+            <span class="section-icon">⚠️</span>
+            Every Month, Dealerships Lose $50,000+ in Revenue They Never Knew Existed
+        </div>
+        <div class="problem-grid">
+            <div class="stat-box">
+                <div class="stat-number">31%</div>
+                <div class="stat-label">of leads get ZERO response</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">65%</div>
+                <div class="stat-label">use mobile but sites fail</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">23%</div>
+                <div class="stat-label">respond in 15 minutes</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">87%</div>
+                <div class="stat-label">have hidden website issues</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">$1,250</div>
+                <div class="stat-label">lost per missed lead</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">78%</div>
+                <div class="stat-label">buy from first responder</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Grid -->
+    <div class="content">
+        <!-- Features -->
+        <div class="section">
+            <div class="section-title">
+                <span class="section-icon">🚀</span>
+                Our Breakthrough Solution
+            </div>
+            <ul class="feature-list">
+                <li>Complete website audit in 60-90 seconds</li>
+                <li>Instant lead performance analysis</li>
+                <li>Website Score → Lead Conversion correlation</li>
+                <li>Dealer-specific vs. network benchmarks</li>
+                <li>ROI projections based on YOUR data</li>
+                <li>Prioritized fix list with instructions</li>
+                <li>Expected revenue impact per fix</li>
+                <li>Performance tier rankings</li>
+            </ul>
+        </div>
+
+        <!-- Key Differentiators -->
+        <div class="section">
+            <div class="section-title">
+                <span class="section-icon">💎</span>
+                Why We're Different
+            </div>
+            <ul class="feature-list">
+                <li><strong>The Connection:</strong> Only platform linking website to conversions</li>
+                <li><strong>The Speed:</strong> What takes weeks, we do in seconds</li>
+                <li><strong>The Specificity:</strong> Your data, not generic advice</li>
+                <li><strong>The ROI:</strong> See exact revenue opportunities</li>
+                <li><strong>The Guarantee:</strong> Find $10K or money back</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div class="section full-width">
+        <div class="section-title">
+            <span class="section-icon">🏆</span>
+            Elite Dealer Results
+        </div>
+        <div class="results-grid">
+            <div class="result-box">
+                <div class="result-number">+47%</div>
+                <div class="result-label">15-min responses</div>
+            </div>
+            <div class="result-box">
+                <div class="result-number">18%</div>
+                <div class="result-label">conversion rate</div>
+            </div>
+            <div class="result-box">
+                <div class="result-number">$127K</div>
+                <div class="result-label">monthly increase</div>
+            </div>
+            <div class="result-box">
+                <div class="result-number">32pt</div>
+                <div class="result-label">score improvement</div>
+            </div>
+        </div>
+        <div class="testimonial">
+            <div class="testimonial-text">"Found $85,000 in monthly revenue we were losing to slow response times"</div>
+            <div class="testimonial-author">- Mark Thompson, Thompson Auto Group</div>
+        </div>
+        <div class="testimonial">
+            <div class="testimonial-text">"Discovered our mobile site was costing us 40% of our leads"</div>
+            <div class="testimonial-author">- Sarah Chen, Premier Motors</div>
+        </div>
+    </div>
+
+    <!-- How It Works -->
+    <div class="section full-width">
+        <div class="section-title">
+            <span class="section-icon">⚡</span>
+            How It Works - 3 Simple Steps
+        </div>
+        <div class="steps-grid">
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-title">Instant Analysis</div>
+                <div class="step-desc">Enter URL or upload data<br>60 seconds to insights</div>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-title">See Reality</div>
+                <div class="step-desc">Discover true performance<br>"I had no idea!"</div>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-title">Capture Revenue</div>
+                <div class="step-desc">Follow action plan<br>Track improvements</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pricing -->
+    <div class="section full-width">
+        <div class="section-title">
+            <span class="section-icon">💰</span>
+            Simple, Transparent Pricing
+        </div>
+        <div class="pricing-grid">
+            <div class="price-box">
+                <div class="plan-name">STARTER</div>
+                <div class="plan-price">$297</div>
+                <div class="plan-features">
+                    Website Analysis<br>
+                    Basic Lead Metrics<br>
+                    Monthly Reports
+                </div>
+            </div>
+            <div class="price-box featured">
+                <div class="plan-name">PROFESSIONAL</div>
+                <div class="plan-price">$597</div>
+                <div class="plan-features">
+                    Everything in Starter<br>
+                    Lead Intelligence<br>
+                    Weekly Reports<br>
+                    ROI Calculator
+                </div>
+            </div>
+            <div class="price-box">
+                <div class="plan-name">ENTERPRISE</div>
+                <div class="plan-price">$997</div>
+                <div class="plan-features">
+                    Everything in Pro<br>
+                    Multi-location<br>
+                    API Access<br>
+                    Success Manager
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-section">
+        <div class="cta-title">See Your Hidden Revenue in 90 Seconds</div>
+        <div class="cta-button">FREE COMPREHENSIVE AUDIT</div>
+        <div class="guarantee">30-Day Money-Back Guarantee • No Credit Card Required</div>
+        <div class="contact-info">
+            🌐 autoauditpro.io • 📧 success@autoauditpro.io • 📱 1-800-AUTO-WIN
+        </div>
+    </div>
+</body>
+</html>

@@ -390,6 +390,7 @@ function processUploadedData(data, filename = '') {
     // IMPORTANT: Lead data starts at row 12 (index 11)
     // Row 12 has "Lead Source" in column B
     const dealers = {};
+    const allLeads = []; // Collect all leads for source analysis
     let isNetworkReport = false;
     let currentDealer = dealerName;
     let currentDealerData = {
@@ -622,6 +623,36 @@ function processUploadedData(data, filename = '') {
             currentDealerData.sales += 1;
         }
         
+        // Collect lead data for source analysis
+        // Note: We need to track totalMinutes from the response time parsing above
+        let responseTimeMinutes = null;
+        if (trimmedResponseDate !== 'N/A' && trimmedResponseDate !== '' && elapsedTime) {
+            // Re-parse elapsed time for the lead object
+            let match = elapsedTime.match(/(\d+)h (\d+)m/);
+            if (match) {
+                responseTimeMinutes = parseInt(match[1]) * 60 + parseInt(match[2]);
+            } else {
+                match = elapsedTime.match(/(\d+)h(\d+)m/);
+                if (match) {
+                    responseTimeMinutes = parseInt(match[1]) * 60 + parseInt(match[2]);
+                } else {
+                    match = elapsedTime.match(/(\d+)m/);
+                    if (match) {
+                        responseTimeMinutes = parseInt(match[1]);
+                    }
+                }
+            }
+        }
+        
+        allLeads.push({
+            leadSource: leadSource,
+            dealer: currentDealer,
+            responseDate: trimmedResponseDate !== 'N/A' && trimmedResponseDate !== '' ? trimmedResponseDate : null,
+            responseTime: responseTimeMinutes,
+            saleDate: saleDate && saleDate !== '' && saleDate !== 'N/A' ? saleDate : null,
+            leadType: leadType
+        });
+        
         processedRows++;
     }
     
@@ -762,6 +793,231 @@ function processUploadedData(data, filename = '') {
     
     // Update charts
     updateCharts();
+    
+    // Analyze and display lead sources
+    if (allLeads && allLeads.length > 0) {
+        const sourceMetrics = analyzeLeadSources(allLeads);
+        updateLeadSourceVisualization(sourceMetrics);
+    }
+}
+
+// Analyze lead sources and update visualization
+function analyzeLeadSources(leadData) {
+    const sourceAnalysis = {};
+    
+    // Process all leads to analyze by source
+    leadData.forEach(lead => {
+        const source = lead.leadSource || 'Unknown';
+        
+        if (!sourceAnalysis[source]) {
+            sourceAnalysis[source] = {
+                leads: 0,
+                responded: 0,
+                noResponse: 0,
+                sales: 0,
+                responseTime15min: 0,
+                totalResponseTime: 0,
+                responseCount: 0
+            };
+        }
+        
+        sourceAnalysis[source].leads++;
+        
+        if (lead.responseDate) {
+            sourceAnalysis[source].responded++;
+            
+            // Calculate response time
+            const responseTime = lead.responseTime || 0;
+            if (responseTime > 0) {
+                sourceAnalysis[source].totalResponseTime += responseTime;
+                sourceAnalysis[source].responseCount++;
+                
+                if (responseTime <= 15) {
+                    sourceAnalysis[source].responseTime15min++;
+                }
+            }
+        } else {
+            sourceAnalysis[source].noResponse++;
+        }
+        
+        if (lead.saleDate) {
+            sourceAnalysis[source].sales++;
+        }
+    });
+    
+    // Calculate metrics for each source
+    const sourceMetrics = Object.entries(sourceAnalysis).map(([source, data]) => {
+        const avgResponseTime = data.responseCount > 0 ? 
+            (data.totalResponseTime / data.responseCount).toFixed(0) : 'N/A';
+        const conversionRate = data.leads > 0 ? 
+            ((data.sales / data.leads) * 100).toFixed(1) : 0;
+        const responseRate = data.leads > 0 ? 
+            ((data.responded / data.leads) * 100).toFixed(1) : 0;
+        const quickResponseRate = data.responded > 0 ? 
+            ((data.responseTime15min / data.responded) * 100).toFixed(1) : 0;
+        
+        return {
+            source,
+            leads: data.leads,
+            sales: data.sales,
+            conversionRate: parseFloat(conversionRate),
+            responseRate: parseFloat(responseRate),
+            avgResponseTime,
+            quickResponseRate: parseFloat(quickResponseRate),
+            responded: data.responded
+        };
+    }).sort((a, b) => b.leads - a.leads); // Sort by lead volume
+    
+    return sourceMetrics;
+}
+
+// Update lead source visualization
+function updateLeadSourceVisualization(sourceMetrics) {
+    if (!sourceMetrics || sourceMetrics.length === 0) return;
+    
+    // Update the chart
+    const ctx = document.getElementById('leadSourceChart');
+    if (ctx) {
+        // Prepare data for chart
+        const labels = sourceMetrics.slice(0, 10).map(s => s.source); // Top 10 sources
+        const leadCounts = sourceMetrics.slice(0, 10).map(s => s.leads);
+        const conversionRates = sourceMetrics.slice(0, 10).map(s => s.conversionRate);
+        
+        // Create or update chart
+        if (window.leadSourceChart && typeof window.leadSourceChart.destroy === 'function') {
+            window.leadSourceChart.destroy();
+        }
+        
+        window.leadSourceChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Lead Volume',
+                    data: leadCounts,
+                    backgroundColor: 'rgba(107, 70, 193, 0.6)',
+                    borderColor: 'rgba(107, 70, 193, 1)',
+                    borderWidth: 1,
+                    yAxisID: 'y-leads'
+                }, {
+                    label: 'Conversion Rate %',
+                    data: conversionRates,
+                    type: 'line',
+                    borderColor: 'rgba(16, 185, 129, 1)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(16, 185, 129, 1)',
+                    pointRadius: 4,
+                    yAxisID: 'y-conversion'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                scales: {
+                    'y-leads': {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Lead Volume'
+                        }
+                    },
+                    'y-conversion': {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Conversion Rate %'
+                        },
+                        grid: {
+                            drawOnChartArea: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            afterLabel: function(context) {
+                                const source = sourceMetrics[context.dataIndex];
+                                return [
+                                    `Response Rate: ${source.responseRate}%`,
+                                    `Avg Response: ${source.avgResponseTime} min`,
+                                    `Sales: ${source.sales}`
+                                ];
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // Update top sources list
+    const topSourcesList = document.getElementById('topSourcesList');
+    if (topSourcesList) {
+        let html = '';
+        sourceMetrics.slice(0, 5).forEach(source => {
+            html += `
+                <div class="source-item">
+                    <div class="source-name">${source.source}</div>
+                    <div class="source-stats">
+                        <div class="source-stat">
+                            <div class="stat-value">${source.leads}</div>
+                            <div class="stat-label">Leads</div>
+                        </div>
+                        <div class="source-stat">
+                            <div class="stat-value">${source.conversionRate}%</div>
+                            <div class="stat-label">Conv</div>
+                        </div>
+                        <div class="source-stat">
+                            <div class="stat-value">${source.avgResponseTime}m</div>
+                            <div class="stat-label">Resp</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        topSourcesList.innerHTML = html;
+    }
+    
+    // Update summary metrics
+    // Best response time
+    const bestResponse = sourceMetrics
+        .filter(s => s.avgResponseTime !== 'N/A' && s.leads >= 10) // Min 10 leads for relevance
+        .sort((a, b) => parseFloat(a.avgResponseTime) - parseFloat(b.avgResponseTime))[0];
+    
+    if (bestResponse) {
+        document.getElementById('bestSourceResponse').textContent = bestResponse.avgResponseTime + ' min';
+        document.getElementById('bestSourceName').textContent = bestResponse.source;
+    }
+    
+    // Highest conversion
+    const bestConversion = sourceMetrics
+        .filter(s => s.leads >= 10) // Min 10 leads for relevance
+        .sort((a, b) => b.conversionRate - a.conversionRate)[0];
+    
+    if (bestConversion) {
+        document.getElementById('bestSourceConversion').textContent = bestConversion.conversionRate + '%';
+        document.getElementById('bestConversionName').textContent = bestConversion.source;
+    }
+    
+    // Most volume
+    const highestVolume = sourceMetrics[0]; // Already sorted by volume
+    if (highestVolume) {
+        document.getElementById('highestVolumeCount').textContent = highestVolume.leads;
+        document.getElementById('highestVolumeName').textContent = highestVolume.source;
+    }
 }
 
 function updateDashboard(metrics) {
