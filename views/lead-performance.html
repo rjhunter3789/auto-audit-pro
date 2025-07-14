@@ -906,19 +906,19 @@
                             
                             <div class="form-group">
                                 <label>Target Conversion Rate (%)</label>
-                                <input type="number" class="form-control" id="targetConversion" value="18" min="0" max="100" step="0.1">
+                                <input type="number" class="form-control" id="targetConversion" value="18" min="0" max="100" step="0.1" autocomplete="off" data-lpignore="true">
                                 <small class="form-text text-muted">Industry average: 16.12%</small>
                             </div>
                             
                             <div class="form-group">
                                 <label>Target 15-Min Response Rate (%)</label>
-                                <input type="number" class="form-control" id="target15Min" value="40" min="0" max="100" step="1">
+                                <input type="number" class="form-control" id="target15Min" value="40" min="0" max="100" step="1" autocomplete="off" data-lpignore="true">
                                 <small class="form-text text-muted">Best practice: 40%+</small>
                             </div>
                             
                             <div class="form-group">
                                 <label>Acceptable No-Response Rate (%)</label>
-                                <input type="number" class="form-control" id="targetNoResponse" value="10" min="0" max="100" step="1">
+                                <input type="number" class="form-control" id="targetNoResponse" value="10" min="0" max="100" step="1" autocomplete="off" data-lpignore="true">
                                 <small class="form-text text-muted">Lower is better</small>
                             </div>
                         </div>
@@ -932,17 +932,17 @@
                             
                             <div class="form-group">
                                 <label>Elite Tier (% and above)</label>
-                                <input type="number" class="form-control" id="eliteThreshold" value="20" min="0" max="100" step="0.1">
+                                <input type="number" class="form-control" id="eliteThreshold" value="20" min="0" max="100" step="0.1" autocomplete="off" data-lpignore="true">
                             </div>
                             
                             <div class="form-group">
                                 <label>Strong Tier (% and above)</label>
-                                <input type="number" class="form-control" id="strongThreshold" value="16" min="0" max="100" step="0.1">
+                                <input type="number" class="form-control" id="strongThreshold" value="16" min="0" max="100" step="0.1" autocomplete="off" data-lpignore="true">
                             </div>
                             
                             <div class="form-group">
                                 <label>Average Tier (% and above)</label>
-                                <input type="number" class="form-control" id="averageThreshold" value="12" min="0" max="100" step="0.1">
+                                <input type="number" class="form-control" id="averageThreshold" value="12" min="0" max="100" step="0.1" autocomplete="off" data-lpignore="true">
                             </div>
                             
                             <small class="form-text text-muted">Dealers below Average threshold are in Challenge tier</small>
@@ -957,13 +957,13 @@
                             
                             <div class="form-group">
                                 <label>Average Gross Profit per Vehicle ($)</label>
-                                <input type="number" class="form-control" id="avgGrossProfit" value="4250" min="0" step="50">
+                                <input type="number" class="form-control" id="avgGrossProfit" value="4250" min="0" step="50" autocomplete="off" data-lpignore="true">
                                 <small class="form-text text-muted">Industry average: $4,250</small>
                             </div>
                             
                             <div class="form-group">
                                 <label>Average Monthly Marketing Spend ($)</label>
-                                <input type="number" class="form-control" id="avgMarketingSpend" value="25000" min="0" step="1000">
+                                <input type="number" class="form-control" id="avgMarketingSpend" value="25000" min="0" step="1000" autocomplete="off" data-lpignore="true">
                                 <small class="form-text text-muted">Used for ROI calculations</small>
                             </div>
                         </div>
@@ -977,7 +977,7 @@
                             
                             <div class="form-group">
                                 <label>Data Retention Period</label>
-                                <select class="form-control" id="dataRetention">
+                                <select class="form-control" id="dataRetention" autocomplete="off" data-lpignore="true">
                                     <option value="session">This session only</option>
                                     <option value="1day">1 day</option>
                                     <option value="7days" selected>7 days</option>
@@ -988,7 +988,7 @@
                             
                             <div class="form-group">
                                 <label>Default Report Format</label>
-                                <select class="form-control" id="defaultReportFormat">
+                                <select class="form-control" id="defaultReportFormat" autocomplete="off" data-lpignore="true">
                                     <option value="pdf" selected>PDF</option>
                                     <option value="excel">Excel</option>
                                     <option value="print">Print View</option>
@@ -996,7 +996,7 @@
                             </div>
                             
                             <div class="form-check">
-                                <input type="checkbox" class="form-check-input" id="autoSelectDealer" checked>
+                                <input type="checkbox" class="form-check-input" id="autoSelectDealer" checked autocomplete="off" data-lpignore="true">
                                 <label class="form-check-label" for="autoSelectDealer">
                                     Auto-select dealer if only one in network
                                 </label>

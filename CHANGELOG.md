@@ -48,6 +48,16 @@
   - `/server.js` - Added route for settings guide
   - `/views/lead-performance.html` - Added link to guide
 
+#### 🔒 Fixed Password Manager Interference
+- **Issue**: LastPass and other password managers showing logos in settings fields
+- **Fix**: Added autocomplete prevention attributes to all form controls
+- **Implementation**:
+  - Added `autocomplete="off"` attribute to prevent autofill
+  - Added `data-lpignore="true"` to specifically block LastPass
+  - Applied to all 8 settings inputs (numbers, selects, checkbox)
+- **Files Modified**:
+  - `/views/lead-performance.html` - Updated all settings form fields
+
 ## Version 2.2.7 - July 14, 2025 (Specific Impact Analysis)
 
 ### 🎯 Eliminated Generic Insights in Combined Insights Page
