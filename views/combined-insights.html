@@ -159,6 +159,11 @@
             background: #F0FDF4;
             color: var(--accent-green);
         }
+        
+        .insight-icon.analytics {
+            background: #F3E8FF;
+            color: #8B5CF6;
+        }
 
         .insight-title {
             font-size: 1.25rem;
@@ -408,6 +413,19 @@
                 <h3>Performance Comparison</h3>
                 <div style="position: relative; height: 300px;">
                     <canvas id="comparisonChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Correlation Analysis -->
+            <div class="insight-card" id="correlationAnalysis" style="display: none;">
+                <div class="insight-header">
+                    <div class="insight-icon analytics">
+                        <i class="fas fa-chart-scatter"></i>
+                    </div>
+                    <h2 class="insight-title">Website Score vs. Lead Conversion Analysis</h2>
+                </div>
+                <div id="correlationFeedback" style="padding: 20px; background: #F9FAFB; border-radius: 8px;">
+                    <!-- Dynamic correlation feedback will be inserted here -->
                 </div>
             </div>
 

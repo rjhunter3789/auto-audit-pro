@@ -1,5 +1,43 @@
 # Auto Audit Pro Suite - Changelog & Feature Documentation
 
+## Version 2.2.7 - July 14, 2025 (Specific Impact Analysis)
+
+### 🎯 Eliminated Generic Insights in Combined Insights Page
+
+#### 📊 Top Website Issues Now Show Specific Problems
+- **Before**: "Performance Testing Issues - Score: 2/5 - 4 tests completed" 
+- **After**: "Slow Page Load Times - 40% of visitors abandon sites that take >3 seconds to load"
+- Shows actual issue titles from website audit (e.g., "Missing Phone Number", "No Contact Forms")
+- Adds conversion-specific impact for each issue type:
+  - Phone issues: "Direct impact on lead capture - losing 30% of potential leads"
+  - Form issues: "Critical for online lead generation - 50% of submissions lost"
+  - Mobile issues: "65% of automotive shoppers use mobile - 40% bounce rate"
+  - Speed issues: "Each second of delay reduces conversions by 7%"
+  - Inventory issues: "Customers can't find vehicles - losing 45% of buyers"
+  - Image issues: "Photos are #1 purchase factor - 60% fewer inquiries"
+
+#### 🚀 Improvement Opportunities Now Actionable
+- **Dynamic opportunity generation** based on actual issues found
+- **Specific metrics** for each opportunity:
+  - "Fix 3 contact/form issues. Could increase lead volume by 30-40% (est. +12 leads/month)"
+  - "Only 23.5% get 15-min response. Auto-responders could engage 47 more leads/month"
+  - "187 leads/month get no response (31.2%). CRM automation could recover 80% of these"
+- **Timeline estimates**: "1-2 days", "3-5 days", "1 week"
+- **Specific action items** listed for each opportunity
+- **Effort/Impact badges** with color coding
+
+#### 📈 Enhanced Correlation Feedback
+- Added performance categories with specific thresholds
+- Detailed metrics comparison (expected vs actual conversion)
+- Specific recommendations based on performance gaps
+- Network average comparisons with +/- percentages
+
+#### 📚 New Analytics & Insights Glossary Section
+- Added 10 comprehensive terms explaining correlation analysis
+- Covers expected conversion rates, performance gaps, ROI projections
+- Added sidebar navigation link to new section
+- Explains confidence indicators and manual review requirements
+
 ## Version 2.2.6 - July 13, 2025 (Complete Confidence Indicators)
 
 ### 🔍 Extended Confidence Indicators to All Detection Areas

@@ -7,6 +7,122 @@ let leadData = null;
 let correlationChart = null;
 let comparisonChart = null;
 
+// Generate correlation analysis feedback
+function generateCorrelationFeedback() {
+    if (!websiteData || !window.currentDealerMatch) return '';
+    
+    const dealer = window.currentDealerMatch;
+    const websiteScore = websiteData.score || 0;
+    const conversionRate = parseFloat(dealer.conversionRate) || 0;
+    const networkAvgConversion = leadData?.summary?.avgConversion || 16.12;
+    
+    // Calculate expected conversion rate based on website score
+    // Rough formula: base 5% + (websiteScore/100 * 15%)
+    const expectedConversion = 5 + (websiteScore / 100 * 15);
+    const conversionGap = expectedConversion - conversionRate;
+    const performanceVsNetwork = conversionRate - networkAvgConversion;
+    
+    // Determine performance category
+    let performanceCategory = '';
+    let performanceColor = '';
+    let mainInsight = '';
+    let recommendations = [];
+    
+    if (conversionRate >= expectedConversion * 0.95) {
+        // Performing at or above expected
+        performanceCategory = 'Strong Performer';
+        performanceColor = '#10B981';
+        mainInsight = `Your dealership is maximizing its website potential. With a ${websiteScore}/100 website score, your ${conversionRate}% conversion rate meets or exceeds expectations.`;
+        recommendations = [
+            'Continue current sales process excellence',
+            'Consider minor website improvements to reach 85+ score',
+            'Share best practices with other locations'
+        ];
+    } else if (conversionRate >= expectedConversion * 0.8) {
+        // Slightly underperforming
+        performanceCategory = 'Room for Improvement';
+        performanceColor = '#F59E0B';
+        mainInsight = `Your website score of ${websiteScore}/100 suggests you should achieve ~${expectedConversion.toFixed(1)}% conversion, but you're at ${conversionRate}%. This indicates process optimization opportunities.`;
+        recommendations = [
+            'Review lead response times (target <5 minutes)',
+            'Audit follow-up sequences and frequency',
+            'Evaluate sales team training and scripts',
+            'Check CRM usage and lead nurturing'
+        ];
+    } else {
+        // Significantly underperforming
+        performanceCategory = 'Performance Gap';
+        performanceColor = '#EF4444';
+        mainInsight = `Significant opportunity detected: Your ${websiteScore}/100 website should generate ~${expectedConversion.toFixed(1)}% conversion, but you're achieving ${conversionRate}%. This ${conversionGap.toFixed(1)}% gap represents substantial revenue potential.`;
+        recommendations = [
+            'Immediate focus: Lead response time audit',
+            'Implement automated lead acknowledgment',
+            'Review and optimize sales process',
+            'Consider mystery shopping your team',
+            'Analyze lost opportunity reasons'
+        ];
+    }
+    
+    // Build the feedback HTML
+    const feedbackHTML = `
+        <div style="margin-bottom: 20px;">
+            <h3 style="color: ${performanceColor}; margin: 0 0 10px 0;">
+                ${dealer.name}: ${performanceCategory}
+            </h3>
+            <div style="font-size: 2em; font-weight: bold; color: #1F2937; margin: 10px 0;">
+                ${conversionRate}%
+                <span style="font-size: 0.5em; font-weight: normal; color: #6B7280;">
+                    Conversion Rate
+                </span>
+            </div>
+        </div>
+        
+        <div style="margin-bottom: 20px; line-height: 1.6;">
+            <p><strong>Key Insight:</strong> ${mainInsight}</p>
+            
+            <div style="margin-top: 15px; padding: 15px; background: white; border-radius: 8px;">
+                <h4 style="margin: 0 0 10px 0; color: #374151;">Performance Metrics:</h4>
+                <ul style="margin: 0; padding-left: 20px; color: #4B5563;">
+                    <li>Your website score: <strong>${websiteScore}/100</strong></li>
+                    <li>Your conversion rate: <strong>${conversionRate}%</strong></li>
+                    <li>Expected conversion rate: <strong>~${expectedConversion.toFixed(1)}%</strong></li>
+                    <li>Network average: <strong>${networkAvgConversion.toFixed(1)}%</strong></li>
+                    <li>Performance vs network: <strong>${performanceVsNetwork > 0 ? '+' : ''}${performanceVsNetwork.toFixed(1)}%</strong></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <h4 style="margin: 0 0 10px 0; color: #374151;">Recommended Actions:</h4>
+            <ul style="margin: 0; padding-left: 20px; color: #4B5563;">
+                ${recommendations.map(rec => `<li>${rec}</li>`).join('')}
+            </ul>
+        </div>
+        
+        <div style="margin-top: 20px; padding: 15px; background: #E0E7FF; border-radius: 8px; font-size: 0.9em; color: #4C1D95;">
+            <i class="fas fa-info-circle"></i> <strong>Industry Context:</strong> 
+            Top-performing dealerships with website scores above 80 typically achieve 18-25% conversion rates. 
+            Each 1% improvement in conversion rate can mean $200,000+ in additional annual revenue for an average dealership.
+        </div>
+    `;
+    
+    return feedbackHTML;
+}
+
+// Update the main display function to show correlation analysis
+function updateCorrelationAnalysis() {
+    const correlationDiv = document.getElementById('correlationAnalysis');
+    const feedbackDiv = document.getElementById('correlationFeedback');
+    
+    if (correlationDiv && feedbackDiv && websiteData && window.currentDealerMatch) {
+        const feedback = generateCorrelationFeedback();
+        if (feedback) {
+            feedbackDiv.innerHTML = feedback;
+            correlationDiv.style.display = 'block';
+        }
+    }
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     loadStoredData();
@@ -195,6 +311,9 @@ function generateInsights() {
     // Calculate ROI
     calculateCombinedROI();
     
+    // Update correlation analysis section
+    updateCorrelationAnalysis();
+    
     // Create charts - ensure DOM and Chart.js are ready
     if (typeof Chart === 'undefined') {
         console.error('Chart.js not loaded yet, waiting...');
@@ -289,44 +408,119 @@ function generateImpactAnalysis() {
     // Analyze website issues and their potential impact
     const impacts = [];
     
-    // Use actual website data if available
-    if (websiteData.categories && websiteData.categories.length > 0) {
-        // Find lowest scoring categories
-        const sortedCategories = [...websiteData.categories].sort((a, b) => a.score - b.score);
-        
-        sortedCategories.slice(0, 3).forEach(category => {
-            if (category.score < 4) {
-                impacts.push({
-                    issue: `${category.name} Issues`,
-                    impact: `Score: ${category.score}/5 - ${category.testsCompleted} tests completed`,
-                    priority: category.score < 3 ? 'high' : 'medium'
-                });
-            }
+    // Prioritize showing actual issues over generic category scores
+    if (websiteData.issues && websiteData.issues.length > 0) {
+        // Get high and medium priority issues that actually impact conversions
+        const conversionImpactIssues = websiteData.issues.filter(issue => {
+            // Filter for issues that directly impact conversions
+            const conversionKeywords = ['phone', 'contact', 'form', 'cta', 'call-to-action', 'hours', 
+                                      'inventory', 'images', 'mobile', 'speed', 'performance', 'ssl',
+                                      'meta', 'title', 'description', 'schema'];
+            const titleLower = issue.title.toLowerCase();
+            const hasConversionImpact = conversionKeywords.some(keyword => titleLower.includes(keyword));
+            
+            // Include high priority issues and conversion-related medium priority issues
+            return (issue.priority === 'high' || (issue.priority === 'medium' && hasConversionImpact)) 
+                   && issue.priority !== 'info'; // Exclude manual review items
         });
-    } else if (websiteData.issues && websiteData.issues.length > 0) {
-        // Fallback to issues if categories not available
-        const highPriorityIssues = websiteData.issues.filter(issue => issue.priority === 'high');
-        const mediumPriorityIssues = websiteData.issues.filter(issue => issue.priority === 'medium');
         
-        // Add up to 3 high priority issues first
-        highPriorityIssues.slice(0, 3).forEach(issue => {
+        // Sort by priority and conversion relevance
+        conversionImpactIssues.sort((a, b) => {
+            if (a.priority === 'high' && b.priority !== 'high') return -1;
+            if (b.priority === 'high' && a.priority !== 'high') return 1;
+            return 0;
+        });
+        
+        // Add top issues with specific impact descriptions
+        conversionImpactIssues.slice(0, 5).forEach(issue => {
+            let impactDescription = issue.details || '';
+            
+            // Add conversion-specific impact messaging based on issue type
+            if (issue.title.toLowerCase().includes('phone')) {
+                impactDescription = impactDescription ? 
+                    `${impactDescription} - Direct impact on lead capture` : 
+                    'Customers can\'t easily call, losing 30% of potential leads';
+            } else if (issue.title.toLowerCase().includes('form')) {
+                impactDescription = impactDescription ? 
+                    `${impactDescription} - Critical for online lead generation` :
+                    'Missing or broken forms prevent 50% of online lead submissions';
+            } else if (issue.title.toLowerCase().includes('mobile')) {
+                impactDescription = impactDescription ? 
+                    `${impactDescription} - 65% of automotive shoppers use mobile` :
+                    'Poor mobile experience causes 40% bounce rate on smartphones';
+            } else if (issue.title.toLowerCase().includes('speed') || issue.title.toLowerCase().includes('performance')) {
+                impactDescription = impactDescription ? 
+                    `${impactDescription} - Each second of delay reduces conversions by 7%` :
+                    'Slow load times cause 53% of mobile users to abandon';
+            } else if (issue.title.toLowerCase().includes('inventory')) {
+                impactDescription = impactDescription ? 
+                    `${impactDescription} - Customers can't find vehicles` :
+                    'Poor inventory display loses 45% of potential buyers';
+            } else if (issue.title.toLowerCase().includes('image')) {
+                impactDescription = impactDescription ? 
+                    `${impactDescription} - Photos are #1 purchase factor` :
+                    'Missing vehicle photos reduce inquiries by 60%';
+            } else if (issue.title.toLowerCase().includes('meta') || issue.title.toLowerCase().includes('seo')) {
+                impactDescription = impactDescription ? 
+                    `${impactDescription} - Reduces organic traffic` :
+                    'Poor SEO means missing 70% of search traffic';
+            } else if (issue.title.toLowerCase().includes('hours')) {
+                impactDescription = impactDescription ? 
+                    `${impactDescription} - Customers need to know when you're open` :
+                    'Missing hours frustrates 25% of ready-to-buy customers';
+            }
+            
+            // Make sure we have a meaningful description
+            if (!impactDescription || impactDescription.length < 10) {
+                impactDescription = `${issue.category} issue requiring immediate attention`;
+            }
+            
             impacts.push({
                 issue: issue.title,
-                impact: issue.details || issue.description || 'High priority issue affecting conversions',
-                priority: 'high'
+                impact: impactDescription,
+                priority: issue.priority,
+                category: issue.category
             });
         });
-        
-        // If less than 3 high priority, add medium priority
-        if (impacts.length < 3) {
-            mediumPriorityIssues.slice(0, 3 - impacts.length).forEach(issue => {
+    }
+    
+    // If no specific issues, fall back to low-scoring categories (but make it specific)
+    if (impacts.length === 0 && websiteData.categories && websiteData.categories.length > 0) {
+        websiteData.categories
+            .filter(category => category.score < 3)
+            .slice(0, 3)
+            .forEach(category => {
+                let categoryImpact = '';
+                let specificIssue = '';
+                
+                // Provide specific impacts for each category
+                if (category.name === 'Lead Generation') {
+                    specificIssue = 'Missing Contact Forms & CTAs';
+                    categoryImpact = 'Reduces lead capture by 50%, losing 10-15 inquiries per month';
+                } else if (category.name === 'Performance Testing') {
+                    specificIssue = 'Slow Page Load Times';
+                    categoryImpact = '40% of visitors abandon sites that take >3 seconds to load';
+                } else if (category.name === 'SEO Analysis') {
+                    specificIssue = 'Poor Search Visibility';
+                    categoryImpact = 'Missing 70% of potential organic traffic from search engines';
+                } else if (category.name === 'User Experience') {
+                    specificIssue = 'Navigation & Usability Issues';
+                    categoryImpact = 'Confusing layout reduces conversions by 35%';
+                } else if (category.name === 'Content Analysis') {
+                    specificIssue = 'Missing Critical Information';
+                    categoryImpact = '60% of car shoppers leave when they can\'t find inventory details';
+                } else {
+                    specificIssue = `${category.name} Problems`;
+                    categoryImpact = `Score ${category.score}/5 impacts customer experience`;
+                }
+                
                 impacts.push({
-                    issue: issue.title,
-                    impact: issue.details || issue.description || 'Medium priority issue affecting user experience',
-                    priority: 'medium'
+                    issue: specificIssue,
+                    impact: categoryImpact,
+                    priority: category.score < 2 ? 'high' : 'medium',
+                    category: category.name
                 });
             });
-        }
     }
     
     // Add dealer-specific insights if available
@@ -403,52 +597,160 @@ function generateOpportunities() {
     
     const opportunities = [];
     
-    // Based on website score
-    if (websiteData.score < 60) {
-        opportunities.push({
-            title: 'Website Optimization',
-            description: 'Improving to 80+ score could increase conversions by 15-20%',
-            effort: 'Medium',
-            impact: 'High'
-        });
-    }
-    
-    opportunities.push({
-        title: 'Response Time Improvement',
-        description: 'Faster response times correlate with 2.5x higher conversion',
-        effort: 'Low',
-        impact: 'High'
-    });
-    
-    // Only suggest mobile optimization if it's actually an issue
-    if (websiteData.categories) {
-        const mobileCategory = websiteData.categories.find(c => 
-            c.name.toLowerCase().includes('mobile') || 
-            c.name.toLowerCase().includes('performance')
-        );
+    // Generate opportunities based on actual issues found
+    if (websiteData.issues && websiteData.issues.length > 0) {
+        // Group issues by type to create targeted opportunities
+        const issueTypes = {
+            leadGen: websiteData.issues.filter(i => 
+                i.title.toLowerCase().includes('form') || 
+                i.title.toLowerCase().includes('cta') || 
+                i.title.toLowerCase().includes('contact')),
+            mobile: websiteData.issues.filter(i => 
+                i.title.toLowerCase().includes('mobile') || 
+                i.title.toLowerCase().includes('responsive')),
+            performance: websiteData.issues.filter(i => 
+                i.title.toLowerCase().includes('speed') || 
+                i.title.toLowerCase().includes('performance') || 
+                i.title.toLowerCase().includes('load')),
+            seo: websiteData.issues.filter(i => 
+                i.title.toLowerCase().includes('meta') || 
+                i.title.toLowerCase().includes('seo') || 
+                i.title.toLowerCase().includes('schema')),
+            content: websiteData.issues.filter(i => 
+                i.title.toLowerCase().includes('image') || 
+                i.title.toLowerCase().includes('inventory') || 
+                i.title.toLowerCase().includes('hours'))
+        };
         
-        if (mobileCategory && mobileCategory.score < 4) {
+        // Create specific opportunities based on issues found
+        if (issueTypes.leadGen.length > 0) {
             opportunities.push({
-                title: 'Mobile Experience Optimization',
-                description: `Current score ${mobileCategory.score}/5 - Critical with 65% mobile traffic`,
+                title: 'Lead Capture Optimization',
+                description: `Fix ${issueTypes.leadGen.length} contact/form issues. Could increase lead volume by 30-40% (est. +12 leads/month)`,
+                effort: 'Low',
+                impact: 'High',
+                timeline: '1-2 days',
+                specifics: issueTypes.leadGen.map(i => i.title).join(', ')
+            });
+        }
+        
+        if (issueTypes.performance.length > 0) {
+            const currentSpeed = websiteData.loadTime ? `${websiteData.loadTime}s` : 'slow';
+            opportunities.push({
+                title: 'Site Speed Enhancement',
+                description: `Address ${issueTypes.performance.length} performance issues. Target: <3s load time. Expected: 25% lower bounce rate`,
                 effort: 'Medium',
-                impact: 'High'
+                impact: 'High',
+                timeline: '3-5 days',
+                specifics: `Current issues: ${issueTypes.performance.map(i => i.title).join(', ')}`
+            });
+        }
+        
+        if (issueTypes.mobile.length > 0) {
+            opportunities.push({
+                title: 'Mobile Experience Redesign',
+                description: `Fix ${issueTypes.mobile.length} mobile issues. 65% of your traffic is mobile - could recover 20% of lost mobile conversions`,
+                effort: 'Medium',
+                impact: 'High',
+                timeline: '5-7 days',
+                specifics: issueTypes.mobile.map(i => i.title).join(', ')
+            });
+        }
+        
+        if (issueTypes.seo.length > 0) {
+            opportunities.push({
+                title: 'SEO & Visibility Boost',
+                description: `Resolve ${issueTypes.seo.length} SEO issues. Could increase organic traffic by 40-60% over 3 months`,
+                effort: 'Low',
+                impact: 'Medium',
+                timeline: '2-3 days',
+                specifics: issueTypes.seo.map(i => i.title).join(', ')
+            });
+        }
+        
+        if (issueTypes.content.length > 0) {
+            opportunities.push({
+                title: 'Content & Media Enhancement',
+                description: `Address ${issueTypes.content.length} content gaps. Better vehicle photos alone can increase inquiries by 40%`,
+                effort: 'Medium',
+                impact: 'High',
+                timeline: '1 week',
+                specifics: issueTypes.content.map(i => i.title).join(', ')
             });
         }
     }
     
-    // Generate HTML
+    // Add dealer-specific opportunities based on lead data
+    if (window.currentDealerMatch) {
+        const dealer = window.currentDealerMatch;
+        
+        // Response time opportunity with specific metrics
+        if (dealer.responseTime15min && dealer.leads) {
+            const quickResponseRate = (dealer.responseTime15min / dealer.leads * 100);
+            if (quickResponseRate < 50) {
+                const potentialIncrease = Math.round((50 - quickResponseRate) * dealer.leads / 100);
+                opportunities.push({
+                    title: 'Lead Response Automation',
+                    description: `Only ${quickResponseRate.toFixed(1)}% get 15-min response. Auto-responders could engage ${potentialIncrease} more leads/month`,
+                    effort: 'Low',
+                    impact: 'High',
+                    timeline: '1 day setup',
+                    specifics: 'Email/SMS auto-acknowledgment within 1 minute'
+                });
+            }
+        }
+        
+        // No-response opportunity
+        if (dealer.noResponse && dealer.leads) {
+            const noResponseRate = (dealer.noResponse / dealer.leads * 100);
+            if (noResponseRate > 10) {
+                const lostLeads = Math.round(dealer.noResponse);
+                opportunities.push({
+                    title: 'Lead Recovery Process',
+                    description: `${lostLeads} leads/month get no response (${noResponseRate.toFixed(1)}%). CRM automation could recover 80% of these`,
+                    effort: 'Low',
+                    impact: 'High',
+                    timeline: '2-3 days',
+                    specifics: 'CRM rules, assignment alerts, escalation process'
+                });
+            }
+        }
+    }
+    
+    // Fallback generic opportunity only if we have no specific ones
+    if (opportunities.length === 0) {
+        if (websiteData.score < 80) {
+            opportunities.push({
+                title: 'Comprehensive Website Audit',
+                description: `Current score: ${websiteData.score}/100. Full optimization could increase conversions by 20-30%`,
+                effort: 'High',
+                impact: 'High',
+                timeline: '2-3 weeks',
+                specifics: 'Complete review of all website elements'
+            });
+        }
+    }
+    
+    // Generate HTML with more details
     let html = '<div class="row">';
-    opportunities.forEach(opp => {
+    opportunities.forEach((opp, index) => {
+        // Use full width for first opportunity, half width for others
+        const colClass = index === 0 ? 'col-12' : 'col-md-6';
         html += `
-            <div class="col-md-4 mb-3">
+            <div class="${colClass} mb-3">
                 <div class="card h-100">
                     <div class="card-body">
                         <h5 class="card-title">${opp.title}</h5>
                         <p class="card-text">${opp.description}</p>
-                        <div class="d-flex justify-content-between">
-                            <small class="text-muted">Effort: ${opp.effort}</small>
-                            <small class="text-success">Impact: ${opp.impact}</small>
+                        ${opp.timeline ? `<p class="mb-2"><small class="text-muted"><i class="fas fa-clock"></i> Timeline: ${opp.timeline}</small></p>` : ''}
+                        ${opp.specifics ? `<p class="mb-2"><small class="text-muted"><i class="fas fa-tasks"></i> ${opp.specifics}</small></p>` : ''}
+                        <div class="d-flex justify-content-between mt-3">
+                            <span class="badge bg-${opp.effort === 'Low' ? 'success' : opp.effort === 'Medium' ? 'warning' : 'danger'}">
+                                Effort: ${opp.effort}
+                            </span>
+                            <span class="badge bg-${opp.impact === 'High' ? 'success' : opp.impact === 'Medium' ? 'warning' : 'secondary'}">
+                                Impact: ${opp.impact}
+                            </span>
                         </div>
                     </div>
                 </div>
