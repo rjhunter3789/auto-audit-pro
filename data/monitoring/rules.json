@@ -1,0 +1,123 @@
+[
+  {
+    "id": 1,
+    "rule_name": "Website Down",
+    "rule_category": "uptime",
+    "check_type": "is_reachable",
+    "condition": "equals",
+    "threshold_value": false,
+    "alert_level": "RED",
+    "alert_message_template": "CRITICAL: Website is unreachable - customers cannot access your site!",
+    "enabled": true
+  },
+  {
+    "id": 2,
+    "rule_name": "SSL Certificate Invalid",
+    "rule_category": "security",
+    "check_type": "ssl_valid",
+    "condition": "equals",
+    "threshold_value": false,
+    "alert_level": "RED",
+    "alert_message_template": "CRITICAL: SSL certificate is invalid - browsers showing security warnings!",
+    "enabled": true
+  },
+  {
+    "id": 3,
+    "rule_name": "Forms Not Working",
+    "rule_category": "content",
+    "check_type": "forms_working",
+    "condition": "equals",
+    "threshold_value": false,
+    "alert_level": "RED",
+    "alert_message_template": "CRITICAL: Contact forms not working - losing potential leads!",
+    "enabled": true
+  },
+  {
+    "id": 4,
+    "rule_name": "No Inventory",
+    "rule_category": "content",
+    "check_type": "inventory_count",
+    "condition": "equals",
+    "threshold_value": 0,
+    "alert_level": "RED",
+    "alert_message_template": "CRITICAL: No inventory showing on website!",
+    "enabled": true
+  },
+  {
+    "id": 5,
+    "rule_name": "Server Error",
+    "rule_category": "uptime",
+    "check_type": "http_status_code",
+    "condition": "greater_than",
+    "threshold_value": 499,
+    "alert_level": "RED",
+    "alert_message_template": "CRITICAL: Website returning server errors!",
+    "enabled": true
+  },
+  {
+    "id": 6,
+    "rule_name": "Extremely Slow",
+    "rule_category": "performance",
+    "check_type": "load_time_seconds",
+    "condition": "greater_than",
+    "threshold_value": 10,
+    "alert_level": "RED",
+    "alert_message_template": "CRITICAL: Website taking over 10 seconds to load!",
+    "enabled": true
+  },
+  {
+    "id": 7,
+    "rule_name": "SSL Expiring Soon",
+    "rule_category": "security",
+    "check_type": "ssl_expiry_days",
+    "condition": "less_than",
+    "threshold_value": 30,
+    "alert_level": "YELLOW",
+    "alert_message_template": "WARNING: SSL certificate expires in {ssl_expiry_days} days",
+    "enabled": true
+  },
+  {
+    "id": 8,
+    "rule_name": "Slow Response",
+    "rule_category": "performance",
+    "check_type": "response_time_ms",
+    "condition": "greater_than",
+    "threshold_value": 3000,
+    "alert_level": "YELLOW",
+    "alert_message_template": "WARNING: Website response time over 3 seconds",
+    "enabled": true
+  },
+  {
+    "id": 9,
+    "rule_name": "Low Inventory",
+    "rule_category": "content",
+    "check_type": "inventory_count",
+    "condition": "less_than",
+    "threshold_value": 50,
+    "alert_level": "YELLOW",
+    "alert_message_template": "WARNING: Low inventory count ({inventory_count} vehicles)",
+    "enabled": true
+  },
+  {
+    "id": 10,
+    "rule_name": "Poor Mobile Score",
+    "rule_category": "performance",
+    "check_type": "mobile_score",
+    "condition": "less_than",
+    "threshold_value": 70,
+    "alert_level": "YELLOW",
+    "alert_message_template": "WARNING: Mobile performance score is {mobile_score}/100",
+    "enabled": true
+  },
+  {
+    "id": 11,
+    "rule_name": "Large Page Size",
+    "rule_category": "performance",
+    "check_type": "page_size_kb",
+    "condition": "greater_than",
+    "threshold_value": 5000,
+    "alert_level": "YELLOW",
+    "alert_message_template": "WARNING: Homepage is {page_size_kb}KB - may load slowly",
+    "enabled": true
+  }
+]

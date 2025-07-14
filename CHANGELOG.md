@@ -1,5 +1,55 @@
 # Auto Audit Pro Suite - Changelog & Feature Documentation
 
+## Version 2.3.0 - July 14, 2025 (Website Monitoring System)
+
+### 🚨 NEW FEATURE: Real-Time Website Monitoring
+- **"Check Engine Light" for Dealerships**: 24/7 automated website health monitoring
+- **Traffic Light Alert System**: 
+  - 🔴 RED = Critical issues requiring immediate action
+  - 🟡 YELLOW = Warnings needing attention
+  - 🟢 GREEN = All systems operational
+- **No Database Required**: Uses JSON file storage for easy deployment
+
+### 📊 Monitoring Capabilities
+- **Critical Issue Detection**:
+  - Website down/unreachable
+  - SSL certificate expired or invalid
+  - Contact forms not working
+  - Zero inventory showing
+  - Server errors (500+)
+  - Extreme load times (>10 seconds)
+- **Warning Detection**:
+  - SSL expiring within 30 days
+  - Slow response times (>3 seconds)
+  - Low inventory count (<50 vehicles)
+  - Poor mobile performance
+  - Large page sizes affecting load time
+
+### 🛠️ Technical Implementation
+- **Files Created**:
+  - `/lib/monitoring-engine.js` - Core monitoring logic
+  - `/lib/monitoring-scheduler.js` - Automated scheduling system
+  - `/lib/notification-service.js` - Email/SMS alert system
+  - `/lib/json-storage.js` - Database-free storage solution
+  - `/views/monitoring-dashboard.html` - Real-time monitoring UI
+  - `/database/monitoring-schema.sql` - Schema reference (not needed with JSON)
+  - `/MONITORING-SYSTEM-CONCEPT.md` - Original concept documentation
+  - `/MONITORING-SETUP-GUIDE.md` - User setup instructions
+- **API Endpoints Added**:
+  - GET `/monitoring` - Dashboard interface
+  - GET/POST `/api/monitoring/profiles` - Manage monitored websites
+  - GET `/api/monitoring/results/:profileId` - View check history
+  - GET `/api/monitoring/status` - Current status of all sites
+  - GET/PUT `/api/monitoring/alerts` - Alert management
+  - POST `/api/monitoring/check/:profileId` - Manual check trigger
+
+### 🔧 Dependencies & Fixes
+- Made email notifications optional (works without SMTP config)
+- Made SMS notifications optional (works without Twilio)
+- Fixed nodemailer initialization issues
+- Added graceful fallbacks for missing dependencies
+- JSON storage eliminates PostgreSQL requirement
+
 ## Version 2.2.10 - July 14, 2025 (Local Environment Verification)
 
 ### ✅ Environment Verification
