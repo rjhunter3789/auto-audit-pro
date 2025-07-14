@@ -309,6 +309,26 @@
                             <input type="email" class="form-control" id="alertEmail" placeholder="Leave blank to use contact email">
                         </div>
                         <div class="mb-3">
+                            <label class="form-label">SMS Alert Phone (for RED alerts only)</label>
+                            <input type="tel" class="form-control" id="alertPhone" placeholder="+1 (555) 123-4567">
+                            <small class="text-muted">SMS alerts are sent only for critical RED issues (site down, SSL expired, etc.)</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Alert Preferences</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="emailAlerts" checked>
+                                <label class="form-check-label" for="emailAlerts">
+                                    Email alerts (all levels)
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="smsAlerts" checked>
+                                <label class="form-check-label" for="smsAlerts">
+                                    SMS alerts (RED alerts only) 🔴
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label">Check Frequency</label>
                             <select class="form-select" id="checkFrequency">
                                 <option value="15">Every 15 minutes</option>
@@ -515,6 +535,11 @@
                 website_url: document.getElementById('websiteUrl').value,
                 contact_email: document.getElementById('contactEmail').value,
                 alert_email: document.getElementById('alertEmail').value || document.getElementById('contactEmail').value,
+                alert_phone: document.getElementById('alertPhone').value,
+                alert_preferences: {
+                    email: document.getElementById('emailAlerts').checked,
+                    sms: document.getElementById('smsAlerts').checked
+                },
                 check_frequency: parseInt(document.getElementById('checkFrequency').value)
             };
             
