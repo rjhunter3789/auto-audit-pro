@@ -362,63 +362,6 @@
             padding: 1.5rem !important;
         }
 
-        /* Lead Source Analysis Styles */
-        .source-summary {
-            background: #F3E8FF;
-            padding: 1.5rem;
-            border-radius: 8px;
-            height: 100%;
-        }
-
-        .source-summary h5 {
-            color: var(--primary-purple);
-            font-size: 1.1rem;
-            margin-bottom: 1rem;
-            font-weight: 600;
-        }
-
-        .top-sources-list {
-            max-height: 200px;
-            overflow-y: auto;
-        }
-
-        .source-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #E9D5FF;
-        }
-
-        .source-item:last-child {
-            border-bottom: none;
-        }
-
-        .source-name {
-            font-weight: 500;
-            color: #4B5563;
-            font-size: 0.9rem;
-        }
-
-        .source-stats {
-            display: flex;
-            gap: 1rem;
-            font-size: 0.85rem;
-        }
-
-        .source-stat {
-            text-align: right;
-        }
-
-        .stat-label {
-            color: #9CA3AF;
-            font-size: 0.75rem;
-        }
-
-        .stat-value {
-            font-weight: 600;
-            color: #1F2937;
-        }
         
         /* Settings Styles */
         .settings-container {
@@ -683,47 +626,6 @@
                     <h3>15-Min Response Rate</h3>
                     <p class="metric-value" id="quickResponseRate">-</p>
                     <p class="metric-change">Target: 40%+</p>
-                </div>
-            </div>
-
-            <!-- Lead Source Performance Analysis -->
-            <div class="chart-container">
-                <h3>Lead Source Performance Analysis</h3>
-                <div class="row mb-4">
-                    <div class="col-md-8">
-                        <canvas id="leadSourceChart" height="120"></canvas>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="source-summary">
-                            <h5>Top Performing Sources</h5>
-                            <div id="topSourcesList" class="top-sources-list">
-                                <p class="text-muted">Upload data to see lead source analysis</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="metric-card text-center">
-                            <h5>Best Response Time</h5>
-                            <p class="metric-value" id="bestSourceResponse">-</p>
-                            <p class="text-muted small" id="bestSourceName">No data</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="metric-card text-center">
-                            <h5>Highest Conversion</h5>
-                            <p class="metric-value" id="bestSourceConversion">-</p>
-                            <p class="text-muted small" id="bestConversionName">No data</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="metric-card text-center">
-                            <h5>Most Volume</h5>
-                            <p class="metric-value" id="highestVolumeCount">-</p>
-                            <p class="text-muted small" id="highestVolumeName">No data</p>
-                        </div>
-                    </div>
                 </div>
             </div>
 
