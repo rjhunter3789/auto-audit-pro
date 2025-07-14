@@ -378,6 +378,28 @@
             border: 1px solid #E5E7EB;
         }
         
+        /* Force remove LastPass and password manager icons */
+        #targetNoResponse,
+        input[name="config_no_response_rate"],
+        .settings-card input,
+        .settings-card select {
+            background-image: none !important;
+            background-attachment: initial !important;
+            background-position: initial !important;
+            background-repeat: initial !important;
+        }
+        
+        /* Ensure consistent styling for numeric text input */
+        input[type="text"][pattern="[0-9]*"] {
+            -moz-appearance: textfield;
+        }
+        
+        input[type="text"][pattern="[0-9]*"]::-webkit-inner-spin-button,
+        input[type="text"][pattern="[0-9]*"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
         .settings-card h4 {
             color: var(--primary-purple);
             font-size: 1.1rem;
@@ -916,9 +938,14 @@
                                 <small class="form-text text-muted">Best practice: 40%+</small>
                             </div>
                             
-                            <div class="form-group">
-                                <label>Acceptable No-Response Rate (%)</label>
-                                <input type="number" class="form-control" id="targetNoResponse" value="10" min="0" max="100" step="1" autocomplete="off" data-lpignore="true">
+                            <div class="form-group" data-lpignore="true">
+                                <label for="targetNoResponse">Acceptable No-Response Rate (%)</label>
+                                <div style="position: relative;">
+                                    <input type="text" pattern="[0-9]*" inputmode="numeric" class="form-control" id="targetNoResponse" name="config_no_response_rate" value="10" autocomplete="off" data-lpignore="true" data-form-type="other" role="spinbutton" aria-label="Acceptable No-Response Rate percentage">
+                                    <div style="position: absolute; left: -9999px;">
+                                        <input type="text" name="trap_field" tabindex="-1" autocomplete="off">
+                                    </div>
+                                </div>
                                 <small class="form-text text-muted">Lower is better</small>
                             </div>
                         </div>
