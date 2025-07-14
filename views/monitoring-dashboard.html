@@ -211,6 +211,9 @@
                     <button class="btn btn-light" onclick="showAddProfileModal()">
                         <i class="bi bi-plus-circle"></i> Add Website
                     </button>
+                    <button class="btn btn-light ms-2" onclick="exportReport()">
+                        <i class="bi bi-download"></i> Export
+                    </button>
                     <button class="btn btn-light ms-2" onclick="refreshDashboard()">
                         <i class="bi bi-arrow-clockwise"></i> Refresh
                     </button>
@@ -436,6 +439,12 @@
                                     <button class="btn btn-sm btn-outline-primary" onclick="runCheck(${profile.id}, event)">
                                         <i class="bi bi-arrow-clockwise"></i> Check Now
                                     </button>
+                                    <button class="btn btn-sm btn-outline-secondary ms-1" onclick="toggleMonitoring(${profile.id}, ${profile.monitoring_enabled})">
+                                        <i class="bi bi-${profile.monitoring_enabled ? 'pause' : 'play'}"></i> ${profile.monitoring_enabled ? 'Pause' : 'Resume'}
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger ms-1" onclick="removeProfile(${profile.id}, '${profile.dealer_name}')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -620,6 +629,106 @@
 
         function refreshDashboard() {
             loadDashboard();
+        }
+
+        async function toggleMonitoring(profileId, currentStatus) {
+            try {
+                const newStatus = !currentStatus;
+                await axios.put(`/api/monitoring/profiles/${profileId}`, {
+                    monitoring_enabled: newStatus
+                });
+                
+                await loadDashboard();
+                
+                const message = newStatus ? 'Monitoring resumed' : 'Monitoring paused';
+                alert(message);
+                
+            } catch (error) {
+                console.error('Error toggling monitoring:', error);
+                alert('Failed to update monitoring status');
+            }
+        }
+
+        async function removeProfile(profileId, dealerName) {
+            if (!confirm(`Are you sure you want to remove ${dealerName} from monitoring?\n\nThis will delete all monitoring history.`)) {
+                return;
+            }
+            
+            try {
+                await axios.delete(`/api/monitoring/profiles/${profileId}`);
+                
+                await loadDashboard();
+                
+                alert(`${dealerName} removed from monitoring`);
+                
+            } catch (error) {
+                console.error('Error removing profile:', error);
+                alert('Failed to remove profile');
+            }
+        }
+        
+        function exportReport() {
+            // Create export data
+            const exportData = {
+                exportDate: new Date().toLocaleString(),
+                totalSites: profiles.length,
+                statusSummary: {
+                    green: profiles.filter(p => p.overall_status === 'GREEN').length,
+                    yellow: profiles.filter(p => p.overall_status === 'YELLOW').length,
+                    red: profiles.filter(p => p.overall_status === 'RED').length
+                },
+                sites: profiles.map(p => ({
+                    name: p.dealer_name,
+                    url: p.website_url,
+                    status: p.overall_status || 'UNKNOWN',
+                    lastCheck: p.check_timestamp,
+                    responseTime: p.response_time_ms,
+                    issues: p.issues_found
+                })),
+                activeAlerts: activeAlerts.map(a => ({
+                    site: profiles.find(p => p.id === a.profile_id)?.dealer_name || 'Unknown',
+                    level: a.alert_level,
+                    message: a.alert_message,
+                    time: a.created_at,
+                    acknowledged: a.acknowledged
+                }))
+            };
+            
+            // Create CSV content
+            let csv = 'Auto Audit Pro - Website Monitoring Report\n';
+            csv += `Export Date: ${exportData.exportDate}\n\n`;
+            
+            csv += 'SUMMARY\n';
+            csv += `Total Sites Monitored,${exportData.totalSites}\n`;
+            csv += `Green (All Good),${exportData.statusSummary.green}\n`;
+            csv += `Yellow (Warnings),${exportData.statusSummary.yellow}\n`;
+            csv += `Red (Critical),${exportData.statusSummary.red}\n\n`;
+            
+            csv += 'MONITORED WEBSITES\n';
+            csv += 'Dealership,Website,Status,Last Check,Response Time (ms),Issues\n';
+            exportData.sites.forEach(site => {
+                const issues = Array.isArray(site.issues) ? site.issues.length : 0;
+                csv += `"${site.name}","${site.url}","${site.status}","${site.lastCheck || 'Never'}","${site.responseTime || 'N/A'}",${issues}\n`;
+            });
+            
+            if (exportData.activeAlerts.length > 0) {
+                csv += '\nACTIVE ALERTS\n';
+                csv += 'Site,Level,Message,Time,Acknowledged\n';
+                exportData.activeAlerts.forEach(alert => {
+                    csv += `"${alert.site}","${alert.level}","${alert.message}","${alert.time}",${alert.acknowledged ? 'Yes' : 'No'}\n`;
+                });
+            }
+            
+            // Download CSV file
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `monitoring_report_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
         }
     </script>
 </body>

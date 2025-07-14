@@ -2176,21 +2176,66 @@ app.get('/api/monitoring/profiles', async (req, res) => {
 // Create new monitoring profile
 app.post('/api/monitoring/profiles', async (req, res) => {
     try {
-        const { dealer_id, dealer_name, website_url, contact_email, alert_email, check_frequency } = req.body;
+        const { dealer_id, dealer_name, website_url, contact_email, alert_email, alert_phone, alert_preferences, check_frequency } = req.body;
         
         const query = `
             INSERT INTO monitoring_profiles 
-            (dealer_id, dealer_name, website_url, contact_email, alert_email, check_frequency)
-            VALUES ($1, $2, $3, $4, $5, $6)
+            (dealer_id, dealer_name, website_url, contact_email, alert_email, alert_phone, alert_preferences, check_frequency)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             RETURNING *`;
         
-        const values = [dealer_id, dealer_name, website_url, contact_email, alert_email || contact_email, check_frequency || 30];
+        const values = [
+            dealer_id, 
+            dealer_name, 
+            website_url, 
+            contact_email, 
+            alert_email || contact_email, 
+            alert_phone,
+            JSON.stringify(alert_preferences || { email: true, sms: false }),
+            check_frequency || 30
+        ];
         const result = await pool.query(query, values);
         
         res.json(result.rows[0]);
     } catch (error) {
         console.error('Error creating monitoring profile:', error);
         res.status(500).json({ error: 'Failed to create monitoring profile' });
+    }
+});
+
+// Update monitoring profile
+app.put('/api/monitoring/profiles/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { monitoring_enabled } = req.body;
+        
+        const query = `
+            UPDATE monitoring_profiles 
+            SET monitoring_enabled = $2, updated_at = CURRENT_TIMESTAMP
+            WHERE id = $1
+            RETURNING *`;
+        
+        const result = await pool.query(query, [id, monitoring_enabled]);
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error updating monitoring profile:', error);
+        res.status(500).json({ error: 'Failed to update monitoring profile' });
+    }
+});
+
+// Delete monitoring profile
+app.delete('/api/monitoring/profiles/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // Delete profile (cascades to results and alerts)
+        const query = 'DELETE FROM monitoring_profiles WHERE id = $1';
+        await pool.query(query, [id]);
+        
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting monitoring profile:', error);
+        res.status(500).json({ error: 'Failed to delete monitoring profile' });
     }
 });
 

@@ -254,6 +254,27 @@
             margin: 20px 0;
             text-align: center;
         }
+        
+        /* Print Styles */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                margin: 0;
+                padding: 20px;
+            }
+            .report-container {
+                max-width: 100%;
+                box-shadow: none;
+            }
+            .btn {
+                display: none;
+            }
+            .monitoring-cta {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -284,6 +305,16 @@
             <div style="margin-top: 15px; font-size: 0.85em; color: #6B7280;">
                 Industry Benchmark: Average dealer scores 72/100
             </div>
+        </div>
+        
+        <!-- Download/Print Buttons -->
+        <div style="text-align: center; margin-bottom: 20px;" class="no-print">
+            <button onclick="window.print()" class="btn btn-primary" style="margin-right: 10px;">
+                <i class="fas fa-print"></i> Print Report
+            </button>
+            <button onclick="downloadPDF()" class="btn btn-success">
+                <i class="fas fa-download"></i> Download PDF
+            </button>
         </div>
         
         <!-- Monitoring CTA -->
@@ -684,6 +715,18 @@
         if (urlParams.get('print') === 'true') {
             window.print();
         }
+        
+        // Download PDF function
+        async function downloadPDF() {
+            // For now, use print functionality
+            window.print();
+            
+            // Show instructions
+            setTimeout(() => {
+                alert('To save as PDF:\n\n1. In the print dialog, choose "Save as PDF" as the destination\n2. Click "Save"\n3. Choose where to save the file\n\nThis creates a professional PDF of your audit report!');
+            }, 500);
+        }
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </body>
 </html>
