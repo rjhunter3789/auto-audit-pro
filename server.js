@@ -73,49 +73,6 @@ let auditHistory = [];
 // Configure Chrome options for Selenium
 function getChromeOptions() {
     return seleniumWrapper.getChromeOptions();
-    options.addArguments('--headless');
-    options.addArguments('--no-sandbox');
-    options.addArguments('--disable-dev-shm-usage');
-    options.addArguments('--disable-gpu');
-    options.addArguments('--disable-features=VizDisplayCompositor');
-    options.addArguments('--window-size=1920,1080');
-    
-    // Additional arguments for stability and avoiding detection
-    options.addArguments('--disable-blink-features=AutomationControlled');
-    options.addArguments('--disable-setuid-sandbox');
-    options.addArguments('--disable-infobars');
-    options.addArguments('--disable-extensions');
-    options.addArguments('--disable-default-apps');
-    options.addArguments('--disable-popup-blocking');
-    options.addArguments('--ignore-certificate-errors');
-    options.addArguments('--disable-features=TranslateUI');
-    options.addArguments('--disable-features=site-per-process');
-    options.addArguments('--disable-web-security');
-    options.addArguments('--disable-site-isolation-trials');
-    
-    // Memory optimization
-    options.addArguments('--memory-pressure-off');
-    options.addArguments('--max_old_space_size=4096');
-    
-    // Set user agent to appear more like a real browser
-    options.addArguments('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-    
-    // For Railway/Linux environments
-    if (process.env.CHROME_BIN) {
-        options.setChromeBinaryPath(process.env.CHROME_BIN);
-    } else {
-        // Try to use Chromium if installed (common in WSL2)
-        const chromiumPath = '/usr/bin/chromium-browser';
-        try {
-            if (require('fs').existsSync(chromiumPath)) {
-                options.setChromeBinaryPath(chromiumPath);
-            }
-        } catch (e) {
-            // Ignore if fs module issue
-        }
-    }
-    
-    return options;
 }
 // --- New, Fast Audit Logic Functions ---
 const KNOWN_BRANDS = ['ford', 'toyota', 'honda', 'chevrolet', 'nissan', 'bmw', 'mercedes-benz', 'lexus', 'audi', 'jeep', 'hyundai', 'kia'];
