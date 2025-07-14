@@ -1814,6 +1814,11 @@ app.get('/definitions', (req, res) => {
     res.render('definitions.html');
 });
 
+// Settings Guide page
+app.get('/settings-guide', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'settings-guide.html'));
+});
+
 // This runs the audit when the user submits the form
 app.post('/audit', async (req, res) => {
     let siteUrl = req.body.url;

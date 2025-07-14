@@ -1,5 +1,53 @@
 # Auto Audit Pro Suite - Changelog & Feature Documentation
 
+## Version 2.2.8 - July 14, 2025 (Lead Performance UI Fixes & Settings)
+
+### 🎨 Lead Performance Intelligence UI Improvements
+
+#### 📊 Fixed Dealer Performance Tiers Container
+- **Issue**: Container was too tall with excessive empty space
+- **Fix**: Added `.tier-container` class with `height: auto` to override fixed 550px height
+- **Files Modified**:
+  - `/views/lead-performance.html` - Added tier-container class and styling
+
+#### 📱 Fixed Response Time Distribution Overflow
+- **Issue**: "Total Responded" text extending outside container on mobile
+- **Fix**: 
+  - Shortened heading from "Total Responded" to "Responded"
+  - Added text wrapping CSS for `.metric-card h4`
+  - Moved clarification to subtext
+- **Files Modified**:
+  - `/views/lead-performance.html` - Updated HTML and added CSS rules
+
+#### ⚙️ Implemented Settings Tab
+- **Feature**: Complete Settings & Configuration interface
+- **Sections Added**:
+  - Performance Benchmarks (conversion rate, response time targets)
+  - Performance Tier Thresholds (Elite, Strong, Average tiers)
+  - ROI Calculation Parameters (gross profit, marketing spend)
+  - Data & Display Preferences (retention, report format)
+- **Functionality**:
+  - Save settings to localStorage
+  - Reset to defaults option
+  - Auto-load saved settings on page load
+- **Files Modified**:
+  - `/views/lead-performance.html` - Added complete settings UI
+  - `/public/js/lead-performance.js` - Added save/reset/load functions
+
+#### 📚 Added Settings & Configuration Guide
+- **Feature**: Comprehensive guide explaining all settings
+- **Content**:
+  - Detailed explanation for each setting
+  - Default values and industry benchmarks
+  - Impact indicators (High/Medium/Low)
+  - Best practices and tips
+  - Formula explanations
+- **Files Created**:
+  - `/views/settings-guide.html` - New guide page
+- **Files Modified**:
+  - `/server.js` - Added route for settings guide
+  - `/views/lead-performance.html` - Added link to guide
+
 ## Version 2.2.7 - July 14, 2025 (Specific Impact Analysis)
 
 ### 🎯 Eliminated Generic Insights in Combined Insights Page
