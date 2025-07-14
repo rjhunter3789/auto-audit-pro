@@ -288,7 +288,7 @@
         
         <div class="metric-row">
             <span class="metric-label">Report Date:</span>
-            <span class="metric-value"><%= results.timestamp %></span>
+            <span class="metric-value" id="report-timestamp" data-timestamp="<%= results.timestamp %>">Loading...</span>
         </div>
         
         <div class="metric-row">
@@ -647,6 +647,24 @@
             } catch (error) {
                 console.error('Error in goToCombinedInsights:', error);
                 alert('Error: Unable to navigate to Combined Insights. Please try again.');
+            }
+        }
+        
+        // Format timestamp in user's local timezone
+        const timestampElement = document.getElementById('report-timestamp');
+        if (timestampElement) {
+            const isoTimestamp = timestampElement.getAttribute('data-timestamp');
+            if (isoTimestamp) {
+                const date = new Date(isoTimestamp);
+                const options = { 
+                    year: 'numeric',
+                    month: 'long', 
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                };
+                timestampElement.textContent = date.toLocaleString('en-US', options);
             }
         }
         

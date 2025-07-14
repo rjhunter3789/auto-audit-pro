@@ -1841,7 +1841,7 @@ app.post('/audit', async (req, res) => {
             url: siteUrl,
             domain: 'demo-dealership.com',
             brand: 'Ford',
-            timestamp: new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' }),
+            timestamp: new Date().toISOString(),
             pages_found: {
                 homepage: siteUrl,
                 inventory: siteUrl + '/inventory',
@@ -1878,7 +1878,7 @@ app.post('/audit', async (req, res) => {
             url: siteUrl,
             domain: new url.URL(siteUrl).hostname,
             brand: brand,
-            timestamp: new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' }),
+            timestamp: new Date().toISOString(),
             pages_found: discoveredPages,
             audit: {}
         };

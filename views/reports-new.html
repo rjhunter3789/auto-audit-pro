@@ -583,7 +583,7 @@
                         </tr>
                         <tr>
                             <td><strong>Analysis Date:</strong></td>
-                            <td><%= results.timestamp %></td>
+                            <td class="report-timestamp" data-timestamp="<%= results.timestamp %>">Loading...</td>
                         </tr>
                     </table>
                 </div>
@@ -749,6 +749,26 @@
             issues: <%= results.issues.length %>
         }));
         <% } %>
+        
+        // Format all timestamps in user's local timezone
+        document.addEventListener('DOMContentLoaded', function() {
+            const timestampElements = document.querySelectorAll('.report-timestamp');
+            timestampElements.forEach(element => {
+                const isoTimestamp = element.getAttribute('data-timestamp');
+                if (isoTimestamp) {
+                    const date = new Date(isoTimestamp);
+                    const options = { 
+                        year: 'numeric',
+                        month: 'long', 
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                    };
+                    element.textContent = date.toLocaleString('en-US', options);
+                }
+            });
+        });
     </script>
 </body>
 </html>
