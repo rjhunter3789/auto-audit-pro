@@ -379,14 +379,29 @@
         }
         
         /* Force remove LastPass and password manager icons */
-        #targetNoResponse,
-        input[name="config_no_response_rate"],
+        #metric_threshold_3,
+        input[name="display_metric_c"],
         .settings-card input,
         .settings-card select {
             background-image: none !important;
             background-attachment: initial !important;
             background-position: initial !important;
             background-repeat: initial !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: textfield !important;
+        }
+        
+        /* Additional aggressive styles for the problematic field */
+        #metric_threshold_3 {
+            background: white !important;
+            background-color: white !important;
+            background-image: none !important;
+            background-position: 0 0 !important;
+            background-size: auto !important;
+            background-repeat: no-repeat !important;
+            background-origin: padding-box !important;
+            background-clip: border-box !important;
+            background-attachment: scroll !important;
         }
         
         /* Ensure consistent styling for numeric text input */
@@ -939,9 +954,9 @@
                             </div>
                             
                             <div class="form-group" data-lpignore="true">
-                                <label for="targetNoResponse">Acceptable No-Response Rate (%)</label>
+                                <label for="metric_threshold_3">Acceptable No-Response Rate (%)</label>
                                 <div style="position: relative;">
-                                    <input type="text" pattern="[0-9]*" inputmode="numeric" class="form-control" id="targetNoResponse" name="config_no_response_rate" value="10" autocomplete="off" data-lpignore="true" data-form-type="other" role="spinbutton" aria-label="Acceptable No-Response Rate percentage">
+                                    <input type="text" pattern="[0-9]*" inputmode="numeric" class="form-control" id="metric_threshold_3" name="display_metric_c" value="10" autocomplete="nope" data-lpignore="true" data-form-type="other" role="spinbutton" aria-label="Acceptable No-Response Rate percentage" readonly onfocus="this.removeAttribute('readonly');" placeholder="10">
                                     <div style="position: absolute; left: -9999px;">
                                         <input type="text" name="trap_field" tabindex="-1" autocomplete="off">
                                     </div>
@@ -1067,5 +1082,78 @@
 
     <!-- Lead Performance JavaScript -->
     <script src="/js/lead-performance.js"></script>
+    
+    <!-- Aggressive LastPass Removal -->
+    <script>
+        (function() {
+            'use strict';
+            
+            function killLastPass() {
+                // Target the problematic field specifically
+                const target = document.getElementById('metric_threshold_3');
+                if (!target) return;
+                
+                // Method 1: Remove all data attributes
+                Array.from(target.attributes).forEach(attr => {
+                    if (attr.name.includes('lastpass') || attr.name.includes('lpform')) {
+                        target.removeAttribute(attr.name);
+                    }
+                });
+                
+                // Method 2: Override styles inline with maximum specificity
+                target.style.setProperty('background-image', 'none', 'important');
+                target.style.setProperty('background', '#ffffff', 'important');
+                target.style.setProperty('background-color', '#ffffff', 'important');
+                target.style.setProperty('background-position', '0 0', 'important');
+                target.style.setProperty('background-size', '0 0', 'important');
+                target.style.setProperty('background-repeat', 'no-repeat', 'important');
+                
+                // Method 3: Remove any injected siblings
+                const parent = target.parentElement;
+                if (parent) {
+                    parent.childNodes.forEach(node => {
+                        if (node !== target && node.nodeType === 1) {
+                            const id = node.id || '';
+                            const className = node.className || '';
+                            if (id.includes('lastpass') || className.includes('lastpass') || 
+                                id.includes('__lpform') || className.includes('__lpform')) {
+                                node.remove();
+                            }
+                        }
+                    });
+                }
+                
+                // Method 4: Clone and replace the input to break any event listeners
+                if (!target.hasAttribute('data-cleaned')) {
+                    const newInput = target.cloneNode(true);
+                    newInput.setAttribute('data-cleaned', 'true');
+                    target.parentNode.replaceChild(newInput, target);
+                }
+            }
+            
+            // Run on load
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', killLastPass);
+            } else {
+                killLastPass();
+            }
+            
+            // Run when tab is shown
+            document.addEventListener('shown.bs.tab', function(e) {
+                if (e.target.getAttribute('href') === '#settings') {
+                    setTimeout(killLastPass, 0);
+                }
+            });
+            
+            // Nuclear option: continuous monitoring
+            let killInterval = setInterval(killLastPass, 100);
+            
+            // Stop after 10 seconds to avoid performance impact
+            setTimeout(() => clearInterval(killInterval), 10000);
+            
+            // Also clean on window focus (when switching back to tab)
+            window.addEventListener('focus', killLastPass);
+        })();
+    </script>
 </body>
 </html>
