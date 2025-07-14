@@ -12,6 +12,7 @@
 let currentDealerData = null;
 let uploadedDealerData = {};
 let currentSelectedDealer = null;
+let globalLeadData = []; // Store all leads for source analysis
 let networkBenchmarks = {
     totalLeads: 27047,
     conversionRate: 16.12,
@@ -725,6 +726,20 @@ function processUploadedData(data, filename = '') {
     // Populate dealer dropdowns
     populateDealerDropdowns();
     
+    // Store lead data globally and analyze lead sources
+    globalLeadData = allLeads;
+    console.log('Total leads collected:', allLeads.length);
+    console.log('Sample lead data:', allLeads.slice(0, 3));
+    
+    if (globalLeadData && globalLeadData.length > 0) {
+        console.log('Analyzing lead sources, total leads:', globalLeadData.length);
+        const sourceMetrics = analyzeLeadSources(globalLeadData);
+        console.log('Lead source metrics:', sourceMetrics);
+        updateLeadSourceVisualization(sourceMetrics);
+    } else {
+        console.log('No lead data available for source analysis');
+    }
+    
     // Calculate totals for dashboard
     let totalNetworkLeads = 0;
     let totalNetworkSales = 0;
@@ -794,11 +809,6 @@ function processUploadedData(data, filename = '') {
     // Update charts
     updateCharts();
     
-    // Analyze and display lead sources
-    if (allLeads && allLeads.length > 0) {
-        const sourceMetrics = analyzeLeadSources(allLeads);
-        updateLeadSourceVisualization(sourceMetrics);
-    }
 }
 
 // Analyze lead sources and update visualization
@@ -1303,6 +1313,20 @@ function updateDealerAnalysis() {
     `;
     
     document.getElementById('dealerAnalysisContent').innerHTML = analysisHTML;
+    
+    // Update lead source visualization for selected dealer
+    if (globalLeadData && globalLeadData.length > 0) {
+        // Filter leads for selected dealer
+        const dealerLeads = dealerName === 'All Dealers' ? 
+            globalLeadData : 
+            globalLeadData.filter(lead => lead.dealer === dealerName);
+        
+        if (dealerLeads.length > 0) {
+            console.log(`Updating lead source analysis for ${dealerName}, leads:`, dealerLeads.length);
+            const sourceMetrics = analyzeLeadSources(dealerLeads);
+            updateLeadSourceVisualization(sourceMetrics);
+        }
+    }
 }
 
 function checkForWebsiteAudit(dealerName) {
