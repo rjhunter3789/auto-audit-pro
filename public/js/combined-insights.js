@@ -14,7 +14,7 @@ function generateCorrelationFeedback() {
     const dealer = window.currentDealerMatch;
     const websiteScore = websiteData.score || 0;
     const conversionRate = parseFloat(dealer.conversionRate) || 0;
-    const networkAvgConversion = leadData?.summary?.avgConversion || 16.12;
+    const networkAvgConversion = parseFloat(leadData?.summary?.avgConversion) || 16.12;
     
     // Calculate expected conversion rate based on website score
     // Rough formula: base 5% + (websiteScore/100 * 15%)
@@ -84,7 +84,7 @@ function generateCorrelationFeedback() {
                 <h4 style="margin: 0 0 10px 0; color: #374151;">Performance Metrics:</h4>
                 <ul style="margin: 0; padding-left: 20px; color: #4B5563;">
                     <li>Your website score: <strong>${websiteScore}/100</strong></li>
-                    <li>Your conversion rate: <strong>${conversionRate}%</strong></li>
+                    <li>Your conversion rate: <strong>${conversionRate.toFixed(1)}%</strong></li>
                     <li>Expected conversion rate: <strong>~${expectedConversion.toFixed(1)}%</strong></li>
                     <li>Network average: <strong>${networkAvgConversion.toFixed(1)}%</strong></li>
                     <li>Performance vs network: <strong>${performanceVsNetwork > 0 ? '+' : ''}${performanceVsNetwork.toFixed(1)}%</strong></li>

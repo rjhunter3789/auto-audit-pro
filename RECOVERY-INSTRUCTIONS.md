@@ -1,5 +1,60 @@
 # Recovery Instructions - Auto Audit Pro
 
+## Current Status (Updated: July 14, 2025)
+
+### Latest Updates - Enhanced Combined Insights
+- **Date**: July 14, 2025
+
+#### Eliminated Generic Insights
+- **Issue**: "Top Website Issues Impacting Conversions" showing generic category scores instead of specific issues
+- **Fix**: Completely rewrote impact analysis to show actual issues found during audit
+- **Implementation**:
+  - Prioritizes specific issues over category scores
+  - Adds conversion-specific impact messaging for each issue type
+  - Shows quantified impacts (e.g., "losing 30% of potential leads", "40% bounce rate")
+  - Filters for issues that directly impact conversions
+- **Files Modified**:
+  - `/public/js/combined-insights.js` - Rewrote generateImpactAnalysis function
+
+#### Made Opportunities Actionable
+- **Issue**: Generic opportunities like "Website Optimization" and "Response Time Improvement"
+- **Fix**: Dynamic opportunity generation based on actual issues found
+- **Implementation**:
+  - Groups issues by type to create targeted opportunities
+  - Shows specific metrics and expected outcomes
+  - Adds timeline estimates and specific action items
+  - Includes dealer-specific lead response opportunities
+- **Files Modified**:
+  - `/public/js/combined-insights.js` - Rewrote generateOpportunities function
+  - Enhanced opportunity cards with timeline and specifics display
+
+#### Fixed Performance Comparison Chart
+- **Issue**: Chart was blank due to JavaScript error
+- **Root Cause**: `networkAvgConversion.toFixed is not a function` - value wasn't parsed as float
+- **Fix**: Added parseFloat() to ensure numeric values
+- **Files Modified**:
+  - `/public/js/combined-insights.js` - Fixed generateCorrelationFeedback function
+  - `/views/combined-insights.html` - Updated cache version to v=9
+
+#### Enhanced Correlation Analysis
+- **Change**: Added comprehensive feedback section to correlation analysis
+- **Implementation**:
+  - Performance categories: Strong Performer, Room for Improvement, Performance Gap
+  - Detailed metrics comparison with expected vs actual conversion rates
+  - Specific recommendations based on performance gaps
+  - Industry context and ROI implications
+- **Files Modified**:
+  - `/public/js/combined-insights.js` - Added generateCorrelationFeedback function
+
+#### Updated Definitions & Glossary
+- **Change**: Added new Analytics & Insights section
+- **Implementation**:
+  - 10 new terms explaining correlation analysis concepts
+  - Covers expected conversion rates, performance gaps, ROI projections
+  - Updated sidebar navigation to include new section
+- **Files Modified**:
+  - `/views/definitions.html` - Added Analytics & Insights section and navigation link
+
 ## Current Status (Updated: July 13, 2025 - Final Update)
 
 ### Final Updates - Combined Insights Integration
@@ -206,7 +261,7 @@
 
 ## Summary of Current Working State
 
-### ✅ Fully Functional Features (as of July 13, 2025 - Late Evening):
+### ✅ Fully Functional Features (as of July 14, 2025):
 1. **Website Analysis**
    - SEO Audit (30-second focused analysis)
    - Comprehensive Audit (full 60-90 second analysis)
@@ -221,11 +276,15 @@
 3. **Combined Insights**
    - Seamless navigation from both website and lead analysis
    - Proper data flow between components
-   - Impact analysis showing top issues
+   - Impact analysis showing specific issues with conversion impacts
+   - Dynamic opportunities based on actual problems found
+   - Performance comparison chart working with all metrics
+   - Enhanced correlation analysis with actionable feedback
    - ROI calculations based on improvements
 
 4. **Definitions & Glossary**
    - All sections comprehensive (15-19 terms each)
+   - NEW: Analytics & Insights section with 10 terms
    - Professional reference for all audit terminology
 
 ### ⚠️ Temporarily Disabled:
@@ -237,6 +296,9 @@
 - Smart inventory filter detection
 - Proper error handling throughout
 - All navigation CTAs working correctly
+- No generic insights - all recommendations specific and actionable
+- JavaScript errors fixed (parseFloat for numeric values)
+- Performance comparison chart fully functional
 
 ## Previous Status (July 11, 2025)
 
