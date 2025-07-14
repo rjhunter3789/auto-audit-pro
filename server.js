@@ -28,6 +28,9 @@ const { Builder, By, until } = seleniumWrapper.seleniumAvailable ? require('sele
 const groupAnalysis = require('./lib/group-analysis');
 const DealerSearcher = require('./lib/dealer-search');
 
+// Load JSON storage for monitoring system
+const { pool } = require('./lib/json-storage');
+
 // Load environment variables
 require('dotenv').config();
 
@@ -2151,20 +2154,210 @@ app.post('/audit', async (req, res) => {
     }
 });
 
+// ============= MONITORING SYSTEM API ENDPOINTS =============
+
+// Get monitoring dashboard
+app.get('/monitoring', (req, res) => {
+    res.render('monitoring-dashboard.html');
+});
+
+// Get monitoring profiles
+app.get('/api/monitoring/profiles', async (req, res) => {
+    try {
+        const query = 'SELECT * FROM monitoring_profiles ORDER BY dealer_name';
+        const result = await pool.query(query);
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching monitoring profiles:', error);
+        res.status(500).json({ error: 'Failed to fetch monitoring profiles' });
+    }
+});
+
+// Create new monitoring profile
+app.post('/api/monitoring/profiles', async (req, res) => {
+    try {
+        const { dealer_id, dealer_name, website_url, contact_email, alert_email, check_frequency } = req.body;
+        
+        const query = `
+            INSERT INTO monitoring_profiles 
+            (dealer_id, dealer_name, website_url, contact_email, alert_email, check_frequency)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING *`;
+        
+        const values = [dealer_id, dealer_name, website_url, contact_email, alert_email || contact_email, check_frequency || 30];
+        const result = await pool.query(query, values);
+        
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error creating monitoring profile:', error);
+        res.status(500).json({ error: 'Failed to create monitoring profile' });
+    }
+});
+
+// Get monitoring results for a profile
+app.get('/api/monitoring/results/:profileId', async (req, res) => {
+    try {
+        const { profileId } = req.params;
+        const { limit = 100 } = req.query;
+        
+        const query = `
+            SELECT * FROM monitoring_results 
+            WHERE profile_id = $1 
+            ORDER BY check_timestamp DESC 
+            LIMIT $2`;
+        
+        const result = await pool.query(query, [profileId, limit]);
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching monitoring results:', error);
+        res.status(500).json({ error: 'Failed to fetch monitoring results' });
+    }
+});
+
+// Get current status for all profiles
+app.get('/api/monitoring/status', async (req, res) => {
+    try {
+        const query = `
+            SELECT 
+                p.*,
+                r.overall_status,
+                r.check_timestamp,
+                r.response_time_ms,
+                r.issues_found
+            FROM monitoring_profiles p
+            LEFT JOIN LATERAL (
+                SELECT * FROM monitoring_results 
+                WHERE profile_id = p.id 
+                ORDER BY check_timestamp DESC 
+                LIMIT 1
+            ) r ON true
+            WHERE p.monitoring_enabled = true
+            ORDER BY p.dealer_name`;
+        
+        const result = await pool.query(query);
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching monitoring status:', error);
+        res.status(500).json({ error: 'Failed to fetch monitoring status' });
+    }
+});
+
+// Get alerts for a profile
+app.get('/api/monitoring/alerts/:profileId', async (req, res) => {
+    try {
+        const { profileId } = req.params;
+        const { resolved = false } = req.query;
+        
+        const query = `
+            SELECT * FROM alert_history 
+            WHERE profile_id = $1 
+            AND resolved = $2
+            ORDER BY created_at DESC`;
+        
+        const result = await pool.query(query, [profileId, resolved]);
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching alerts:', error);
+        res.status(500).json({ error: 'Failed to fetch alerts' });
+    }
+});
+
+// Acknowledge an alert
+app.put('/api/monitoring/alerts/:alertId/acknowledge', async (req, res) => {
+    try {
+        const { alertId } = req.params;
+        const { acknowledged_by } = req.body;
+        
+        const query = `
+            UPDATE alert_history 
+            SET acknowledged = true,
+                acknowledged_by = $2,
+                acknowledged_at = CURRENT_TIMESTAMP
+            WHERE id = $1
+            RETURNING *`;
+        
+        const result = await pool.query(query, [alertId, acknowledged_by || 'User']);
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error acknowledging alert:', error);
+        res.status(500).json({ error: 'Failed to acknowledge alert' });
+    }
+});
+
+// Resolve an alert
+app.put('/api/monitoring/alerts/:alertId/resolve', async (req, res) => {
+    try {
+        const { alertId } = req.params;
+        
+        const query = `
+            UPDATE alert_history 
+            SET resolved = true,
+                resolved_at = CURRENT_TIMESTAMP
+            WHERE id = $1
+            RETURNING *`;
+        
+        const result = await pool.query(query, [alertId]);
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error resolving alert:', error);
+        res.status(500).json({ error: 'Failed to resolve alert' });
+    }
+});
+
+// Run manual check for a profile
+app.post('/api/monitoring/check/:profileId', async (req, res) => {
+    try {
+        const { profileId } = req.params;
+        
+        // Get profile
+        const profileQuery = 'SELECT * FROM monitoring_profiles WHERE id = $1';
+        const profileResult = await pool.query(profileQuery, [profileId]);
+        
+        if (profileResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Profile not found' });
+        }
+        
+        const profile = profileResult.rows[0];
+        
+        // Run monitoring check
+        const MonitoringEngine = require('./lib/monitoring-engine');
+        const engine = new MonitoringEngine(pool);
+        const results = await engine.runFullCheck(profile);
+        
+        res.json(results);
+    } catch (error) {
+        console.error('Error running manual check:', error);
+        res.status(500).json({ error: 'Failed to run monitoring check' });
+    }
+});
+
+// Initialize monitoring scheduler
+const MonitoringScheduler = require('./lib/monitoring-scheduler');
+const monitoringScheduler = new MonitoringScheduler(pool);
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log(`Auto Audit Pro Server v2.0 running on port ${PORT}`);
     console.log(`Features:`);
     console.log(`   - 8-Category Testing System`);
     console.log(`   - Real Google PageSpeed API Integration`);
     console.log(`   - Professional Content Analysis`);
     console.log(`   - Brand Compliance & Lead Generation Tests`);
+    console.log(`   - Website Monitoring System (NEW)`);
     console.log(`API endpoints available:`);
     console.log(`   POST /api/audit - Start new audit`);
     console.log(`   GET  /api/audit/:id - Get audit status`);
     console.log(`   GET  /api/audits - Get audit history`);
     console.log(`   GET  /api/health - Health check`);
+    console.log(`   GET  /api/monitoring/* - Monitoring endpoints`);
+    
+    // Start monitoring scheduler
+    try {
+        await monitoringScheduler.start();
+        console.log('Monitoring scheduler started successfully');
+    } catch (error) {
+        console.error('Failed to start monitoring scheduler:', error);
+    }
 });
 
 module.exports = app;
