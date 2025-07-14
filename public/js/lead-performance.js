@@ -2951,7 +2951,7 @@ window.saveSettings = function() {
     const settings = {
         targetConversion: document.getElementById('targetConversion').value,
         target15Min: document.getElementById('target15Min').value,
-        targetNoResponse: document.getElementById('metric_threshold_3').value,
+        targetNoResponse: document.getElementById('noResponseThreshold').value,
         eliteThreshold: document.getElementById('eliteThreshold').value,
         strongThreshold: document.getElementById('strongThreshold').value,
         averageThreshold: document.getElementById('averageThreshold').value,
@@ -2985,7 +2985,7 @@ window.resetSettings = function() {
         // Reset form values
         document.getElementById('targetConversion').value = '18';
         document.getElementById('target15Min').value = '40';
-        document.getElementById('metric_threshold_3').value = '10';
+        document.getElementById('noResponseThreshold').value = '10';
         document.getElementById('eliteThreshold').value = '20';
         document.getElementById('strongThreshold').value = '16';
         document.getElementById('averageThreshold').value = '12';
@@ -3021,7 +3021,7 @@ function loadSavedSettings() {
             // Apply saved values
             if (settings.targetConversion) document.getElementById('targetConversion').value = settings.targetConversion;
             if (settings.target15Min) document.getElementById('target15Min').value = settings.target15Min;
-            if (settings.targetNoResponse) document.getElementById('metric_threshold_3').value = settings.targetNoResponse;
+            if (settings.targetNoResponse) document.getElementById('noResponseThreshold').value = settings.targetNoResponse;
             if (settings.eliteThreshold) document.getElementById('eliteThreshold').value = settings.eliteThreshold;
             if (settings.strongThreshold) document.getElementById('strongThreshold').value = settings.strongThreshold;
             if (settings.averageThreshold) document.getElementById('averageThreshold').value = settings.averageThreshold;

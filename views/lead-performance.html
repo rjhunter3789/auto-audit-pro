@@ -378,30 +378,13 @@
             border: 1px solid #E5E7EB;
         }
         
-        /* Force remove LastPass and password manager icons */
-        #metric_threshold_3,
-        input[name="display_metric_c"],
+        /* Force remove LastPass and password manager icons from all settings */
         .settings-card input,
         .settings-card select {
             background-image: none !important;
             background-attachment: initial !important;
             background-position: initial !important;
             background-repeat: initial !important;
-            -webkit-appearance: none !important;
-            -moz-appearance: textfield !important;
-        }
-        
-        /* Additional aggressive styles for the problematic field */
-        #metric_threshold_3 {
-            background: white !important;
-            background-color: white !important;
-            background-image: none !important;
-            background-position: 0 0 !important;
-            background-size: auto !important;
-            background-repeat: no-repeat !important;
-            background-origin: padding-box !important;
-            background-clip: border-box !important;
-            background-attachment: scroll !important;
         }
         
         /* Ensure consistent styling for numeric text input */
@@ -953,14 +936,28 @@
                                 <small class="form-text text-muted">Best practice: 40%+</small>
                             </div>
                             
-                            <div class="form-group" data-lpignore="true">
-                                <label for="metric_threshold_3">Acceptable No-Response Rate (%)</label>
-                                <div style="position: relative;">
-                                    <input type="text" pattern="[0-9]*" inputmode="numeric" class="form-control" id="metric_threshold_3" name="display_metric_c" value="10" autocomplete="nope" data-lpignore="true" data-form-type="other" role="spinbutton" aria-label="Acceptable No-Response Rate percentage" readonly onfocus="this.removeAttribute('readonly');" placeholder="10">
-                                    <div style="position: absolute; left: -9999px;">
-                                        <input type="text" name="trap_field" tabindex="-1" autocomplete="off">
-                                    </div>
-                                </div>
+                            <div class="form-group">
+                                <label for="noResponseThreshold">Acceptable No-Response Rate (%)</label>
+                                <select class="form-control" id="noResponseThreshold" autocomplete="off" data-lpignore="true">
+                                    <option value="5">5%</option>
+                                    <option value="6">6%</option>
+                                    <option value="7">7%</option>
+                                    <option value="8">8%</option>
+                                    <option value="9">9%</option>
+                                    <option value="10" selected>10%</option>
+                                    <option value="11">11%</option>
+                                    <option value="12">12%</option>
+                                    <option value="13">13%</option>
+                                    <option value="14">14%</option>
+                                    <option value="15">15%</option>
+                                    <option value="16">16%</option>
+                                    <option value="17">17%</option>
+                                    <option value="18">18%</option>
+                                    <option value="19">19%</option>
+                                    <option value="20">20%</option>
+                                    <option value="25">25%</option>
+                                    <option value="30">30%</option>
+                                </select>
                                 <small class="form-text text-muted">Lower is better</small>
                             </div>
                         </div>
@@ -1083,77 +1080,29 @@
     <!-- Lead Performance JavaScript -->
     <script src="/js/lead-performance.js"></script>
     
-    <!-- Aggressive LastPass Removal -->
+    <!-- Clean up any LastPass remnants from all settings -->
     <script>
-        (function() {
-            'use strict';
-            
-            function killLastPass() {
-                // Target the problematic field specifically
-                const target = document.getElementById('metric_threshold_3');
-                if (!target) return;
-                
-                // Method 1: Remove all data attributes
-                Array.from(target.attributes).forEach(attr => {
-                    if (attr.name.includes('lastpass') || attr.name.includes('lpform')) {
-                        target.removeAttribute(attr.name);
-                    }
-                });
-                
-                // Method 2: Override styles inline with maximum specificity
-                target.style.setProperty('background-image', 'none', 'important');
-                target.style.setProperty('background', '#ffffff', 'important');
-                target.style.setProperty('background-color', '#ffffff', 'important');
-                target.style.setProperty('background-position', '0 0', 'important');
-                target.style.setProperty('background-size', '0 0', 'important');
-                target.style.setProperty('background-repeat', 'no-repeat', 'important');
-                
-                // Method 3: Remove any injected siblings
-                const parent = target.parentElement;
-                if (parent) {
-                    parent.childNodes.forEach(node => {
-                        if (node !== target && node.nodeType === 1) {
-                            const id = node.id || '';
-                            const className = node.className || '';
-                            if (id.includes('lastpass') || className.includes('lastpass') || 
-                                id.includes('__lpform') || className.includes('__lpform')) {
-                                node.remove();
-                            }
-                        }
+        document.addEventListener('DOMContentLoaded', function() {
+            // Clean all settings inputs/selects of password manager artifacts
+            function cleanSettings() {
+                document.querySelectorAll('.settings-card input, .settings-card select').forEach(element => {
+                    // Remove password manager attributes
+                    ['data-lastpass-icon-root', 'data-lastpass-icon', 'data-lastpass-id'].forEach(attr => {
+                        element.removeAttribute(attr);
                     });
-                }
-                
-                // Method 4: Clone and replace the input to break any event listeners
-                if (!target.hasAttribute('data-cleaned')) {
-                    const newInput = target.cloneNode(true);
-                    newInput.setAttribute('data-cleaned', 'true');
-                    target.parentNode.replaceChild(newInput, target);
-                }
+                    // Force clean background
+                    element.style.backgroundImage = 'none';
+                });
             }
             
-            // Run on load
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', killLastPass);
-            } else {
-                killLastPass();
-            }
-            
-            // Run when tab is shown
+            cleanSettings();
+            // Run when settings tab is shown
             document.addEventListener('shown.bs.tab', function(e) {
                 if (e.target.getAttribute('href') === '#settings') {
-                    setTimeout(killLastPass, 0);
+                    cleanSettings();
                 }
             });
-            
-            // Nuclear option: continuous monitoring
-            let killInterval = setInterval(killLastPass, 100);
-            
-            // Stop after 10 seconds to avoid performance impact
-            setTimeout(() => clearInterval(killInterval), 10000);
-            
-            // Also clean on window focus (when switching back to tab)
-            window.addEventListener('focus', killLastPass);
-        })();
+        });
     </script>
 </body>
 </html>

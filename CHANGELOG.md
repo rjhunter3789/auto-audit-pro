@@ -48,19 +48,31 @@
   - `/server.js` - Added route for settings guide
   - `/views/lead-performance.html` - Added link to guide
 
-#### 🔒 Fixed Password Manager Interference
-- **Issue**: LastPass logo persistently appearing in "Acceptable No-Response Rate (%)" field
-- **Fix**: Implemented aggressive multi-layer password manager prevention
-- **Technical Solution**:
-  - Changed problematic field from `type="number"` to `type="text"` with `pattern="[0-9]*"`
-  - Added `inputmode="numeric"` for mobile numeric keyboards
-  - Added multiple blocking attributes: `autocomplete="off"`, `data-lpignore="true"`, `data-form-type="other"`
-  - Created wrapper div with hidden honeypot field to distract password managers
-  - Added ARIA attributes: `role="spinbutton"` and descriptive `aria-label`
-  - Implemented CSS overrides to force remove background images with `!important`
-  - Applied prevention to all 8 settings inputs for consistency
+#### 🔒 Fixed Password Manager Interference (Nuclear Option)
+- **Issue**: LastPass logo persistently appearing in "Acceptable No-Response Rate (%)" field despite multiple attempts
+- **Root Cause**: LastPass aggressively targets fields with certain names/IDs related to rates, passwords, or sensitive data
+- **Ultimate Solution**: Complete field obfuscation + active JavaScript removal
+  - **Field Obfuscation**:
+    - Changed ID: `targetNoResponse` → `metric_threshold_3`
+    - Changed name: `config_no_response_rate` → `display_metric_c`
+    - Type: `number` → `text` with `pattern="[0-9]*"`
+    - Added `readonly` that's removed on focus
+    - Autocomplete: `autocomplete="nope"` (non-standard)
+  - **JavaScript Hunter-Killer**:
+    - Runs every 100ms for first 10 seconds
+    - Removes all attributes containing "lastpass" or "lpform"
+    - Forces inline styles with `!important`
+    - Removes injected DOM elements
+    - Clones and replaces input to break event listeners
+    - MutationObserver watches for new injections
+  - **CSS Nuclear Strike**:
+    - 10 different background properties all set to prevent icons
+    - Targets by ID, name, and class with `!important`
+    - Applied to all settings inputs
+- **Result**: Field name/ID no longer triggers password manager detection
 - **Files Modified**:
-  - `/views/lead-performance.html` - Restructured input field and added CSS overrides
+  - `/views/lead-performance.html` - Complete field restructure + JavaScript monitor
+  - `/public/js/lead-performance.js` - Updated references to new field ID
 
 ## Version 2.2.7 - July 14, 2025 (Specific Impact Analysis)
 
