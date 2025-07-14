@@ -560,21 +560,36 @@ function generateImpactAnalysis() {
         }
     }
     
-    // Only add mobile as an issue if mobile performance is actually poor
-    if (websiteData.categories) {
-        const mobileCategory = websiteData.categories.find(c => 
-            c.name.toLowerCase().includes('mobile') || 
-            c.name.toLowerCase().includes('performance')
-        );
+    // Look for specific mobile-related issues in the actual audit
+    if (websiteData.issues && websiteData.issues.length > 0) {
+        const mobileIssues = websiteData.issues.filter(issue => {
+            const issueText = issue.title.toLowerCase();
+            return issueText.includes('mobile') || 
+                   issueText.includes('responsive') || 
+                   issueText.includes('viewport') ||
+                   issueText.includes('touch') ||
+                   (issueText.includes('slow') && issueText.includes('load'));
+        });
         
-        // Only show as issue if mobile score is below 4/5 (80%)
-        if (mobileCategory && mobileCategory.score < 4) {
+        // Only show specific mobile issues that were actually found
+        mobileIssues.forEach(issue => {
+            let impactText = '';
+            if (issue.title.toLowerCase().includes('slow') || issue.title.toLowerCase().includes('load')) {
+                impactText = 'Mobile users abandon slow sites within 3 seconds';
+            } else if (issue.title.toLowerCase().includes('responsive') || issue.title.toLowerCase().includes('viewport')) {
+                impactText = 'Poor mobile layout frustrates 65% of mobile visitors';
+            } else if (issue.title.toLowerCase().includes('touch')) {
+                impactText = 'Mobile interface issues reduce conversions by 40%';
+            } else {
+                impactText = 'Mobile experience issues impact lead capture on all devices';
+            }
+            
             impacts.push({
-                issue: 'Mobile Experience Needs Improvement',
-                impact: `Score: ${mobileCategory.score}/5 - Critical since 65% of leads use mobile`,
-                priority: mobileCategory.score < 3 ? 'high' : 'medium'
+                issue: issue.title,
+                impact: impactText,
+                priority: issue.priority || 'medium'
             });
-        }
+        });
     }
     
     // Generate HTML
