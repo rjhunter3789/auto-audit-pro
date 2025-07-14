@@ -22,6 +22,7 @@ const url = require('url');
 
 // Load Selenium through wrapper (gracefully handles when not available)
 const seleniumWrapper = require('./lib/selenium-wrapper');
+const { Builder, By, until } = seleniumWrapper.seleniumAvailable ? require('selenium-webdriver') : { Builder: null, By: null, until: null };
 
 // Load custom modules
 const groupAnalysis = require('./lib/group-analysis');
@@ -108,6 +109,11 @@ const PAGE_KEYWORDS = {
 
 // Use Selenium for better website access
 const getPageWithSelenium = async (pageUrl) => {
+    // Check if Selenium is available
+    if (!seleniumWrapper.seleniumAvailable || !Builder) {
+        throw new Error('Selenium not available - falling back to HTTP request');
+    }
+    
     let driver = null;
     try {
         // Build Chrome driver with options
@@ -371,10 +377,17 @@ async function runAudit(auditId, domain) {
         // Ensure domain has protocol
         const url = domain.startsWith('http') ? domain : `https://${domain}`;
         
+        // Check if Selenium is available
+        if (!seleniumWrapper.seleniumAvailable) {
+            audit.status = 'failed';
+            audit.error = 'Selenium WebDriver not available in this environment';
+            return;
+        }
+        
         // Create WebDriver instance
         driver = await new Builder()
             .forBrowser('chrome')
-            .setChromeOptions(chromeOptions)
+            .setChromeOptions(getChromeOptions())
             .build();
 
         let totalScore = 0;
@@ -1740,11 +1753,6 @@ app.get('/api/health', (req, res) => {
         features: ['8-category testing', 'real performance data', 'content analysis'],
         environment: process.env.NODE_ENV || 'development'
     });
-});
-
-// Simple test endpoint
-app.get('/', (req, res) => {
-    res.send('Auto Audit Pro Server is running!');
 });
 
 // --- Website Routes ---
