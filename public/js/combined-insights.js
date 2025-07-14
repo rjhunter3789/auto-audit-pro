@@ -267,6 +267,12 @@ function checkDataAvailability() {
     if (websiteData && leadData && window.currentDealerMatch) {
         insightsContainer.style.display = 'block';
         noDataState.style.display = 'none';
+        
+        // Ensure chart container is visible
+        const chartContainer = document.querySelector('.chart-container');
+        if (chartContainer) {
+            chartContainer.style.display = 'block';
+        }
     } else {
         insightsContainer.style.display = 'none';
         noDataState.style.display = 'block';
@@ -321,11 +327,13 @@ function generateInsights() {
         const checkChart = setInterval(() => {
             if (typeof Chart !== 'undefined') {
                 clearInterval(checkChart);
+                console.log('Chart.js loaded, version:', Chart.version);
                 createCorrelationChart();
                 createComparisonChart();
             }
         }, 100);
     } else {
+        console.log('Chart.js already loaded, version:', Chart.version);
         // Small delay to ensure DOM is ready
         setTimeout(() => {
             createCorrelationChart();
@@ -936,6 +944,17 @@ function createComparisonChart() {
         return;
     }
     
+    // Ensure canvas is visible
+    ctx.style.display = 'block';
+    ctx.style.width = '100%';
+    ctx.style.height = '100%';
+    
+    console.log('Creating comparison chart with data:', {
+        websiteData: websiteData,
+        leadData: leadData,
+        currentDealerMatch: window.currentDealerMatch
+    });
+    
     try {
         // Destroy existing chart
         if (comparisonChart) {
@@ -980,6 +999,16 @@ function createComparisonChart() {
             if (mobileCategory) mobileScore = mobileCategory.score * 20; // Convert 0-5 to 0-100
             if (uxCategory) uxScore = uxCategory.score * 20;
         }
+        
+        // Log the data being used
+        console.log('Chart data values:', {
+            websiteScore,
+            leadVolumeScore: Math.round(leadVolumeScore),
+            conversionScore: Math.round(conversionScore),
+            responseScore: Math.round(responseScore),
+            mobileScore: Math.round(mobileScore),
+            uxScore: Math.round(uxScore)
+        });
         
         comparisonChart = new Chart(ctx, {
             type: 'bar',
@@ -1061,6 +1090,21 @@ function createComparisonChart() {
         console.log('Comparison chart created with real data');
     } catch (error) {
         console.error('Error creating comparison chart:', error);
+        
+        // Show error message in the chart container
+        const chartContainer = document.querySelector('.chart-container');
+        if (chartContainer) {
+            const canvas = chartContainer.querySelector('canvas');
+            if (canvas && canvas.parentElement) {
+                canvas.parentElement.innerHTML = `
+                    <div style="text-align: center; padding: 60px 20px; color: #6B7280;">
+                        <i class="fas fa-exclamation-circle" style="font-size: 3rem; margin-bottom: 1rem; color: #F59E0B;"></i>
+                        <p>Unable to generate performance comparison chart.</p>
+                        <p style="font-size: 0.875rem;">Please ensure both website analysis and lead data are loaded.</p>
+                    </div>
+                `;
+            }
+        }
     }
 }
 
