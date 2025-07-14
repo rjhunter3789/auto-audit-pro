@@ -29,6 +29,21 @@
   - `/views/reports-dealer-style.html` - Added categories to audit data
   - `/public/js/combined-insights.js` - Added fallback to use issues if categories unavailable
 
+### Credibility Improvements - Confidence Indicators
+- **Date**: July 13, 2025 (Late Evening Update - Continued)
+
+#### Added Confidence Indicators Throughout
+- **Change**: Added confidence levels to automated detection systems
+- **Implementation**:
+  - Contact Information Detection: Now shows confidence levels (high/moderate/manual-review)
+  - Form Detection: Recognizes dynamic form loading indicators
+  - Added 🔍 icon for manual review items
+  - Changed "Contact information verification required" from LOW to INFO priority
+- **Files Modified**:
+  - `/lib/audit-tests.js` - Added confidence levels to contact and form detection
+  - `/lib/enhanced-recommendations.js` - Added Form System Review template
+- **Impact**: Improved credibility by acknowledging limitations of automated scanning
+
 ### Latest Updates - Definitions & Recommendations System
 - **Date**: July 13, 2025 (Evening Update)
 

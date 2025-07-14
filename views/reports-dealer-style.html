@@ -337,6 +337,15 @@
             const highPriorityIssues = results.issues.filter(i => i.priority === 'high');
             const mediumPriorityIssues = results.issues.filter(i => i.priority === 'medium');
             const lowPriorityIssues = results.issues.filter(i => i.priority === 'low');
+            const infoIssues = results.issues.filter(i => i.priority === 'info');
+            
+            // Function to get confidence icon
+            function getConfidenceIcon(confidence) {
+                if (confidence === 'high') return '✅';
+                if (confidence === 'moderate') return '⚠️';
+                if (confidence === 'manual-review') return '🔍';
+                return '';
+            }
             %>
             
             <% if (highPriorityIssues.length > 0) { %>
@@ -344,6 +353,9 @@
             <% highPriorityIssues.forEach(function(issue) { %>
             <div class="issue-item high">
                 <span class="priority-badge priority-high">High</span>
+                <% if (issue.confidence) { %>
+                <span style="margin-left: 5px;"><%= getConfidenceIcon(issue.confidence) %></span>
+                <% } %>
                 <strong><%= issue.title %></strong>
                 <% if (issue.details) { %>
                 <div style="margin-top: 5px; color: #666;"><%= issue.details %></div>
@@ -360,6 +372,9 @@
             <% mediumPriorityIssues.forEach(function(issue) { %>
             <div class="issue-item medium">
                 <span class="priority-badge priority-medium">Medium</span>
+                <% if (issue.confidence) { %>
+                <span style="margin-left: 5px;"><%= getConfidenceIcon(issue.confidence) %></span>
+                <% } %>
                 <strong><%= issue.title %></strong>
                 <% if (issue.details) { %>
                 <div style="margin-top: 5px; color: #666;"><%= issue.details %></div>
@@ -376,6 +391,28 @@
             <% lowPriorityIssues.forEach(function(issue) { %>
             <div class="issue-item low">
                 <span class="priority-badge priority-low">Low</span>
+                <% if (issue.confidence) { %>
+                <span style="margin-left: 5px;"><%= getConfidenceIcon(issue.confidence) %></span>
+                <% } %>
+                <strong><%= issue.title %></strong>
+                <% if (issue.details) { %>
+                <div style="margin-top: 5px; color: #666;"><%= issue.details %></div>
+                <% } %>
+                <div style="margin-top: 5px; font-size: 0.9em; color: #999;">
+                    Category: <%= issue.category %>
+                </div>
+            </div>
+            <% }); %>
+            <% } %>
+            
+            <% if (infoIssues.length > 0) { %>
+            <h4 style="color: #6B7280; margin-top: 20px;">Manual Review Items</h4>
+            <% infoIssues.forEach(function(issue) { %>
+            <div class="issue-item" style="background: #F3F4F6; border-left-color: #6B7280;">
+                <span class="priority-badge" style="background: #6B7280; color: white;">Review</span>
+                <% if (issue.confidence) { %>
+                <span style="margin-left: 5px;"><%= getConfidenceIcon(issue.confidence) %></span>
+                <% } %>
                 <strong><%= issue.title %></strong>
                 <% if (issue.details) { %>
                 <div style="margin-top: 5px; color: #666;"><%= issue.details %></div>
@@ -490,6 +527,15 @@
             <button onclick="history.back()" class="btn-action btn-secondary-action">
                 <i class="fas fa-arrow-left"></i> Back
             </button>
+        </div>
+        
+        <div style="margin-top: 40px; padding: 20px; background: #F9FAFB; border-radius: 8px; font-size: 0.85em; color: #6B7280; line-height: 1.6;">
+            <p style="margin: 0;">
+                <strong>Analysis Methodology:</strong> This automated analysis evaluates publicly accessible website data using industry best practices and current web standards. 
+                Some dynamic content may require manual verification. Results are based on a single page snapshot and may vary based on network conditions, 
+                device type, and geographic location. For the most accurate assessment of features that load dynamically (such as image galleries or search filters), 
+                manual review is recommended. Confidence indicators: ✅ High Confidence | ⚠️ Moderate Confidence | 🔍 Manual Review Recommended
+            </p>
         </div>
         
         <div class="footer">
