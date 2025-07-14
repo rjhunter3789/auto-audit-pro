@@ -1779,8 +1779,14 @@ app.get('/api/health', (req, res) => {
         timestamp: new Date().toISOString(),
         version: '2.0.0',
         categories: testCategories.length,
-        features: ['8-category testing', 'real performance data', 'content analysis']
+        features: ['8-category testing', 'real performance data', 'content analysis'],
+        environment: process.env.NODE_ENV || 'development'
     });
+});
+
+// Simple test endpoint
+app.get('/', (req, res) => {
+    res.send('Auto Audit Pro Server is running!');
 });
 
 // --- Website Routes ---
