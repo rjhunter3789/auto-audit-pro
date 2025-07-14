@@ -1,5 +1,61 @@
 # Auto Audit Pro Suite - Changelog & Feature Documentation
 
+## Version 2.2.9 - July 14, 2025 (Deployment Fixes & Issue Context)
+
+### 🚀 Deployment & Infrastructure Fixes
+
+#### 🔧 Fixed Railway Deployment Issues
+- **Issue**: Deployment failing at healthcheck due to Chrome/Selenium dependencies
+- **Solutions Implemented**:
+  1. Created `selenium-wrapper.js` to gracefully handle missing Selenium
+  2. Made Selenium optional - app works without it using Cheerio fallback
+  3. Simplified `nixpacks.toml` to remove Chrome dependencies
+  4. Fixed undefined variables and import issues
+  5. Added proper error handling for missing WebDriver
+- **Files Created**:
+  - `/lib/selenium-wrapper.js` - Graceful Selenium handling
+  - `/server-simple.js` - Lightweight server without Selenium (backup)
+- **Files Modified**:
+  - `/nixpacks.toml` - Removed Chrome/ChromeDriver dependencies
+  - `/server.js` - Made Selenium optional with fallbacks
+  - `/package.json` - Updated scripts
+  - `/railway.json` - Added healthcheck timeout
+
+#### 🕐 Fixed Timestamp Display Issues
+- **Issue**: Reports showing UTC time instead of local time (6:08 PM vs 11:08 AM)
+- **Fix**: Changed from server-side formatting to client-side formatting
+- **Implementation**:
+  - Store timestamps as ISO strings (timezone-agnostic)
+  - Format on client using browser's local timezone
+  - Added JavaScript to convert timestamps on page load
+- **Files Modified**:
+  - `/lib/audit-tests.js` - Changed to use `toISOString()`
+  - `/views/reports-dealer-style.html` - Added client-side formatting
+  - `/views/reports-new.html` - Added client-side formatting
+  - `/server.js` - Updated timestamp generation
+
+#### 📝 Enhanced Issue Descriptions with Page Context
+- **Issue**: Vague issue descriptions like "Multiple H1 Tags" without page context
+- **Fix**: Added page context to all issue titles and descriptions
+- **Examples**:
+  - "Multiple H1 tags" → "Multiple H1 tags on Homepage"
+  - "No pricing information found" → "No pricing information found on inventory new 2024 ford f150"
+- **Files Modified**:
+  - `/lib/audit-tests.js` - Updated all test functions to include URL parameter
+  - `/lib/page-specific-tests.js` - Added page context to all issues
+
+### 🐛 Bug Fixes
+- Fixed syntax error with malformed regex in audit-tests.js
+- Fixed duplicate route definitions in server.js
+- Fixed undefined `chromeOptions` variable
+- Fixed missing imports for Builder, By, until from Selenium
+
+### 🔄 Deployment Status
+- App now deploys successfully on Railway
+- Runs in "lightweight mode" without Chrome (Cheerio-only)
+- Full functionality available when running locally with Chrome
+- Healthchecks pass quickly without heavy dependencies
+
 ## Version 2.2.8 - July 14, 2025 (Lead Performance UI Fixes & Settings)
 
 ### 🎨 Lead Performance Intelligence UI Improvements

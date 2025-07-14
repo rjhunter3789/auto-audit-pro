@@ -1,5 +1,62 @@
 # Recovery Instructions - Auto Audit Pro
 
+## Current Status (Updated: July 14, 2025 - Deployment Fixes)
+
+### Critical Deployment Fixes - Railway Platform
+- **Date**: July 14, 2025 (Late Evening)
+- **Issue**: Deployment failing at healthcheck stage due to Chrome/Selenium dependencies
+- **Resolution**: Made Selenium optional, app now deploys successfully
+
+#### Deployment Architecture Changes
+1. **Created Selenium Wrapper** (`/lib/selenium-wrapper.js`)
+   - Gracefully handles when Selenium/Chrome not available
+   - Falls back to Cheerio-only mode
+   - Maintains API compatibility
+
+2. **Modified Server Architecture**
+   - Main server (`server.js`) now checks for Selenium availability
+   - Created lightweight backup (`server-simple.js`) as fallback
+   - All Selenium operations wrapped in availability checks
+
+3. **Simplified Dependencies**
+   - Removed Chrome/ChromeDriver from `nixpacks.toml`
+   - Deployment now completes in under 2 minutes
+   - Healthchecks pass immediately
+
+#### Current Deployment Status
+- **Platform**: Railway
+- **Status**: ✅ Successfully Deployed
+- **Mode**: Lightweight (Cheerio-only, no browser rendering)
+- **Limitations**: 
+  - No JavaScript execution on audited sites
+  - No dynamic content analysis
+  - Basic HTML parsing only
+- **Full Features**: Available when running locally with Chrome
+
+#### How to Deploy Successfully
+```bash
+# Ensure latest code
+git pull origin main
+
+# Railway will auto-deploy on push
+git push origin main
+
+# Or manual deploy
+railway up
+```
+
+#### Running Locally with Full Features
+```bash
+# Install dependencies
+npm install
+
+# Run with full Selenium support
+npm run start:full
+
+# Or run lightweight version
+npm run start:simple
+```
+
 ## Current Status (Updated: July 14, 2025 - Evening)
 
 ### Latest Updates - Lead Performance UI Fixes & Settings
