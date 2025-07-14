@@ -3,7 +3,9 @@
     "allow": [
       "Bash(railway status:*)",
       "Bash(cat:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": []
   }
