@@ -43,6 +43,11 @@ document.addEventListener('DOMContentLoaded', function() {
     setupDragAndDrop();
     setupSecurityFeatures();
     
+    // Load saved settings
+    setTimeout(() => {
+        loadSavedSettings();
+    }, 100);
+    
     // Check if we should select a specific dealer
     setTimeout(() => {
         const selectDealer = sessionStorage.getItem('selectDealer');
@@ -2940,3 +2945,93 @@ function testResponseTimeParsing() {
 }
 
 window.testResponseTimeParsing = testResponseTimeParsing;
+
+// Settings functions
+window.saveSettings = function() {
+    const settings = {
+        targetConversion: document.getElementById('targetConversion').value,
+        target15Min: document.getElementById('target15Min').value,
+        targetNoResponse: document.getElementById('targetNoResponse').value,
+        eliteThreshold: document.getElementById('eliteThreshold').value,
+        strongThreshold: document.getElementById('strongThreshold').value,
+        averageThreshold: document.getElementById('averageThreshold').value,
+        avgGrossProfit: document.getElementById('avgGrossProfit').value,
+        avgMarketingSpend: document.getElementById('avgMarketingSpend').value,
+        dataRetention: document.getElementById('dataRetention').value,
+        defaultReportFormat: document.getElementById('defaultReportFormat').value,
+        autoSelectDealer: document.getElementById('autoSelectDealer').checked
+    };
+    
+    // Save to localStorage
+    localStorage.setItem('leadPerformanceSettings', JSON.stringify(settings));
+    
+    // Show success message
+    const alert = document.getElementById('settingsAlert');
+    if (alert) {
+        alert.style.display = 'block';
+        setTimeout(() => {
+            alert.style.display = 'none';
+        }, 3000);
+    }
+    
+    // Update tier thresholds if dealer data is loaded
+    if (uploadedDealerData && Object.keys(uploadedDealerData).length > 0) {
+        updatePerformanceTiers();
+    }
+}
+
+window.resetSettings = function() {
+    if (confirm('Are you sure you want to reset all settings to default values?')) {
+        // Reset form values
+        document.getElementById('targetConversion').value = '18';
+        document.getElementById('target15Min').value = '40';
+        document.getElementById('targetNoResponse').value = '10';
+        document.getElementById('eliteThreshold').value = '20';
+        document.getElementById('strongThreshold').value = '16';
+        document.getElementById('averageThreshold').value = '12';
+        document.getElementById('avgGrossProfit').value = '4250';
+        document.getElementById('avgMarketingSpend').value = '25000';
+        document.getElementById('dataRetention').value = '7days';
+        document.getElementById('defaultReportFormat').value = 'pdf';
+        document.getElementById('autoSelectDealer').checked = true;
+        
+        // Clear saved settings
+        localStorage.removeItem('leadPerformanceSettings');
+        
+        // Show success message
+        const alert = document.getElementById('settingsAlert');
+        if (alert) {
+            alert.innerHTML = '<i class="fas fa-check-circle"></i> Settings reset to defaults!';
+            alert.style.display = 'block';
+            setTimeout(() => {
+                alert.style.display = 'none';
+                alert.innerHTML = '<i class="fas fa-check-circle"></i> Settings saved successfully!';
+            }, 3000);
+        }
+    }
+}
+
+// Load saved settings on page load
+function loadSavedSettings() {
+    const savedSettings = localStorage.getItem('leadPerformanceSettings');
+    if (savedSettings) {
+        try {
+            const settings = JSON.parse(savedSettings);
+            
+            // Apply saved values
+            if (settings.targetConversion) document.getElementById('targetConversion').value = settings.targetConversion;
+            if (settings.target15Min) document.getElementById('target15Min').value = settings.target15Min;
+            if (settings.targetNoResponse) document.getElementById('targetNoResponse').value = settings.targetNoResponse;
+            if (settings.eliteThreshold) document.getElementById('eliteThreshold').value = settings.eliteThreshold;
+            if (settings.strongThreshold) document.getElementById('strongThreshold').value = settings.strongThreshold;
+            if (settings.averageThreshold) document.getElementById('averageThreshold').value = settings.averageThreshold;
+            if (settings.avgGrossProfit) document.getElementById('avgGrossProfit').value = settings.avgGrossProfit;
+            if (settings.avgMarketingSpend) document.getElementById('avgMarketingSpend').value = settings.avgMarketingSpend;
+            if (settings.dataRetention) document.getElementById('dataRetention').value = settings.dataRetention;
+            if (settings.defaultReportFormat) document.getElementById('defaultReportFormat').value = settings.defaultReportFormat;
+            if (settings.autoSelectDealer !== undefined) document.getElementById('autoSelectDealer').checked = settings.autoSelectDealer;
+        } catch (e) {
+            console.error('Error loading saved settings:', e);
+        }
+    }
+}
