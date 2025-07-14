@@ -14,13 +14,14 @@
 
 const express = require('express');
 const cors = require('cors');
-const { Builder, By, until } = require('selenium-webdriver');
-const chrome = require('selenium-webdriver/chrome');
 const axios = require('axios');
 const fs = require('fs').promises;
 const path = require('path');
 const cheerio = require('cheerio');
 const url = require('url');
+
+// Load Selenium through wrapper (gracefully handles when not available)
+const seleniumWrapper = require('./lib/selenium-wrapper');
 
 // Load custom modules
 const groupAnalysis = require('./lib/group-analysis');
@@ -71,7 +72,7 @@ let auditHistory = [];
 
 // Configure Chrome options for Selenium
 function getChromeOptions() {
-    const options = new chrome.Options();
+    return seleniumWrapper.getChromeOptions();
     options.addArguments('--headless');
     options.addArguments('--no-sandbox');
     options.addArguments('--disable-dev-shm-usage');

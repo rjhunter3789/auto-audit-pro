@@ -4,7 +4,8 @@
   "description": "MVP Backend for Dealership Website Audit Tool with real Selenium automation",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node server-simple.js",
+    "start:full": "node server.js",
     "start:prod": "bash start.sh",
     "dev": "nodemon server.js",
     "test": "jest",
