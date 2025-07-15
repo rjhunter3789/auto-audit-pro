@@ -1636,5 +1636,31 @@
     "acknowledged": false,
     "resolved": false,
     "created_at": "2025-07-15T23:45:02.898Z"
+  },
+  {
+    "id": 1752623658562,
+    "profile_id": 1752551890324,
+    "result_id": 1752623658511,
+    "rule_id": 9,
+    "alert_level": "YELLOW",
+    "alert_type": "inventory_count",
+    "alert_message": "WARNING: Low inventory count (Unknown vehicles)",
+    "notification_sent": false,
+    "acknowledged": false,
+    "resolved": false,
+    "created_at": "2025-07-15T23:54:18.562Z"
+  },
+  {
+    "id": 1752623659421,
+    "profile_id": 1752551890324,
+    "result_id": 1752623658511,
+    "rule_id": 10,
+    "alert_level": "YELLOW",
+    "alert_type": "mobile_score",
+    "alert_message": "WARNING: Mobile performance score is Unknown/100",
+    "notification_sent": false,
+    "acknowledged": false,
+    "resolved": false,
+    "created_at": "2025-07-15T23:54:19.421Z"
   }
 ]
