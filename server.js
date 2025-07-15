@@ -2405,38 +2405,64 @@ app.post('/api/monitoring/test-alert/:profileId', async (req, res) => {
         };
         
         // Send test notifications based on preferences
-        const emailSent = profile.alert_preferences?.email !== false;
-        const smsSent = profile.alert_preferences?.sms === true && profile.alert_phone;
+        const emailEnabled = profile.alert_preferences?.email !== false;
+        const smsEnabled = profile.alert_preferences?.sms === true && profile.alert_phone;
         
-        let message = 'Test notifications sent:';
+        let message = '';
+        let emailSent = false;
+        let smsSent = false;
         
-        if (emailSent) {
-            // Send test email
-            await notificationService.sendEmail(
-                profile.alert_email || profile.contact_email,
-                '🔔 Test Alert - Auto Audit Pro Monitoring',
-                `<h2>Test Notification</h2>
-                <p>This is a test notification from Auto Audit Pro Website Monitoring.</p>
-                <p><strong>Website:</strong> ${profile.dealer_name}</p>
-                <p><strong>URL:</strong> ${profile.website_url}</p>
-                <hr>
-                <p>If you received this email, your email notifications are working correctly!</p>
-                <p>When monitoring detects issues, you'll receive alerts similar to this one.</p>`
-            );
-            message += '\n✅ Email sent to ' + (profile.alert_email || profile.contact_email);
+        if (emailEnabled) {
+            try {
+                // Send test email
+                const result = await notificationService.sendEmail(
+                    profile.alert_email || profile.contact_email,
+                    '🔔 Test Alert - Auto Audit Pro Monitoring',
+                    `<h2>Test Notification</h2>
+                    <p>This is a test notification from Auto Audit Pro Website Monitoring.</p>
+                    <p><strong>Website:</strong> ${profile.dealer_name}</p>
+                    <p><strong>URL:</strong> ${profile.website_url}</p>
+                    <hr>
+                    <p>If you received this email, your email notifications are working correctly!</p>
+                    <p>When monitoring detects issues, you'll receive alerts similar to this one.</p>`
+                );
+                
+                if (result) {
+                    emailSent = true;
+                    message += '\n✅ Email sent to ' + (profile.alert_email || profile.contact_email);
+                } else {
+                    message += '\n⚠️ Email notifications not configured on server (SMTP settings required)';
+                }
+            } catch (error) {
+                message += '\n❌ Email failed: ' + error.message;
+            }
         }
         
-        if (smsSent) {
-            // Send test SMS only if phone number exists
-            await notificationService.sendSMS(
-                profile.alert_phone,
-                `🔔 TEST ALERT - Auto Audit Pro\n\nThis is a test SMS for ${profile.dealer_name}.\n\nIf you see this, SMS alerts are working!`
-            );
-            message += '\n✅ SMS sent to ' + profile.alert_phone;
+        if (smsEnabled) {
+            try {
+                // Send test SMS only if phone number exists
+                const result = await notificationService.sendSMS(
+                    profile.alert_phone,
+                    `🔔 TEST ALERT - Auto Audit Pro\n\nThis is a test SMS for ${profile.dealer_name}.\n\nIf you see this, SMS alerts are working!`
+                );
+                
+                if (result) {
+                    smsSent = true;
+                    message += '\n✅ SMS sent to ' + profile.alert_phone;
+                } else {
+                    message += '\n⚠️ SMS notifications not configured on server (Twilio settings required)';
+                }
+            } catch (error) {
+                message += '\n❌ SMS failed: ' + error.message;
+            }
         }
         
-        if (!emailSent && !smsSent) {
-            message = 'No notifications sent. Please configure email or SMS alerts in your profile.';
+        if (!emailEnabled && !smsEnabled) {
+            message = 'No notifications enabled. Please configure email or SMS alerts in your profile.';
+        } else if (message.trim() === '') {
+            message = 'Test notifications attempted but no services are configured on the server.';
+        } else {
+            message = 'Test notification results:' + message;
         }
         
         res.json({ 

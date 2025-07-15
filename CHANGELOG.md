@@ -12,6 +12,12 @@
   - Shows success message with details of what was sent
   - Backend endpoint `/api/monitoring/test-alert/:profileId`
 - **Benefits**: Users can confirm their notification settings are correct
+- **Important Note**: Email/SMS services are optional and require server configuration:
+  - Email requires SMTP settings (Gmail, Outlook, etc.)
+  - SMS requires Twilio account
+  - Monitoring works perfectly without these configured
+  - Dashboard shows all alerts regardless of notification setup
+- **Added**: MONITORING-NOTIFICATIONS-SETUP.md guide for configuration
 
 ## Version 2.3.3 - July 15, 2025 (LastPass Defeated on All Monitoring Fields)
 

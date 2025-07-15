@@ -9,7 +9,9 @@
       "Bash(npm install:*)",
       "Bash(grep:*)",
       "Bash(mkdir:*)",
-      "Bash(npm start)"
+      "Bash(npm start)",
+      "Bash(pkill:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
   }
