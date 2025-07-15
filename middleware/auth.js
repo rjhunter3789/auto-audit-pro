@@ -4,8 +4,8 @@ const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'AutoAudit2025!'; // CHANGE THIS NOW!
 
 function checkAuth(req, res, next) {
-    // Allow access to login page
-    if (req.path === '/login' || req.path === '/api/login') {
+    // Allow access to login page and logout
+    if (req.path === '/login' || req.path === '/api/login' || req.path === '/logout') {
         return next();
     }
     

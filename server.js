@@ -44,11 +44,14 @@ app.use(session({
     secret: process.env.SESSION_SECRET || 'AutoAuditPro-Secret-Key-2025',
     resave: false,
     saveUninitialized: false,
+    name: 'autoaudit.sid', // Custom session name
     cookie: { 
         secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
         // maxAge removed - session ends when browser closes
-        sameSite: 'strict' // Added for extra security
+        sameSite: 'strict', // Added for extra security
+        domain: 'localhost', // Restrict to localhost
+        path: '/' // Restrict to root path
     }
 }));
 
@@ -117,8 +120,16 @@ app.post('/api/login', (req, res) => {
 });
 
 app.get('/logout', (req, res) => {
-    req.session.destroy();
-    res.redirect('/login');
+    console.log('Logout route hit!'); // Debug log
+    if (req.session) {
+        req.session.destroy((err) => {
+            res.clearCookie('autoaudit.sid'); // Clear the session cookie
+            res.clearCookie('connect.sid'); // Clear default session cookie too
+            res.redirect('/login');
+        });
+    } else {
+        res.redirect('/login');
+    }
 });
 
 // Health check endpoint (no auth required for deployment health checks)
