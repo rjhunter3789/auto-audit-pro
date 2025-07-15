@@ -20,6 +20,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const cheerio = require('cheerio');
 const url = require('url');
+const multer = require('multer');
 
 // Load Selenium through wrapper (gracefully handles when not available)
 const seleniumWrapper = require('./lib/selenium-wrapper');
@@ -59,6 +60,7 @@ app.use(express.urlencoded({ extended: true })); // This lets our server underst
 app.use('/js', express.static(path.join(__dirname, 'public/js')));
 app.use('/css', express.static(path.join(__dirname, 'public/css')));
 app.use('/images', express.static(path.join(__dirname, 'public/images')));
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 // Authentication middleware
 const { checkAuth, ADMIN_USERNAME, ADMIN_PASSWORD } = require('./middleware/auth');
@@ -237,6 +239,79 @@ app.post('/api/change-password', async (req, res) => {
     } catch (error) {
         console.error('Error changing password:', error);
         res.status(500).json({ error: 'Failed to update credentials' });
+    }
+});
+
+// Configure multer for profile picture uploads
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const uploadDir = path.join(__dirname, 'public/uploads/profiles');
+        // Ensure directory exists
+        require('fs').mkdir(uploadDir, { recursive: true }, (err) => {
+            if (err && err.code !== 'EEXIST') {
+                return cb(err);
+            }
+            cb(null, uploadDir);
+        });
+    },
+    filename: function (req, file, cb) {
+        // Use admin username for filename
+        const username = req.session.username || 'admin';
+        const ext = path.extname(file.originalname);
+        cb(null, `${username}-profile${ext}`);
+    }
+});
+
+const upload = multer({
+    storage: storage,
+    limits: {
+        fileSize: 5 * 1024 * 1024 // 5MB limit
+    },
+    fileFilter: function (req, file, cb) {
+        // Accept only image files
+        if (!file.mimetype.startsWith('image/')) {
+            return cb(new Error('Only image files are allowed'));
+        }
+        cb(null, true);
+    }
+});
+
+// Upload profile picture
+app.post('/api/upload-profile-pic', upload.single('profilePic'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+    }
+    
+    // Log the upload
+    logSecurityEvent({
+        type: 'PROFILE_PIC_UPDATED',
+        ip: req.ip || req.connection.remoteAddress,
+        path: '/api/upload-profile-pic',
+        details: `User: ${req.session.username || 'admin'}`
+    });
+    
+    res.json({ success: true, filename: req.file.filename });
+});
+
+// Get profile picture
+app.get('/api/profile-pic', async (req, res) => {
+    const username = req.session.username || 'admin';
+    const profileDir = path.join(__dirname, 'public/uploads/profiles');
+    
+    try {
+        // Look for any image file with the username prefix
+        const files = await fs.readdir(profileDir);
+        const profilePic = files.find(file => file.startsWith(`${username}-profile`));
+        
+        if (profilePic) {
+            res.sendFile(path.join(profileDir, profilePic));
+        } else {
+            // Send default avatar
+            res.redirect('/images/default-avatar.png');
+        }
+    } catch (error) {
+        // Send default avatar if directory doesn't exist
+        res.redirect('/images/default-avatar.png');
     }
 });
 

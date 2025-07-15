@@ -7,7 +7,7 @@ const failedAttempts = new Map();
 const blockedIPs = new Set();
 
 // Configuration
-const MAX_ATTEMPTS = 5;
+const MAX_ATTEMPTS = 3; // Changed from 5 to 3 for stricter security
 const BLOCK_DURATION = 30 * 60 * 1000; // 30 minutes
 const SUSPICIOUS_PATHS = [
     '/wp-admin', '/wp-login', '.php', '/admin', '/phpmyadmin',

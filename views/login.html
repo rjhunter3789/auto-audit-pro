@@ -83,6 +83,26 @@
             </button>
         </form>
         
+        <script>
+            // Check for error parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
+            
+            if (error === '1') {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-danger mt-3';
+                alertDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Invalid credentials. You have 3 attempts before lockout.';
+                document.querySelector('form').appendChild(alertDiv);
+            } else if (error === 'blocked') {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-danger mt-3';
+                alertDiv.innerHTML = '<i class="fas fa-ban"></i> Too many failed attempts. Your IP has been blocked for 30 minutes.';
+                document.querySelector('form').appendChild(alertDiv);
+                // Disable form
+                document.querySelectorAll('input, button').forEach(el => el.disabled = true);
+            }
+        </script>
+        
         <div class="text-center mt-3">
             <small class="text-muted">© 2025 JL Robinson. All Rights Reserved.</small>
         </div>

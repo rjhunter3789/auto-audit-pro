@@ -1,5 +1,32 @@
 # Auto Audit Pro Suite - Changelog & Feature Documentation
 
+## Version 2.4.3 - July 16, 2025 (Enhanced Security & Profile Pictures)
+
+### 🔒 3-Attempt Force Lockout
+- **Changed**: Maximum login attempts reduced from 5 to 3
+- **Security**: Stricter protection against brute force attacks
+- **Lockout**: IP blocked for 30 minutes after 3 failed attempts
+- **UI**: Login page shows lockout status and disables form
+- **Logging**: All attempts logged to security.log
+
+### 🖼️ Profile Picture Support
+- **New Feature**: Upload custom profile picture
+- **Location**: Available in Change Password page
+- **Features**:
+  - Click to upload or drag-and-drop
+  - 5MB file size limit
+  - Image files only (jpg, png, gif, etc.)
+  - Instant preview after upload
+  - Default avatar if no picture set
+- **Storage**: Profile pictures saved to `/public/uploads/profiles/`
+- **Security**: Profile picture changes logged
+
+### 🔑 SESSION_SECRET Information
+- **Important**: Change the default SESSION_SECRET in .env
+- **Purpose**: Used to sign session cookies
+- **Recommendation**: Use a long, random string (64+ characters)
+- **Generator**: Created script to generate secure secrets
+
 ## Version 2.4.2 - July 16, 2025 (Password Change Feature Added)
 
 ### 🔑 Password Management
