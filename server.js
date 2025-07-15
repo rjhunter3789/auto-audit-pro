@@ -118,6 +118,18 @@ app.get('/logout', (req, res) => {
     res.redirect('/login');
 });
 
+// Health check endpoint (no auth required for deployment health checks)
+app.get('/api/health', (req, res) => {
+    res.json({ 
+        status: 'OK', 
+        timestamp: new Date().toISOString(),
+        version: '2.0.0',
+        categories: 8,
+        features: ['8-category testing', 'real performance data', 'content analysis'],
+        environment: process.env.NODE_ENV || 'development'
+    });
+});
+
 // LOCKDOWN: Apply authentication to ALL routes after this point
 app.use(checkAuth);
 
@@ -1820,17 +1832,6 @@ function generateAuditId() {
     return 'audit_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 }
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-    res.json({ 
-        status: 'OK', 
-        timestamp: new Date().toISOString(),
-        version: '2.0.0',
-        categories: testCategories.length,
-        features: ['8-category testing', 'real performance data', 'content analysis'],
-        environment: process.env.NODE_ENV || 'development'
-    });
-});
 
 // --- Website Routes ---
 
