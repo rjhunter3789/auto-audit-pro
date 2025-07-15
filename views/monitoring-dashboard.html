@@ -409,43 +409,37 @@
             // Refresh every 60 seconds
             setInterval(loadDashboard, 60000);
             
-            // Aggressive LastPass removal
-            function removeLastPass() {
-                // Remove any LastPass elements
+            // LastPass removal - less aggressive to avoid infinite loops
+            function cleanPhoneField() {
+                // Remove LastPass elements
                 document.querySelectorAll('[id*="__lpform"], [class*="lastpass"], [data-lastpass]').forEach(el => {
                     el.remove();
                 });
                 
-                // Force clean background on phone field
+                // Clean phone field styling
                 const phoneField = document.getElementById('alertPhone');
-                if (phoneField) {
-                    phoneField.style.backgroundImage = 'none !important';
-                    phoneField.style.backgroundColor = 'white !important';
-                    phoneField.setAttribute('data-lpignore', 'true');
+                if (phoneField && !phoneField.dataset.cleaned) {
+                    phoneField.style.backgroundImage = 'none';
+                    phoneField.style.backgroundColor = 'white';
+                    phoneField.dataset.cleaned = 'true';
                     
-                    // Clone and replace to break event listeners
-                    const newField = phoneField.cloneNode(true);
-                    phoneField.parentNode.replaceChild(newField, phoneField);
-                    
-                    // Re-add focus event
-                    newField.addEventListener('focus', function() {
+                    // Add focus event only once
+                    phoneField.addEventListener('focus', function() {
                         this.removeAttribute('readonly');
-                    });
+                    }, { once: true });
                 }
             }
             
-            // Run immediately and repeatedly
-            removeLastPass();
-            setInterval(removeLastPass, 100);
+            // Run once after a short delay
+            setTimeout(cleanPhoneField, 500);
             
-            // Watch for DOM changes
-            const observer = new MutationObserver(removeLastPass);
-            observer.observe(document.body, { childList: true, subtree: true });
+            // Run periodically but less frequently
+            const cleanInterval = setInterval(cleanPhoneField, 2000);
             
-            // Stop after 10 seconds to save resources
+            // Stop after 20 seconds
             setTimeout(() => {
-                observer.disconnect();
-            }, 10000);
+                clearInterval(cleanInterval);
+            }, 20000);
         });
 
         async function loadDashboard() {
