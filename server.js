@@ -12,6 +12,9 @@
  * Unauthorized reproduction or distribution is prohibited.
  */
 
+// Load environment variables FIRST
+require('dotenv').config();
+
 const express = require('express');
 const session = require('express-session');
 const cors = require('cors');
@@ -21,6 +24,11 @@ const path = require('path');
 const cheerio = require('cheerio');
 const url = require('url');
 const multer = require('multer');
+
+// Debug .env loading
+console.log('[ENV Debug] ADMIN_USERNAME from env:', process.env.ADMIN_USERNAME);
+console.log('[ENV Debug] ADMIN_PASSWORD exists:', !!process.env.ADMIN_PASSWORD);
+console.log('[ENV Debug] SESSION_SECRET exists:', !!process.env.SESSION_SECRET);
 
 // Load Selenium through wrapper (gracefully handles when not available)
 const seleniumWrapper = require('./lib/selenium-wrapper');
@@ -33,8 +41,6 @@ const DealerSearcher = require('./lib/dealer-search');
 // Load JSON storage for monitoring system
 const { pool } = require('./lib/json-storage');
 
-// Load environment variables
-require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -89,6 +95,10 @@ app.get('/login', (req, res) => {
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
     const ip = req.ip || req.connection.remoteAddress;
+    
+    console.log('[Login Debug] Attempting login:', { username, passwordLength: password?.length });
+    console.log('[Login Debug] Expected username:', ADMIN_USERNAME);
+    console.log('[Login Debug] Password match:', password === ADMIN_PASSWORD);
     
     if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
         req.session.authenticated = true;
