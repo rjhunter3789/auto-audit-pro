@@ -70,18 +70,20 @@ function checkSuspiciousActivity(req, res, next) {
         }
     }
     
-    // Check for SQL injection patterns
-    const sqlPatterns = /(\bselect\b|\bunion\b|\bdrop\b|\binsert\b|\bupdate\b|\bdelete\b|;|'|")/i;
-    const queryString = JSON.stringify(req.query) + JSON.stringify(req.body);
-    
-    if (sqlPatterns.test(queryString)) {
-        logSecurityEvent({
-            type: 'SQL_INJECTION_ATTEMPT',
-            ip: ip,
-            path: requestPath,
-            details: `Potential SQL injection: ${queryString.substring(0, 100)}`
-        });
-        return res.status(400).send('Bad Request');
+    // Check for SQL injection patterns (skip login endpoint to avoid false positives)
+    if (requestPath !== '/api/login') {
+        const sqlPatterns = /(\bselect\b|\bunion\b|\bdrop\b|\binsert\b|\bupdate\b|\bdelete\b|;|--|\/\*|\*\/)/i;
+        const queryString = JSON.stringify(req.query) + JSON.stringify(req.body);
+        
+        if (sqlPatterns.test(queryString)) {
+            logSecurityEvent({
+                type: 'SQL_INJECTION_ATTEMPT',
+                ip: ip,
+                path: requestPath,
+                details: `Potential SQL injection: ${queryString.substring(0, 100)}`
+            });
+            return res.status(400).send('Bad Request');
+        }
     }
     
     next();

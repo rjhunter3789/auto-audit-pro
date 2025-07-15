@@ -2312,5 +2312,57 @@
     "acknowledged": false,
     "resolved": false,
     "created_at": "2025-07-15T15:15:00.897Z"
+  },
+  {
+    "id": 1752593400595,
+    "profile_id": 1752551890324,
+    "result_id": 1752593400552,
+    "rule_id": 2,
+    "alert_level": "RED",
+    "alert_type": "ssl_valid",
+    "alert_message": "CRITICAL: SSL certificate is invalid - browsers showing security warnings!",
+    "notification_sent": false,
+    "acknowledged": false,
+    "resolved": false,
+    "created_at": "2025-07-15T15:30:00.595Z"
+  },
+  {
+    "id": 1752593400669,
+    "profile_id": 1752551890324,
+    "result_id": 1752593400552,
+    "rule_id": 7,
+    "alert_level": "YELLOW",
+    "alert_type": "ssl_expiry_days",
+    "alert_message": "WARNING: SSL certificate expires in {ssl_expiry_days} days",
+    "notification_sent": false,
+    "acknowledged": false,
+    "resolved": false,
+    "created_at": "2025-07-15T15:30:00.669Z"
+  },
+  {
+    "id": 1752593400722,
+    "profile_id": 1752551890324,
+    "result_id": 1752593400552,
+    "rule_id": 9,
+    "alert_level": "YELLOW",
+    "alert_type": "inventory_count",
+    "alert_message": "WARNING: Low inventory count ({inventory_count} vehicles)",
+    "notification_sent": false,
+    "acknowledged": false,
+    "resolved": false,
+    "created_at": "2025-07-15T15:30:00.722Z"
+  },
+  {
+    "id": 1752593400775,
+    "profile_id": 1752551890324,
+    "result_id": 1752593400552,
+    "rule_id": 10,
+    "alert_level": "YELLOW",
+    "alert_type": "mobile_score",
+    "alert_message": "WARNING: Mobile performance score is {mobile_score}/100",
+    "notification_sent": false,
+    "acknowledged": false,
+    "resolved": false,
+    "created_at": "2025-07-15T15:30:00.775Z"
   }
 ]
