@@ -119,5 +119,16 @@
     "alert_level": "YELLOW",
     "alert_message_template": "WARNING: Homepage is {page_size_kb}KB - may load slowly",
     "enabled": true
+  },
+  {
+    "id": 12,
+    "rule_name": "Expired Incentives",
+    "rule_category": "content",
+    "check_type": "expired_incentives",
+    "condition": "equals",
+    "threshold_value": true,
+    "alert_level": "YELLOW",
+    "alert_message_template": "WARNING: Expired incentives/offers found on website",
+    "enabled": true
   }
 ]
