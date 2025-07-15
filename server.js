@@ -13,6 +13,7 @@
  */
 
 const express = require('express');
+const session = require('express-session');
 const cors = require('cors');
 const axios = require('axios');
 const fs = require('fs').promises;
@@ -37,6 +38,18 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3002;
 
+// Session setup for authentication - MUST BE FIRST
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'AutoAuditPro-Secret-Key-2025',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { 
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
+}));
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -46,6 +59,34 @@ app.use(express.urlencoded({ extended: true })); // This lets our server underst
 app.use('/js', express.static(path.join(__dirname, 'public/js')));
 app.use('/css', express.static(path.join(__dirname, 'public/css')));
 app.use('/images', express.static(path.join(__dirname, 'public/images')));
+
+// Authentication middleware
+const { checkAuth, ADMIN_USERNAME, ADMIN_PASSWORD } = require('./middleware/auth');
+
+// Login routes (no auth required)
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'login.html'));
+});
+
+app.post('/api/login', (req, res) => {
+    const { username, password } = req.body;
+    
+    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+        req.session.authenticated = true;
+        req.session.username = username;
+        res.redirect('/');
+    } else {
+        res.redirect('/login?error=1');
+    }
+});
+
+app.get('/logout', (req, res) => {
+    req.session.destroy();
+    res.redirect('/login');
+});
+
+// LOCKDOWN: Apply authentication to ALL routes after this point
+app.use(checkAuth);
 
 // Add proper CSP headers for the app
 app.use((req, res, next) => {
