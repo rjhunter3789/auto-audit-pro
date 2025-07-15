@@ -2785,8 +2785,8 @@ app.post('/api/monitoring/test-alert/:profileId', async (req, res) => {
         res.json({ 
             success: actualSuccess, 
             message: message,
-            emailEnabled: emailSent,
-            smsEnabled: smsSent,
+            emailEnabled: emailEnabled,
+            smsEnabled: smsEnabled,
             serviceConfigured: anyServiceConfigured
         });
         
