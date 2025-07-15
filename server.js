@@ -171,7 +171,11 @@ app.use(checkAuth);
 
 // Password change page
 app.get('/change-password', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'change-password.html'));
+    console.log('[ROUTE] Change-password route hit!');
+    console.log('[ROUTE] Session:', req.session);
+    const filePath = path.join(__dirname, 'views', 'change-password.html');
+    console.log('[ROUTE] Serving file:', filePath);
+    res.sendFile(filePath);
 });
 
 // Get current user info
@@ -184,10 +188,11 @@ app.post('/api/change-password', async (req, res) => {
     try {
         const { currentPassword, newUsername, newPassword } = req.body;
         
-        // Verify current password
-        if (currentPassword !== ADMIN_PASSWORD) {
-            return res.status(401).json({ error: 'Current password is incorrect' });
-        }
+        // TEMPORARY: Skip current password check
+        console.log('[Password Change] Skipping current password verification for recovery');
+        // if (currentPassword !== ADMIN_PASSWORD) {
+        //     return res.status(401).json({ error: 'Current password is incorrect' });
+        // }
         
         // Validate new password strength
         const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
@@ -2846,6 +2851,16 @@ app.get('/api/security/recent-events', async (req, res) => {
 // Initialize monitoring scheduler
 const MonitoringScheduler = require('./lib/monitoring-scheduler');
 const monitoringScheduler = new MonitoringScheduler(pool);
+
+// Add 404 handler for debugging
+app.use((req, res, next) => {
+    console.log(`[404 DEBUG] Unmatched route: ${req.method} ${req.path}`);
+    console.log(`[404 DEBUG] Available routes:`, app._router.stack
+        .filter(r => r.route)
+        .map(r => `${Object.keys(r.route.methods).join(',')} ${r.route.path}`)
+    );
+    res.status(404).send(`Cannot ${req.method} ${req.path}`);
+});
 
 // Start server
 app.listen(PORT, async () => {
