@@ -2618,9 +2618,15 @@ app.get('/api/security/recent-events', async (req, res) => {
     }
 });
 
-// Initialize monitoring scheduler
-const MonitoringScheduler = require('./lib/monitoring-scheduler');
-const monitoringScheduler = new MonitoringScheduler(pool);
+// Initialize monitoring scheduler (with error handling)
+let monitoringScheduler;
+try {
+    const MonitoringScheduler = require('./lib/monitoring-scheduler');
+    monitoringScheduler = new MonitoringScheduler(pool);
+} catch (error) {
+    console.error('Warning: Could not initialize monitoring scheduler:', error.message);
+    monitoringScheduler = null;
+}
 
 // Start server
 app.listen(PORT, async () => {
@@ -2640,12 +2646,17 @@ app.listen(PORT, async () => {
     console.log(`   GET  /security - Security dashboard`);
     console.log(`   GET  /api/security/* - Security monitoring endpoints`);
     
-    // Start monitoring scheduler
-    try {
-        await monitoringScheduler.start();
-        console.log('Monitoring scheduler started successfully');
-    } catch (error) {
-        console.error('Failed to start monitoring scheduler:', error);
+    // Start monitoring scheduler (only if available and not in simplified deployment mode)
+    if (monitoringScheduler && process.env.SKIP_MONITORING !== 'true') {
+        try {
+            await monitoringScheduler.start();
+            console.log('Monitoring scheduler started successfully');
+        } catch (error) {
+            console.error('Failed to start monitoring scheduler:', error);
+            console.log('Continuing without monitoring scheduler...');
+        }
+    } else {
+        console.log('Monitoring scheduler skipped (not available or simplified deployment mode)');
     }
 });
 
