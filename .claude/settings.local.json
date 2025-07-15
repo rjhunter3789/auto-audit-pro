@@ -11,7 +11,9 @@
       "Bash(mkdir:*)",
       "Bash(npm start)",
       "Bash(pkill:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(touch:*)",
+      "Bash(rm:*)"
     ],
     "deny": []
   }

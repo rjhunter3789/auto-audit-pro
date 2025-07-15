@@ -1,5 +1,40 @@
 # Auto Audit Pro Suite - Changelog & Feature Documentation
 
+## Version 2.4.1 - July 16, 2025 (Intrusion Detection System Added)
+
+### 🚨 Advanced Security Monitoring
+- **New**: Intrusion Detection System (IDS) implemented
+- **Features**: Real-time threat detection and automatic IP blocking
+- **Dashboard**: Security monitoring dashboard at `/security`
+- **Logging**: All security events logged to `/logs/security.log`
+- **Protection**: Automatic blocking of suspicious activity
+
+### 🛡️ Security Features Implemented
+- **IP Blocking**: Auto-blocks after 5 failed login attempts (30-min duration)
+- **Path Protection**: Detects and blocks common attack vectors:
+  - WordPress admin attempts (/wp-admin, /wp-login)
+  - PHP file access attempts
+  - Database/backup file probing
+  - Git repository access attempts
+- **SQL Injection Detection**: Identifies and blocks SQL injection patterns
+- **Security Dashboard**: Real-time view of:
+  - Currently blocked IPs
+  - Recent security events
+  - Failed login attempts
+  - Intrusion attempts
+- **Automated Response**: Immediate blocking of detected threats
+
+### 📊 Security API Endpoints
+- `GET /security` - Security dashboard (admin only)
+- `GET /api/security/stats` - Current security statistics
+- `GET /api/security/recent-events` - Last 50 security events
+
+### 🔧 Technical Implementation
+- Created `/middleware/security-monitor.js` for threat detection
+- Added security event logging with timestamps
+- Integrated security checks on all incoming requests
+- Added admin links in footer for easy access
+
 ## Version 2.4.0 - July 16, 2025 (SECURITY LOCKDOWN - Critical Update)
 
 ### 🔒 Complete Security Implementation

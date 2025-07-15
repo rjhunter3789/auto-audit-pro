@@ -63,6 +63,18 @@ app.use('/images', express.static(path.join(__dirname, 'public/images')));
 // Authentication middleware
 const { checkAuth, ADMIN_USERNAME, ADMIN_PASSWORD } = require('./middleware/auth');
 
+// Security monitoring
+const { 
+    checkSuspiciousActivity, 
+    trackFailedLogin, 
+    clearFailedAttempts,
+    logSecurityEvent,
+    getSecurityStats 
+} = require('./middleware/security-monitor');
+
+// Apply security monitoring to ALL requests
+app.use(checkSuspiciousActivity);
+
 // Login routes (no auth required)
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'login.html'));
@@ -70,12 +82,33 @@ app.get('/login', (req, res) => {
 
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
+    const ip = req.ip || req.connection.remoteAddress;
     
     if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
         req.session.authenticated = true;
         req.session.username = username;
+        clearFailedAttempts(ip);
+        
+        // Log successful login
+        logSecurityEvent({
+            type: 'LOGIN_SUCCESS',
+            ip: ip,
+            path: '/api/login',
+            details: `User: ${username}`
+        });
+        
         res.redirect('/');
     } else {
+        trackFailedLogin(ip);
+        
+        // Log failed attempt
+        logSecurityEvent({
+            type: 'LOGIN_FAILED',
+            ip: ip,
+            path: '/api/login',
+            details: `Attempted username: ${username}`
+        });
+        
         res.redirect('/login?error=1');
     }
 });
@@ -2536,6 +2569,55 @@ app.post('/api/monitoring/test-alert/:profileId', async (req, res) => {
     }
 });
 
+// ============= SECURITY DASHBOARD ROUTES =============
+
+// Security dashboard (admin only)
+app.get('/security', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'security-dashboard.html'));
+});
+
+// Get security statistics
+app.get('/api/security/stats', (req, res) => {
+    const stats = getSecurityStats();
+    res.json(stats);
+});
+
+// Get recent security events
+app.get('/api/security/recent-events', async (req, res) => {
+    try {
+        const logPath = path.join(__dirname, 'logs', 'security.log');
+        
+        // Ensure log file exists
+        if (!fs.existsSync(logPath)) {
+            return res.json([]);
+        }
+        
+        // Read the security log file
+        const logContent = await fs.promises.readFile(logPath, 'utf8');
+        const lines = logContent.split('\n').filter(line => line.trim());
+        
+        // Parse last 50 events
+        const recentEvents = lines.slice(-50).reverse().map(line => {
+            const match = line.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z) - ([^-]+) - IP: ([^-]+) - Path: ([^-]+) - Details: (.+)$/);
+            if (match) {
+                return {
+                    time: new Date(match[1]).toLocaleString(),
+                    type: match[2].trim(),
+                    ip: match[3].trim(),
+                    path: match[4].trim(),
+                    details: match[5].trim()
+                };
+            }
+            return null;
+        }).filter(Boolean);
+        
+        res.json(recentEvents);
+    } catch (error) {
+        console.error('Error reading security log:', error);
+        res.json([]);
+    }
+});
+
 // Initialize monitoring scheduler
 const MonitoringScheduler = require('./lib/monitoring-scheduler');
 const monitoringScheduler = new MonitoringScheduler(pool);
@@ -2555,6 +2637,8 @@ app.listen(PORT, async () => {
     console.log(`   GET  /api/audits - Get audit history`);
     console.log(`   GET  /api/health - Health check`);
     console.log(`   GET  /api/monitoring/* - Monitoring endpoints`);
+    console.log(`   GET  /security - Security dashboard`);
+    console.log(`   GET  /api/security/* - Security monitoring endpoints`);
     
     // Start monitoring scheduler
     try {
