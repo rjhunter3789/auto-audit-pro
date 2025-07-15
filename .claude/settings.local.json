@@ -15,7 +15,8 @@
       "Bash(touch:*)",
       "Bash(rm:*)",
       "Bash(git push:*)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(node:*)"
     ],
     "deny": []
   }
