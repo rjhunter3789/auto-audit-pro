@@ -636,6 +636,9 @@
                                     <button class="btn btn-sm btn-outline-primary" onclick="runCheck(${profile.id}, event)">
                                         <i class="bi bi-arrow-clockwise"></i> Check Now
                                     </button>
+                                    <button class="btn btn-sm btn-outline-warning ms-1" onclick="sendTestAlert(${profile.id}, event)" title="Send test notifications">
+                                        <i class="bi bi-bell"></i> Test
+                                    </button>
                                     <button class="btn btn-sm btn-outline-secondary ms-1" onclick="toggleMonitoring(${profile.id}, ${profile.monitoring_enabled})">
                                         <i class="bi bi-${profile.monitoring_enabled ? 'pause' : 'play'}"></i> ${profile.monitoring_enabled ? 'Pause' : 'Resume'}
                                     </button>
@@ -826,6 +829,33 @@
 
         function refreshDashboard() {
             loadDashboard();
+        }
+        
+        async function sendTestAlert(profileId, event) {
+            event.stopPropagation();
+            
+            const btn = event.target.closest('button');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+            btn.disabled = true;
+            
+            try {
+                const response = await axios.post(`/api/monitoring/test-alert/${profileId}`);
+                
+                if (response.data.success) {
+                    // Show success message
+                    alert(`Test notifications sent successfully!\n\n${response.data.message}`);
+                } else {
+                    alert('Failed to send test notifications. Please check your alert settings.');
+                }
+                
+            } catch (error) {
+                console.error('Error sending test alert:', error);
+                alert('Failed to send test notifications. Please ensure email/SMS settings are configured.');
+            } finally {
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
         }
 
         async function toggleMonitoring(profileId, currentStatus) {

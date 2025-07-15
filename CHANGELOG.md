@@ -1,5 +1,32 @@
 # Auto Audit Pro Suite - Changelog & Feature Documentation
 
+## Version 2.3.4 - July 15, 2025 (Test Notifications Feature Added)
+
+### 🔔 Test Notifications for Website Monitoring
+- **New Feature**: "Test" button added to each monitored website
+- **Purpose**: Verify email/SMS settings are working before actual issues occur
+- **Implementation**:
+  - Yellow "Test" button with bell icon on each site card
+  - Sends test email to configured email address
+  - Sends test SMS to configured phone (if SMS alerts enabled)
+  - Shows success message with details of what was sent
+  - Backend endpoint `/api/monitoring/test-alert/:profileId`
+- **Benefits**: Users can confirm their notification settings are correct
+
+## Version 2.3.3 - July 15, 2025 (LastPass Defeated on All Monitoring Fields)
+
+### 🛡️ Complete LastPass Removal from Monitoring Dashboard
+- **Issue**: LastPass persisting on all form fields (Contact Email, Alert Email, SMS Phone)
+- **Solution**: Comprehensive multi-layered approach
+- **Implementation**:
+  - Changed all input types to `text` with pattern validation
+  - Renamed all fields with non-standard names (e.g., `monitoring_contact_address`)
+  - Added aggressive JavaScript that targets ALL modal inputs
+  - Implemented MutationObserver to catch new injections
+  - Global CSS rules to hide any LastPass elements
+  - Runs removal code multiple times when modal opens
+- **Result**: LastPass completely eliminated from all monitoring form fields
+
 ## Version 2.3.2 - July 15, 2025 (Monitoring Added to Suite Homepage)
 
 ### 🏠 Website Monitoring on Main Suite Page

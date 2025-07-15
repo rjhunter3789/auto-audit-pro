@@ -2376,6 +2376,85 @@ app.post('/api/monitoring/check/:profileId', async (req, res) => {
     }
 });
 
+// Send test notifications for a profile
+app.post('/api/monitoring/test-alert/:profileId', async (req, res) => {
+    try {
+        const { profileId } = req.params;
+        
+        // Get profile
+        const profileQuery = 'SELECT * FROM monitoring_profiles WHERE id = $1';
+        const profileResult = await pool.query(profileQuery, [profileId]);
+        
+        if (profileResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Profile not found' });
+        }
+        
+        const profile = profileResult.rows[0];
+        
+        // Initialize notification service
+        const NotificationService = require('./lib/notification-service');
+        const notificationService = new NotificationService();
+        
+        // Create test alert data
+        const testAlert = {
+            profile_id: profileId,
+            alert_type: 'TEST_NOTIFICATION',
+            alert_level: 'INFO',
+            alert_message: 'This is a test notification from Auto Audit Pro Website Monitoring',
+            created_at: new Date()
+        };
+        
+        // Send test notifications based on preferences
+        const emailSent = profile.alert_preferences?.email !== false;
+        const smsSent = profile.alert_preferences?.sms === true && profile.alert_phone;
+        
+        let message = 'Test notifications sent:';
+        
+        if (emailSent) {
+            // Send test email
+            await notificationService.sendEmail(
+                profile.alert_email || profile.contact_email,
+                '🔔 Test Alert - Auto Audit Pro Monitoring',
+                `<h2>Test Notification</h2>
+                <p>This is a test notification from Auto Audit Pro Website Monitoring.</p>
+                <p><strong>Website:</strong> ${profile.dealer_name}</p>
+                <p><strong>URL:</strong> ${profile.website_url}</p>
+                <hr>
+                <p>If you received this email, your email notifications are working correctly!</p>
+                <p>When monitoring detects issues, you'll receive alerts similar to this one.</p>`
+            );
+            message += '\n✅ Email sent to ' + (profile.alert_email || profile.contact_email);
+        }
+        
+        if (smsSent) {
+            // Send test SMS only if phone number exists
+            await notificationService.sendSMS(
+                profile.alert_phone,
+                `🔔 TEST ALERT - Auto Audit Pro\n\nThis is a test SMS for ${profile.dealer_name}.\n\nIf you see this, SMS alerts are working!`
+            );
+            message += '\n✅ SMS sent to ' + profile.alert_phone;
+        }
+        
+        if (!emailSent && !smsSent) {
+            message = 'No notifications sent. Please configure email or SMS alerts in your profile.';
+        }
+        
+        res.json({ 
+            success: true, 
+            message: message,
+            emailEnabled: emailSent,
+            smsEnabled: smsSent
+        });
+        
+    } catch (error) {
+        console.error('Error sending test alert:', error);
+        res.status(500).json({ 
+            error: 'Failed to send test notifications',
+            details: error.message 
+        });
+    }
+});
+
 // Initialize monitoring scheduler
 const MonitoringScheduler = require('./lib/monitoring-scheduler');
 const monitoringScheduler = new MonitoringScheduler(pool);
