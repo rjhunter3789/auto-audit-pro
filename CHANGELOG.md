@@ -1,5 +1,16 @@
 # Auto Audit Pro Suite - Changelog & Feature Documentation
 
+## Version 2.3.2 - July 15, 2025 (Monitoring Added to Suite Homepage)
+
+### 🏠 Website Monitoring on Main Suite Page
+- **Added as Third Primary Feature**: Website Monitoring now prominently displayed alongside Website Analysis and Lead Performance
+- **Complete Integration**: 
+  - Tool card with red gradient styling matching monitoring dashboard
+  - Satellite dish icon for consistency 
+  - Feature list highlighting 24/7 monitoring and traffic light alerts
+  - Direct "Open Dashboard" button to monitoring interface
+- **User Request Fulfilled**: Per user suggestion "I'm wondering if the 'Website Monitoring' should be on the Auto Audit Pro Suite 'Home Page'"
+
 ## Version 2.3.1 - July 14, 2025 (Monitoring System Complete - Production Ready)
 
 ### 🎉 Website Monitoring System - Finalized

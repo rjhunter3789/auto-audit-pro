@@ -105,6 +105,10 @@
             background: linear-gradient(90deg, #10B981, #34D399);
         }
 
+        .tool-card.website-monitoring::before {
+            background: linear-gradient(90deg, #e74c3c, #c0392b);
+        }
+
         .tool-icon {
             font-size: 4rem;
             margin-bottom: 1.5rem;
@@ -118,6 +122,12 @@
 
         .lead-performance .tool-icon {
             background: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .website-monitoring .tool-icon {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -185,6 +195,16 @@
 
         .btn-lead:hover {
             background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+            transform: translateY(-1px);
+            color: white;
+        }
+
+        .btn-monitoring {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        .btn-monitoring:hover {
+            background: linear-gradient(135deg, #c0392b 0%, #a02920 100%);
             transform: translateY(-1px);
             color: white;
         }
@@ -453,6 +473,25 @@
                 </ul>
                 <a href="/lead-analysis" class="btn-tool btn-lead">
                     <i class="fas fa-upload"></i> Analyze Leads
+                </a>
+            </div>
+
+            <!-- Website Monitoring Tool -->
+            <div class="tool-card website-monitoring">
+                <i class="fas fa-satellite-dish tool-icon"></i>
+                <h2 class="tool-title">Website Monitoring</h2>
+                <p class="tool-description">
+                    24/7 automated monitoring that alerts you when your website has issues - before customers notice
+                </p>
+                <ul class="tool-features">
+                    <li>Real-time Health Monitoring</li>
+                    <li>Red/Yellow/Green Alerts</li>
+                    <li>SMS & Email Notifications</li>
+                    <li>Performance Tracking</li>
+                    <li>Issue History & Reports</li>
+                </ul>
+                <a href="/monitoring" class="btn-tool btn-monitoring">
+                    <i class="fas fa-desktop"></i> Open Dashboard
                 </a>
             </div>
         </div>
