@@ -195,15 +195,16 @@
         }
         
         /* Anti-LastPass Styles */
-        #alertPhone,
-        input[name="sms_contact_number"] {
+        #sms_notification_contact,
+        input[name="emergency_contact_sms"] {
             background-image: none !important;
             background-attachment: none !important;
             background-color: white !important;
             -webkit-appearance: none !important;
+            padding-right: 40px !important;
         }
         
-        #alertPhone:focus {
+        #sms_notification_contact:focus {
             background-image: none !important;
             background-color: white !important;
         }
@@ -344,21 +345,15 @@
                             <div style="position: relative;">
                                 <input type="text" 
                                        class="form-control" 
-                                       id="alertPhone" 
-                                       name="sms_contact_number"
+                                       id="sms_notification_contact" 
+                                       name="emergency_contact_sms"
                                        placeholder="+1 (555) 123-4567"
-                                       autocomplete="off"
-                                       autocorrect="off"
-                                       autocapitalize="off"
-                                       spellcheck="false"
+                                       autocomplete="nope"
                                        data-lpignore="true"
                                        data-form-type="other"
-                                       readonly
-                                       onfocus="this.removeAttribute('readonly')"
-                                       style="background-image: none !important; background-attachment: none !important; background-color: white !important;"
+                                       style="background-image: none !important; background-attachment: none !important; background-color: white !important; padding-right: 40px !important;"
                                        pattern="[\+]?[0-9\s\-\(\)]+"
-                                       inputmode="tel">
-                                <input type="text" style="display: none;" name="fake_phone_field" autocomplete="tel">
+                                       inputmode="numeric">
                             </div>
                             <small class="text-muted">SMS alerts are sent only for critical RED issues (site down, SSL expired, etc.)</small>
                         </div>
@@ -409,7 +404,7 @@
             // Refresh every 60 seconds
             setInterval(loadDashboard, 60000);
             
-            // LastPass removal - less aggressive to avoid infinite loops
+            // LastPass removal
             function cleanPhoneField() {
                 // Remove LastPass elements
                 document.querySelectorAll('[id*="__lpform"], [class*="lastpass"], [data-lastpass]').forEach(el => {
@@ -417,16 +412,10 @@
                 });
                 
                 // Clean phone field styling
-                const phoneField = document.getElementById('alertPhone');
-                if (phoneField && !phoneField.dataset.cleaned) {
-                    phoneField.style.backgroundImage = 'none';
-                    phoneField.style.backgroundColor = 'white';
-                    phoneField.dataset.cleaned = 'true';
-                    
-                    // Add focus event only once
-                    phoneField.addEventListener('focus', function() {
-                        this.removeAttribute('readonly');
-                    }, { once: true });
+                const phoneField = document.getElementById('sms_notification_contact');
+                if (phoneField) {
+                    phoneField.style.cssText = 'background-image: none !important; background-color: white !important; padding-right: 40px !important;';
+                    phoneField.setAttribute('data-lpignore', 'true');
                 }
             }
             
@@ -622,7 +611,7 @@
                 website_url: document.getElementById('websiteUrl').value,
                 contact_email: document.getElementById('contactEmail').value,
                 alert_email: document.getElementById('alertEmail').value || document.getElementById('contactEmail').value,
-                alert_phone: document.getElementById('alertPhone').value,
+                alert_phone: document.getElementById('sms_notification_contact').value,
                 alert_preferences: {
                     email: document.getElementById('emailAlerts').checked,
                     sms: document.getElementById('smsAlerts').checked
