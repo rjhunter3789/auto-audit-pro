@@ -2465,11 +2465,16 @@ app.post('/api/monitoring/test-alert/:profileId', async (req, res) => {
             message = 'Test notification results:' + message;
         }
         
+        // Determine overall success
+        const anyServiceConfigured = message.includes('✅') || message.includes('not configured on server');
+        const actualSuccess = emailSent || smsSent;
+        
         res.json({ 
-            success: true, 
+            success: actualSuccess, 
             message: message,
             emailEnabled: emailSent,
-            smsEnabled: smsSent
+            smsEnabled: smsSent,
+            serviceConfigured: anyServiceConfigured
         });
         
     } catch (error) {

@@ -842,11 +842,18 @@
             try {
                 const response = await axios.post(`/api/monitoring/test-alert/${profileId}`);
                 
-                if (response.data.success) {
-                    // Show success message
-                    alert(`Test notifications sent successfully!\n\n${response.data.message}`);
+                // Show appropriate message based on what happened
+                if (response.data.emailEnabled || response.data.smsEnabled) {
+                    if (response.data.success) {
+                        // Actually sent notifications
+                        alert(`Test notifications sent!\n\n${response.data.message}`);
+                    } else {
+                        // Settings not configured on server
+                        alert(`Notification Setup Required\n\n${response.data.message}\n\nSee GMAIL-SETUP-GUIDE.md for instructions.`);
+                    }
                 } else {
-                    alert('Failed to send test notifications. Please check your alert settings.');
+                    // No notifications enabled in profile
+                    alert('No notifications enabled for this profile.\n\nPlease enable Email or SMS alerts in the profile settings.');
                 }
                 
             } catch (error) {
