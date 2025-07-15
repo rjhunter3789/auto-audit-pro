@@ -2698,7 +2698,7 @@ app.post('/api/monitoring/test-alert/:profileId', async (req, res) => {
         
         // Initialize notification service
         const NotificationService = require('./lib/notification-service');
-        const notificationService = new NotificationService();
+        const notificationService = new NotificationService(pool);
         
         // Create test alert data
         const testAlert = {
