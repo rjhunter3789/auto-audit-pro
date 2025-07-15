@@ -1,5 +1,21 @@
 # Auto Audit Pro Suite - Changelog & Feature Documentation
 
+## Version 2.3.5 - July 15, 2025 (Monitoring UI Cleanup & Email Setup)
+
+### 📧 Email Notifications Configured
+- **Setup**: Professional email alerts via `alerts.autoauditpro@gmail.com`
+- **Removed**: SMS fields from monitoring form (not needed)
+- **Fixed**: JSON parsing issue for alert preferences
+- **Fixed**: Test button navigation bug with event propagation
+- **Fixed**: Email pattern validation regex errors
+- **Result**: Clean, email-only notification system
+
+### 🧹 UI Improvements
+- **Removed SMS fields**: Simplified "Add Website" form
+- **Fixed button behavior**: Test button no longer navigates to 404 page
+- **Auto-enabled email**: New sites automatically have email alerts on
+- **Cleaner interface**: No unnecessary SMS options
+
 ## Version 2.3.4 - July 15, 2025 (Test Notifications Feature Added)
 
 ### 🔔 Test Notifications for Website Monitoring

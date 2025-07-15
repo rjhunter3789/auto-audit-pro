@@ -2391,6 +2391,15 @@ app.post('/api/monitoring/test-alert/:profileId', async (req, res) => {
         
         const profile = profileResult.rows[0];
         
+        // Parse alert_preferences if it's a string
+        if (typeof profile.alert_preferences === 'string') {
+            try {
+                profile.alert_preferences = JSON.parse(profile.alert_preferences);
+            } catch (e) {
+                profile.alert_preferences = { email: true, sms: false };
+            }
+        }
+        
         // Initialize notification service
         const NotificationService = require('./lib/notification-service');
         const notificationService = new NotificationService();
