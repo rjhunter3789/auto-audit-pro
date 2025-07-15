@@ -2671,9 +2671,17 @@ app.post('/api/monitoring/test-alert/:profileId', async (req, res) => {
             created_at: new Date()
         };
         
+        // Debug logging
+        console.log('[Test Alert] Profile alert_preferences:', profile.alert_preferences);
+        console.log('[Test Alert] Type of alert_preferences:', typeof profile.alert_preferences);
+        
         // Send test notifications based on preferences
-        const emailEnabled = profile.alert_preferences?.email !== false;
+        const emailEnabled = profile.alert_preferences?.email === true;
         const smsEnabled = profile.alert_preferences?.sms === true && profile.alert_phone;
+        
+        console.log('[Test Alert] Email enabled:', emailEnabled);
+        console.log('[Test Alert] SMS enabled:', smsEnabled);
+        console.log('[Test Alert] Alert email:', profile.alert_email);
         
         let message = '';
         let emailSent = false;
@@ -2802,15 +2810,9 @@ app.get('/api/security/recent-events', async (req, res) => {
     }
 });
 
-// Initialize monitoring scheduler (with error handling)
-let monitoringScheduler;
-try {
-    const MonitoringScheduler = require('./lib/monitoring-scheduler');
-    monitoringScheduler = new MonitoringScheduler(pool);
-} catch (error) {
-    console.error('Warning: Could not initialize monitoring scheduler:', error.message);
-    monitoringScheduler = null;
-}
+// Initialize monitoring scheduler
+const MonitoringScheduler = require('./lib/monitoring-scheduler');
+const monitoringScheduler = new MonitoringScheduler(pool);
 
 // Start server
 app.listen(PORT, async () => {
