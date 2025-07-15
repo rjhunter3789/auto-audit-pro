@@ -209,6 +209,47 @@
             background-color: white !important;
         }
         
+        /* Aggressive LastPass prevention for ALL form inputs in modal */
+        #addProfileModal input[type="text"],
+        #addProfileModal input[type="email"],
+        #addProfileModal input[type="tel"],
+        #addProfileModal input[type="url"],
+        #addProfileModal input.form-control,
+        #dealerName,
+        #websiteUrl,
+        #contactEmail,
+        #alertEmail,
+        #sms_notification_contact {
+            background-image: none !important;
+            background-attachment: none !important;
+            background-color: white !important;
+            background-position: 0 0 !important;
+            background-size: auto !important;
+            background-repeat: no-repeat !important;
+            background-origin: padding-box !important;
+            background-clip: border-box !important;
+            padding-right: 12px !important;
+            -webkit-appearance: none !important;
+        }
+        
+        /* Hide any LastPass elements globally */
+        [id*="__lpform"],
+        [class*="lastpass"],
+        [data-lastpass],
+        [data-lastpass-icon-root],
+        div[style*="lastpass"],
+        #addProfileModal [id*="lastpass"],
+        #addProfileModal [class*="lastpass"] {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            width: 0 !important;
+            height: 0 !important;
+            position: absolute !important;
+            left: -9999px !important;
+            pointer-events: none !important;
+        }
+        
         /* Hide any LastPass elements */
         [id*="__lpform"],
         [class*="lastpass"],
@@ -326,19 +367,53 @@
                     <form id="addProfileForm">
                         <div class="mb-3">
                             <label class="form-label">Dealership Name</label>
-                            <input type="text" class="form-control" id="dealerName" required>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="dealerName"
+                                   name="monitoring_dealer_title"
+                                   placeholder="Enter dealership name"
+                                   autocomplete="nope"
+                                   data-lpignore="true"
+                                   data-form-type="other"
+                                   required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Website URL</label>
-                            <input type="url" class="form-control" id="websiteUrl" placeholder="https://example.com" required>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="websiteUrl" 
+                                   name="monitoring_site_address"
+                                   placeholder="https://example.com"
+                                   pattern="https?://.+"
+                                   autocomplete="nope"
+                                   data-lpignore="true"
+                                   data-form-type="other"
+                                   required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Contact Email</label>
-                            <input type="email" class="form-control" id="contactEmail" required>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="contactEmail" 
+                                   name="monitoring_contact_address"
+                                   placeholder="your@email.com"
+                                   pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                                   autocomplete="nope"
+                                   data-lpignore="true"
+                                   data-form-type="other"
+                                   required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Alert Email (optional)</label>
-                            <input type="email" class="form-control" id="alertEmail" placeholder="Leave blank to use contact email">
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="alertEmail" 
+                                   name="monitoring_alert_address"
+                                   placeholder="Leave blank to use contact email"
+                                   pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                                   autocomplete="nope"
+                                   data-lpignore="true"
+                                   data-form-type="other">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">SMS Alert Phone (for RED alerts only)</label>
@@ -404,31 +479,86 @@
             // Refresh every 60 seconds
             setInterval(loadDashboard, 60000);
             
-            // LastPass removal
-            function cleanPhoneField() {
-                // Remove LastPass elements
-                document.querySelectorAll('[id*="__lpform"], [class*="lastpass"], [data-lastpass]').forEach(el => {
+            // Comprehensive LastPass removal for ALL form fields
+            function cleanAllFormFields() {
+                // Remove ALL LastPass elements
+                document.querySelectorAll('[id*="__lpform"], [class*="lastpass"], [data-lastpass], [data-lastpass-icon-root]').forEach(el => {
                     el.remove();
                 });
                 
-                // Clean phone field styling
-                const phoneField = document.getElementById('sms_notification_contact');
-                if (phoneField) {
-                    phoneField.style.cssText = 'background-image: none !important; background-color: white !important; padding-right: 40px !important;';
-                    phoneField.setAttribute('data-lpignore', 'true');
-                }
+                // Clean ALL input fields in the modal
+                const allInputs = document.querySelectorAll('#addProfileModal input[type="text"], #addProfileModal input[type="email"], #addProfileModal input[type="tel"], #addProfileModal input[type="url"]');
+                allInputs.forEach(input => {
+                    // Force clean styling
+                    input.style.cssText = 'background-image: none !important; background-attachment: none !important; background-color: white !important; padding-right: 12px !important;';
+                    
+                    // Add multiple anti-LastPass attributes
+                    input.setAttribute('data-lpignore', 'true');
+                    input.setAttribute('data-form-type', 'other');
+                    input.setAttribute('data-lastpass-ignore', 'true');
+                    
+                    // Remove any injected attributes
+                    Array.from(input.attributes).forEach(attr => {
+                        if (attr.name.toLowerCase().includes('lastpass') || attr.name.toLowerCase().includes('lpform')) {
+                            input.removeAttribute(attr.name);
+                        }
+                    });
+                });
+                
+                // Also clean any parent containers that might have been modified
+                document.querySelectorAll('#addProfileModal .form-control').forEach(el => {
+                    const parent = el.parentElement;
+                    if (parent) {
+                        parent.style.position = 'relative';
+                        // Remove any injected siblings
+                        Array.from(parent.children).forEach(child => {
+                            if (child !== el && (child.id?.includes('lastpass') || child.className?.includes('lastpass'))) {
+                                child.remove();
+                            }
+                        });
+                    }
+                });
             }
             
+            // Run more aggressively when modal is shown
+            document.getElementById('addProfileModal').addEventListener('shown.bs.modal', function() {
+                cleanAllFormFields();
+                // Run multiple times after modal opens
+                setTimeout(cleanAllFormFields, 100);
+                setTimeout(cleanAllFormFields, 300);
+                setTimeout(cleanAllFormFields, 500);
+                setTimeout(cleanAllFormFields, 1000);
+            });
+            
             // Run once after a short delay
-            setTimeout(cleanPhoneField, 500);
+            setTimeout(cleanAllFormFields, 500);
             
             // Run periodically but less frequently
-            const cleanInterval = setInterval(cleanPhoneField, 2000);
+            const cleanInterval = setInterval(cleanAllFormFields, 2000);
             
             // Stop after 20 seconds
             setTimeout(() => {
                 clearInterval(cleanInterval);
             }, 20000);
+            
+            // Also add a MutationObserver to catch any new injections
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    mutation.addedNodes.forEach(function(node) {
+                        if (node.nodeType === 1) { // Element node
+                            if (node.id?.includes('lastpass') || node.className?.includes('lastpass') || node.hasAttribute('data-lastpass')) {
+                                node.remove();
+                            }
+                        }
+                    });
+                });
+            });
+            
+            // Observe the modal for changes
+            const modalElement = document.getElementById('addProfileModal');
+            if (modalElement) {
+                observer.observe(modalElement, { childList: true, subtree: true });
+            }
         });
 
         async function loadDashboard() {
