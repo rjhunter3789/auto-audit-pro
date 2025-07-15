@@ -1,7 +1,7 @@
 {
   "name": "dealership-audit-mvp",
-  "version": "1.0.0",
-  "description": "MVP Backend for Dealership Website Audit Tool with real Selenium automation",
+  "version": "2.4.3",
+  "description": "Auto Audit Pro - Professional Dealership Website Analysis Platform with Security",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -19,8 +19,9 @@
     "seo",
     "performance"
   ],
-  "author": "Your Name",
-  "license": "MIT",
+  "author": "JL Robinson <nakapaahu@gmail.com>",
+  "license": "UNLICENSED",
+  "private": true,
   "dependencies": {
     "axios": "^1.6.0",
     "cheerio": "^1.0.0-rc.12",
