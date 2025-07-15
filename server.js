@@ -133,6 +133,113 @@ app.get('/api/health', (req, res) => {
 // LOCKDOWN: Apply authentication to ALL routes after this point
 app.use(checkAuth);
 
+// Password change page
+app.get('/change-password', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'change-password.html'));
+});
+
+// Get current user info
+app.get('/api/current-user', (req, res) => {
+    res.json({ username: req.session.username || 'admin' });
+});
+
+// Change password endpoint
+app.post('/api/change-password', async (req, res) => {
+    try {
+        const { currentPassword, newUsername, newPassword } = req.body;
+        
+        // Verify current password
+        if (currentPassword !== ADMIN_PASSWORD) {
+            return res.status(401).json({ error: 'Current password is incorrect' });
+        }
+        
+        // Validate new password strength
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(newPassword)) {
+            return res.status(400).json({ error: 'New password does not meet requirements' });
+        }
+        
+        // Read current .env file
+        const envPath = path.join(__dirname, '.env');
+        let envContent = '';
+        try {
+            envContent = await fs.promises.readFile(envPath, 'utf8');
+        } catch (error) {
+            // Create new .env if doesn't exist
+            envContent = '';
+        }
+        
+        // Parse env content
+        const envLines = envContent.split('\n');
+        const envVars = {};
+        envLines.forEach(line => {
+            const [key, ...valueParts] = line.split('=');
+            if (key && valueParts.length > 0) {
+                envVars[key.trim()] = valueParts.join('=').trim();
+            }
+        });
+        
+        // Update credentials
+        envVars.ADMIN_USERNAME = newUsername || envVars.ADMIN_USERNAME || 'admin';
+        envVars.ADMIN_PASSWORD = newPassword;
+        envVars.SESSION_SECRET = envVars.SESSION_SECRET || 'AutoAuditPro-Secret-Key-' + Date.now();
+        
+        // Preserve other env vars
+        const preserveVars = ['SMTP_HOST', 'SMTP_PORT', 'SMTP_USER', 'SMTP_PASS', 'SMTP_FROM', 
+                             'TWILIO_ACCOUNT_SID', 'TWILIO_AUTH_TOKEN', 'TWILIO_PHONE_NUMBER',
+                             'PORT', 'NODE_ENV', 'SKIP_MONITORING'];
+        
+        // Build new env content
+        let newEnvContent = '';
+        
+        // Add header
+        newEnvContent += '# Auto Audit Pro Environment Configuration\n';
+        newEnvContent += '# Generated: ' + new Date().toISOString() + '\n\n';
+        
+        // Add admin credentials
+        newEnvContent += '# ADMIN ACCESS - Keep these secure!\n';
+        newEnvContent += `ADMIN_USERNAME=${envVars.ADMIN_USERNAME}\n`;
+        newEnvContent += `ADMIN_PASSWORD=${newPassword}\n`;
+        newEnvContent += `SESSION_SECRET=${envVars.SESSION_SECRET}\n\n`;
+        
+        // Add other preserved variables
+        preserveVars.forEach(varName => {
+            if (envVars[varName]) {
+                if (varName.startsWith('SMTP')) {
+                    if (!newEnvContent.includes('# EMAIL CONFIGURATION')) {
+                        newEnvContent += '# EMAIL CONFIGURATION\n';
+                    }
+                } else if (varName.startsWith('TWILIO')) {
+                    if (!newEnvContent.includes('# SMS CONFIGURATION')) {
+                        newEnvContent += '\n# SMS CONFIGURATION\n';
+                    }
+                }
+                newEnvContent += `${varName}=${envVars[varName]}\n`;
+            }
+        });
+        
+        // Write updated .env file
+        await fs.promises.writeFile(envPath, newEnvContent.trim() + '\n');
+        
+        // Log the password change
+        logSecurityEvent({
+            type: 'PASSWORD_CHANGED',
+            ip: req.ip || req.connection.remoteAddress,
+            path: '/api/change-password',
+            details: `Username: ${envVars.ADMIN_USERNAME}`
+        });
+        
+        res.json({ 
+            success: true, 
+            message: 'Credentials updated successfully. Please restart the server.' 
+        });
+        
+    } catch (error) {
+        console.error('Error changing password:', error);
+        res.status(500).json({ error: 'Failed to update credentials' });
+    }
+});
+
 // Add proper CSP headers for the app
 app.use((req, res, next) => {
     res.setHeader(

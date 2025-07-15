@@ -1,5 +1,28 @@
 # Auto Audit Pro Suite - Changelog & Feature Documentation
 
+## Version 2.4.2 - July 16, 2025 (Password Change Feature Added)
+
+### 🔑 Password Management
+- **New Feature**: Change Password interface at `/change-password`
+- **Capabilities**: Update both username and password after initial setup
+- **Security**: Strong password requirements enforced
+- **Real-time**: Password strength indicator with visual feedback
+- **Requirements**:
+  - Minimum 8 characters
+  - At least one uppercase letter
+  - At least one lowercase letter
+  - At least one number
+  - At least one special character
+- **Process**: Updates .env file and requires server restart
+- **Logging**: All password changes are logged in security.log
+
+### 🎯 User Experience
+- Added "Change Password" link in footer navigation
+- Professional interface matching app design
+- Clear instructions for server restart requirement
+- Automatic logout after successful password change
+- Current username displayed for reference
+
 ## Version 2.4.1 - July 16, 2025 (Intrusion Detection System Added)
 
 ### 🚨 Advanced Security Monitoring
