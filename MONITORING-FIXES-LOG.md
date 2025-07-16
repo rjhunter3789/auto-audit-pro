@@ -135,13 +135,52 @@ const suppressionTime = alert.alert_level === 'RED' ? '1 hour' : '6 hours';
 
 ---
 
+## Issue 8: Duplicate "Check Now" Buttons
+**Problem:** Two "Check Now" buttons appearing in the interface
+
+**Fix Applied:** (`views/monitoring-dashboard.html:624-633`)
+- Removed duplicate button from the monitoring card
+
+---
+
+## Issue 9: Active Alerts Display Improvements
+**Problem:** 
+- Active Alerts showed all alert levels (RED and YELLOW)
+- Many duplicate alerts displayed
+- Status boxes showed 0 for Critical despite having RED alerts
+
+**Fixes Applied:**
+
+1. **Status Box Counts** (`views/monitoring-dashboard.html:557-581`)
+   - Changed from counting profile status to counting unique alert types
+   - RED box: Shows count of unique RED alert types
+   - YELLOW box: Shows count of unique YELLOW alert types
+   - GREEN box: Shows count only when no alerts exist
+
+2. **Active Alerts Filtering** (`views/monitoring-dashboard.html:670-683`)
+   - Filter to show only RED critical alerts
+   - Remove duplicates by keeping only the latest of each alert type
+   - Group by `alert_type` and select most recent
+
+3. **Load Order Fix** (`views/monitoring-dashboard.html:546-550`)
+   - Update stats after alerts are loaded, not before
+   - Ensures accurate counts in status boxes
+
+**Result:**
+- Active Alerts now shows only unique RED critical alerts
+- Status boxes accurately reflect alert counts
+- No duplicate alerts displayed
+
+---
+
 ## Current Status
 - ✅ Session management working (browser close = logout)
 - ✅ Email notifications functional
 - ✅ Monitoring displays show meaningful statuses
 - ✅ Alert messages simplified and working
 - ✅ Duplicate suppression active
-- ✅ Active Alerts displaying correctly
+- ✅ Active Alerts displaying correctly (RED only, no duplicates)
+- ✅ Status boxes show accurate alert counts
 - ⚠️ Authentication temporarily disabled (needs re-enabling)
 
 ---
