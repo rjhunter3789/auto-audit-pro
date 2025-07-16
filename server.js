@@ -2572,7 +2572,6 @@ app.get('/api/monitoring/status', async (req, res) => {
                 ORDER BY check_timestamp DESC 
                 LIMIT 1
             ) r ON true
-            WHERE p.monitoring_enabled = true
             ORDER BY p.dealer_name`;
         
         const result = await pool.query(query);
