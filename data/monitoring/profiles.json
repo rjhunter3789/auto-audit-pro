@@ -7,9 +7,9 @@
     "contact_email": "rjhunter3789@gmail.com",
     "alert_email": "rjhunter3789@gmail.com",
     "alert_phone": "4257505752",
-    "alert_preferences": "{\"email\":true,\"sms\":true}",
+    "alert_preferences": "{\"email\":true,\"sms\":false}",
     "check_frequency": 15,
     "created_at": "2025-07-15T03:58:10.324Z",
-    "updated_at": "2025-07-16T00:00:52.861Z"
+    "updated_at": "2025-07-16T00:09:21.018Z"
   }
 ]
