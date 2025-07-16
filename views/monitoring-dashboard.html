@@ -543,10 +543,10 @@
                 const statusResponse = await axios.get('/api/monitoring/status');
                 profiles = statusResponse.data;
                 
-                updateStats();
+                // Don't update stats here - wait until alerts are loaded
                 renderSites();
                 
-                // Load active alerts
+                // Load active alerts - this will update stats
                 await loadActiveAlerts();
                 
             } catch (error) {
@@ -556,9 +556,23 @@
 
         function updateStats() {
             const total = profiles.length;
-            const green = profiles.filter(p => p.overall_status === 'GREEN').length;
-            const yellow = profiles.filter(p => p.overall_status === 'YELLOW').length;
-            const red = profiles.filter(p => p.overall_status === 'RED').length;
+            
+            // Count based on actual alerts, not profile status
+            // Get unique alert types for counting
+            const redAlertTypes = new Set();
+            const yellowAlertTypes = new Set();
+            
+            activeAlerts.forEach(alert => {
+                if (alert.alert_level === 'RED') {
+                    redAlertTypes.add(alert.alert_type);
+                } else if (alert.alert_level === 'YELLOW') {
+                    yellowAlertTypes.add(alert.alert_type);
+                }
+            });
+            
+            const red = redAlertTypes.size;
+            const yellow = yellowAlertTypes.size;
+            const green = (red === 0 && yellow === 0) ? total : 0;
             
             document.getElementById('totalSites').textContent = total;
             document.getElementById('sitesGreen').textContent = green;
@@ -653,12 +667,30 @@
                 const responses = await Promise.all(alertPromises);
                 activeAlerts = responses.flatMap(r => r.data);
                 
+                // Filter for RED alerts only and remove duplicates (keep latest)
+                const redAlerts = activeAlerts.filter(a => a.alert_level === 'RED');
+                
+                // Group by alert_type and keep only the latest one
+                const latestRedAlerts = {};
+                redAlerts.forEach(alert => {
+                    if (!latestRedAlerts[alert.alert_type] || 
+                        new Date(alert.created_at) > new Date(latestRedAlerts[alert.alert_type].created_at)) {
+                        latestRedAlerts[alert.alert_type] = alert;
+                    }
+                });
+                
+                // Convert back to array for display
+                const uniqueRedAlerts = Object.values(latestRedAlerts);
+                
                 console.log('Active alerts loaded:', activeAlerts.length);
-                console.log('RED alerts:', activeAlerts.filter(a => a.alert_level === 'RED').length);
+                console.log('Unique RED alerts:', uniqueRedAlerts.length);
                 
                 loading.classList.remove('active');
                 
-                if (activeAlerts.length === 0) {
+                // Update stats after loading alerts
+                updateStats();
+                
+                if (uniqueRedAlerts.length === 0) {
                     container.innerHTML = `
                         <div class="p-4 text-center text-muted">
                             <i class="bi bi-check-circle" style="font-size: 2rem;"></i>
@@ -680,7 +712,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            ${activeAlerts.map(alert => {
+                            ${uniqueRedAlerts.map(alert => {
                                 const profile = profiles.find(p => p.id === alert.profile_id);
                                 const level = alert.alert_level.toLowerCase();
                                 const time = new Date(alert.created_at).toLocaleString();
