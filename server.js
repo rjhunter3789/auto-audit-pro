@@ -2586,7 +2586,9 @@ app.get('/api/monitoring/status', async (req, res) => {
 app.get('/api/monitoring/alerts/:profileId', async (req, res) => {
     try {
         const { profileId } = req.params;
-        const { resolved = false } = req.query;
+        // Convert string "false" to boolean false
+        const resolvedParam = req.query.resolved;
+        const resolved = resolvedParam === 'true';
         
         const query = `
             SELECT * FROM alert_history 

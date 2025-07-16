@@ -16,7 +16,9 @@
       "Bash(rm:*)",
       "Bash(git push:*)",
       "Bash(npm uninstall:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(jq:*)",
+      "Bash(sed:*)"
     ],
     "deny": []
   }
