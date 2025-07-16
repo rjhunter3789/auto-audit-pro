@@ -166,6 +166,15 @@ app.get('/api/health', (req, res) => {
     });
 });
 
+// Add simple render method to response object
+app.use((req, res, next) => {
+    res.render = function(viewName) {
+        const htmlFile = viewName.endsWith('.html') ? viewName : viewName + '.html';
+        res.sendFile(path.join(__dirname, 'views', htmlFile));
+    };
+    next();
+});
+
 // LOCKDOWN: Apply authentication to ALL routes after this point
 app.use(checkAuth);
 

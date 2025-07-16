@@ -187,10 +187,16 @@ const suppressionTime = alert.alert_level === 'RED' ? '1 hour' : '6 hours';
    ADMIN_PASSWORD=AutoAudit2025!
    ```
 
+3. **Fixed view rendering issue** (`server.js:170-176`)
+   - Added render middleware to handle HTML views
+   - Fixes "Cannot GET /login" error
+   - All routes now properly serve HTML files
+
 **Result:**
 - Authentication is now required for all pages
 - Login page accessible at `/login`
 - Credentials: admin/AutoAudit2025!
+- View rendering fixed for all pages
 
 ---
 
