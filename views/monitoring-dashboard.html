@@ -587,9 +587,7 @@
                 let displayStatus = status;
                 
                 if (!status || status === 'UNKNOWN') {
-                    if (profile.monitoring_enabled === false) {
-                        displayStatus = 'PAUSED';
-                    } else if (!profile.check_timestamp) {
+                    if (!profile.check_timestamp) {
                         displayStatus = 'PENDING CHECK';
                     } else {
                         displayStatus = 'MONITORING ACTIVE';
@@ -599,7 +597,7 @@
                 const statusClass = (status || 'unknown').toLowerCase();
                 const lastCheck = profile.check_timestamp ? 
                     new Date(profile.check_timestamp).toLocaleString() : 
-                    (profile.monitoring_enabled ? 'Checking...' : 'Monitoring paused');
+                    'Checking...';
                 
                 const issues = profile.issues_found ? 
                     (typeof profile.issues_found === 'string' ? 
@@ -629,8 +627,8 @@
                                     <button class="btn btn-sm btn-outline-warning ms-1" onclick="event.stopPropagation(); sendTestAlert(${profile.id}, event);" title="Send test notifications">
                                         <i class="bi bi-bell"></i> Test
                                     </button>
-                                    <button class="btn btn-sm btn-outline-secondary ms-1" onclick="toggleMonitoring(${profile.id}, ${profile.monitoring_enabled})">
-                                        <i class="bi bi-${profile.monitoring_enabled ? 'pause' : 'play'}"></i> ${profile.monitoring_enabled ? 'Pause' : 'Resume'}
+                                    <button class="btn btn-sm btn-outline-secondary ms-1" onclick="runCheck(${profile.id}, event)" title="Run check immediately">
+                                        <i class="bi bi-arrow-clockwise"></i> Check Now
                                     </button>
                                     <button class="btn btn-sm btn-outline-danger ms-1" onclick="removeProfile(${profile.id}, '${profile.dealer_name}')">
                                         <i class="bi bi-trash"></i>
