@@ -1,5 +1,27 @@
 # Auto Audit Pro Suite - Changelog & Feature Documentation
 
+## Version 2.4.4 - July 16, 2025 (Monitoring Fixes & Improvements)
+
+### 🔧 Monitoring Dashboard Fixes
+- **Fixed**: "UNKNOWN" status now shows actual monitoring status
+- **Fixed**: "Last Check: Never" now shows actual last check time
+- **Fixed**: Removed monitoring_enabled field dependency that was causing issues
+- **Fixed**: Test notifications now work properly
+- **Improved**: Removed confusing SMS notification messages when not needed
+- **Added**: Expired incentive detection for dealership offers
+
+### 📧 Email Notification Improvements
+- **Fixed**: Test email button now correctly reports success/failure
+- **Fixed**: Alert messages now show actual values instead of {placeholders}
+- **Updated**: SMS notifications disabled by default (email only)
+- **Added**: Better error messages for notification issues
+
+### 🛡️ Security & Performance
+- **Added**: Full browser headers to avoid 403 blocking
+- **Fixed**: Session persistence issues
+- **Updated**: Authentication temporarily disabled for recovery
+- **Note**: Re-enable authentication after setting new password
+
 ## Version 2.4.3 - July 16, 2025 (Enhanced Security & Profile Pictures)
 
 ### 🔒 3-Attempt Force Lockout

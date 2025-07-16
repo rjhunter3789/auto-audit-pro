@@ -2741,9 +2741,9 @@ app.post('/api/monitoring/test-alert/:profileId', async (req, res) => {
                 
                 if (result) {
                     emailSent = true;
-                    message += '\n✅ Email sent to ' + (profile.alert_email || profile.contact_email);
+                    message = '✅ Test email sent successfully to ' + (profile.alert_email || profile.contact_email);
                 } else {
-                    message += '\n⚠️ Email notifications not configured on server (SMTP settings required)';
+                    message = '⚠️ Email service not available. Please check server logs.';
                 }
             } catch (error) {
                 message += '\n❌ Email failed: ' + error.message;
