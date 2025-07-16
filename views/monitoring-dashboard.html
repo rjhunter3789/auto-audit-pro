@@ -627,9 +627,6 @@
                                     <button class="btn btn-sm btn-outline-warning ms-1" onclick="event.stopPropagation(); sendTestAlert(${profile.id}, event);" title="Send test notifications">
                                         <i class="bi bi-bell"></i> Test
                                     </button>
-                                    <button class="btn btn-sm btn-outline-secondary ms-1" onclick="runCheck(${profile.id}, event)" title="Run check immediately">
-                                        <i class="bi bi-arrow-clockwise"></i> Check Now
-                                    </button>
                                     <button class="btn btn-sm btn-outline-danger ms-1" onclick="removeProfile(${profile.id}, '${profile.dealer_name}')">
                                         <i class="bi bi-trash"></i>
                                     </button>
@@ -655,6 +652,9 @@
                 
                 const responses = await Promise.all(alertPromises);
                 activeAlerts = responses.flatMap(r => r.data);
+                
+                console.log('Active alerts loaded:', activeAlerts.length);
+                console.log('RED alerts:', activeAlerts.filter(a => a.alert_level === 'RED').length);
                 
                 loading.classList.remove('active');
                 

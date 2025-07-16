@@ -2590,6 +2590,8 @@ app.get('/api/monitoring/alerts/:profileId', async (req, res) => {
         const resolvedParam = req.query.resolved;
         const resolved = resolvedParam === 'true';
         
+        console.log(`[ALERTS API] ProfileId: ${profileId}, resolved: ${resolved} (from param: ${resolvedParam})`);
+        
         const query = `
             SELECT * FROM alert_history 
             WHERE profile_id = $1 
@@ -2597,6 +2599,8 @@ app.get('/api/monitoring/alerts/:profileId', async (req, res) => {
             ORDER BY created_at DESC`;
         
         const result = await pool.query(query, [profileId, resolved]);
+        console.log(`[ALERTS API] Found ${result.rows.length} alerts`);
+        
         res.json(result.rows);
     } catch (error) {
         console.error('Error fetching alerts:', error);
