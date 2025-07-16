@@ -73,6 +73,10 @@
             border-left: 5px solid var(--danger-color);
         }
 
+        .status-card.status-unknown {
+            border-left: 5px solid #6c757d;
+        }
+
         .status-indicator {
             width: 20px;
             height: 20px;
@@ -92,6 +96,10 @@
 
         .status-indicator.red {
             background-color: var(--danger-color);
+        }
+
+        .status-indicator.unknown {
+            background-color: #6c757d;
         }
 
         @keyframes pulse {
@@ -574,10 +582,24 @@
             emptyState.style.display = 'none';
             
             container.innerHTML = profiles.map(profile => {
-                const status = profile.overall_status || 'UNKNOWN';
-                const statusClass = status.toLowerCase();
+                // Determine the display status based on state
+                let status = profile.overall_status;
+                let displayStatus = status;
+                
+                if (!status || status === 'UNKNOWN') {
+                    if (profile.monitoring_enabled === false) {
+                        displayStatus = 'PAUSED';
+                    } else if (!profile.check_timestamp) {
+                        displayStatus = 'PENDING CHECK';
+                    } else {
+                        displayStatus = 'MONITORING ACTIVE';
+                    }
+                }
+                
+                const statusClass = (status || 'unknown').toLowerCase();
                 const lastCheck = profile.check_timestamp ? 
-                    new Date(profile.check_timestamp).toLocaleString() : 'Never';
+                    new Date(profile.check_timestamp).toLocaleString() : 
+                    (profile.monitoring_enabled ? 'Checking...' : 'Monitoring paused');
                 
                 const issues = profile.issues_found ? 
                     (typeof profile.issues_found === 'string' ? 
@@ -592,7 +614,7 @@
                                     <p class="text-muted mb-2">${profile.website_url}</p>
                                     <p class="mb-1">
                                         <span class="status-indicator ${statusClass}"></span>
-                                        <strong>${status}</strong>
+                                        <strong>${displayStatus}</strong>
                                     </p>
                                     ${profile.response_time_ms ? 
                                         `<p class="mb-1"><small>Response: ${profile.response_time_ms}ms</small></p>` : ''}

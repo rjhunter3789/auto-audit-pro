@@ -73,7 +73,7 @@
     "condition": "less_than",
     "threshold_value": 30,
     "alert_level": "YELLOW",
-    "alert_message_template": "WARNING: SSL certificate expires in {ssl_expiry_days} days",
+    "alert_message_template": "WARNING: SSL certificate expires soon (within 30 days)",
     "enabled": true
   },
   {
@@ -95,7 +95,7 @@
     "condition": "less_than",
     "threshold_value": 50,
     "alert_level": "YELLOW",
-    "alert_message_template": "WARNING: Low inventory count ({inventory_count} vehicles)",
+    "alert_message_template": "WARNING: Low inventory count (less than 50 vehicles)",
     "enabled": true
   },
   {
@@ -106,7 +106,7 @@
     "condition": "less_than",
     "threshold_value": 70,
     "alert_level": "YELLOW",
-    "alert_message_template": "WARNING: Mobile performance score is {mobile_score}/100",
+    "alert_message_template": "WARNING: Mobile performance score is below 70/100",
     "enabled": true
   },
   {
@@ -117,7 +117,7 @@
     "condition": "greater_than",
     "threshold_value": 5000,
     "alert_level": "YELLOW",
-    "alert_message_template": "WARNING: Homepage is {page_size_kb}KB - may load slowly",
+    "alert_message_template": "WARNING: Homepage is larger than 5MB - may load slowly",
     "enabled": true
   },
   {
