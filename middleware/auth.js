@@ -4,16 +4,6 @@ const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'AutoAudit2025!'; // CHANGE THIS NOW!
 
 function checkAuth(req, res, next) {
-    // TEMPORARY: Disable authentication completely
-    console.log('[AUTH] Authentication temporarily disabled for troubleshooting');
-    req.session = req.session || {};
-    req.session.authenticated = true;
-    req.session.username = 'admin';
-    next();
-    return;
-    
-    // Original code (disabled)
-    /*
     // Allow access to login page and logout
     if (req.path === '/login' || req.path === '/api/login' || req.path === '/logout') {
         return next();
@@ -30,7 +20,6 @@ function checkAuth(req, res, next) {
     }
     
     next();
-    */
 }
 
 module.exports = { checkAuth, ADMIN_USERNAME, ADMIN_PASSWORD };

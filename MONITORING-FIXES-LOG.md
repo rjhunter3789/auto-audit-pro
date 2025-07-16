@@ -1,6 +1,6 @@
 # Monitoring System Fixes - Change and Recovery Log
 
-## Date: July 16, 2025
+## Date: July 16-17, 2025
 
 ### Overview
 This document tracks all fixes and changes made to resolve monitoring system issues, including session persistence, email notifications, and alert display problems.
@@ -173,6 +173,27 @@ const suppressionTime = alert.alert_level === 'RED' ? '1 hour' : '6 hours';
 
 ---
 
+## Issue 10: Re-enabled Authentication (July 17, 2025)
+**Action:** Re-activated security login system
+
+**Changes Applied:**
+1. **Restored authentication middleware** (`middleware/auth.js:6-23`)
+   - Removed temporary bypass code
+   - Restored original authentication checks
+
+2. **Updated credentials** (`.env:11-12`)
+   ```
+   ADMIN_USERNAME=admin
+   ADMIN_PASSWORD=AutoAudit2025!
+   ```
+
+**Result:**
+- Authentication is now required for all pages
+- Login page accessible at `/login`
+- Credentials: admin/AutoAudit2025!
+
+---
+
 ## Current Status
 - ✅ Session management working (browser close = logout)
 - ✅ Email notifications functional
@@ -181,16 +202,17 @@ const suppressionTime = alert.alert_level === 'RED' ? '1 hour' : '6 hours';
 - ✅ Duplicate suppression active
 - ✅ Active Alerts displaying correctly (RED only, no duplicates)
 - ✅ Status boxes show accurate alert counts
-- ⚠️ Authentication temporarily disabled (needs re-enabling)
+- ✅ Authentication re-enabled with admin/AutoAudit2025!
 
 ---
 
-## Next Steps for Full Recovery
-1. Re-enable authentication in `middleware/auth.js`
-2. Set permanent admin password
+## Next Steps
+1. ~~Re-enable authentication in `middleware/auth.js`~~ ✅ COMPLETED
+2. ~~Set permanent admin password~~ ✅ COMPLETED (AutoAudit2025!)
 3. Test all monitoring functions
 4. Verify email alerts are being received
 5. Monitor for any new issues
+6. Remember to restart server after .env changes
 
 ---
 
