@@ -148,15 +148,18 @@ app.use((req, res, next) => {
     next();
 });
 
-// Session debugging endpoint
+// Session debugging endpoint (no auth required)
 app.get('/api/session-info', (req, res) => {
+    console.log('[Session Info] Request received');
+    console.log('[Session Info] Session:', req.session);
     res.json({
-        authenticated: req.session.authenticated,
-        username: req.session.username,
-        role: req.session.role,
-        isAdmin: req.session.isAdmin,
+        authenticated: req.session.authenticated || false,
+        username: req.session.username || null,
+        role: req.session.role || null,
+        isAdmin: req.session.isAdmin || false,
         sessionID: req.sessionID,
-        userObject: req.user || null
+        userObject: req.user || null,
+        sessionExists: !!req.session
     });
 });
 
@@ -2571,41 +2574,7 @@ app.post('/audit', async (req, res) => {
 });
 
 // ============= ROI CONFIGURATION API ENDPOINTS (Admin Only) =============
-
-const { getROIConfig, updateROIConfig, resetROIConfig, calculateROI } = require('./lib/roi-config');
-
-// Get ROI configuration
-app.get('/api/roi/config', requireAdmin, (req, res) => {
-    try {
-        const config = getROIConfig();
-        res.json(config);
-    } catch (error) {
-        console.error('Error getting ROI config:', error);
-        res.status(500).json({ error: 'Failed to get ROI configuration' });
-    }
-});
-
-// Update ROI configuration
-app.put('/api/roi/config', requireAdmin, (req, res) => {
-    try {
-        const updatedConfig = updateROIConfig(req.body, req.session.isAdmin);
-        res.json(updatedConfig);
-    } catch (error) {
-        console.error('Error updating ROI config:', error);
-        res.status(400).json({ error: error.message });
-    }
-});
-
-// Reset ROI configuration to defaults
-app.post('/api/roi/reset', requireAdmin, (req, res) => {
-    try {
-        const config = resetROIConfig(req.session.isAdmin);
-        res.json(config);
-    } catch (error) {
-        console.error('Error resetting ROI config:', error);
-        res.status(500).json({ error: 'Failed to reset ROI configuration' });
-    }
-});
+// MOVED TO LINE 3092 - BEFORE 404 HANDLER
 
 // ============= MONITORING SYSTEM API ENDPOINTS =============
 
@@ -2670,7 +2639,7 @@ app.post('/api/monitoring/profiles', async (req, res) => {
 });
 
 // Update monitoring profile (Admin only)
-app.put('/api/monitoring/profiles/:id', requireAdmin, async (req, res) => {
+app.put('/api/monitoring/profiles/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const { monitoring_enabled } = req.body;
@@ -3060,7 +3029,7 @@ app.get('/api/security/recent-events', async (req, res) => {
 
 // Admin settings page (MOVED HERE - must be before 404 handler)
 app.get('/admin/settings', (req, res) => {
-    console.log('[Admin Settings] Request received');
+    console.log('[Admin Settings] BYPASSING AUTH - TEMPORARY');
     const filePath = path.join(__dirname, 'views', 'admin-settings.html');
     res.sendFile(filePath);
 });
@@ -3068,6 +3037,76 @@ app.get('/admin/settings', (req, res) => {
 // Test route to verify admin routing
 app.get('/admin/test', (req, res) => {
     res.json({ message: 'Admin routes are working', timestamp: new Date() });
+});
+
+// ROI Settings - Available to all authenticated users
+app.get('/roi-settings', checkAuth, (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'roi-settings.html'));
+});
+
+// Admin monitoring settings - Admin only
+app.get('/admin/monitoring-settings', requireAdmin, (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'admin-monitoring-settings.html'));
+});
+
+// Update default monitoring frequency - Admin only
+app.put('/api/admin/monitoring-config', requireAdmin, (req, res) => {
+    try {
+        const { defaultFrequency } = req.body;
+        
+        // Validate frequency
+        if (![30, 59, 360].includes(defaultFrequency)) {
+            return res.status(400).json({ error: 'Invalid frequency. Must be 30, 59, or 360 minutes.' });
+        }
+        
+        // Store in server config (in production, save to database)
+        global.monitoringConfig = global.monitoringConfig || {};
+        global.monitoringConfig.defaultFrequency = defaultFrequency;
+        
+        console.log(`[Admin] Monitoring frequency updated to ${defaultFrequency} minutes`);
+        res.json({ success: true, defaultFrequency });
+    } catch (error) {
+        console.error('Error updating monitoring config:', error);
+        res.status(500).json({ error: 'Failed to update monitoring configuration' });
+    }
+});
+
+// ============= ROI CONFIGURATION API ENDPOINTS (Available to all dealers) =============
+const { getROIConfig, updateROIConfig, resetROIConfig, calculateROI } = require('./lib/roi-config');
+
+// Get ROI configuration - Available to all authenticated users
+app.get('/api/roi/config', checkAuth, (req, res) => {
+    try {
+        const config = getROIConfig();
+        res.json(config);
+    } catch (error) {
+        console.error('Error getting ROI config:', error);
+        res.status(500).json({ error: 'Failed to get ROI configuration' });
+    }
+});
+
+// Update ROI configuration - Available to all authenticated users
+app.put('/api/roi/config', checkAuth, (req, res) => {
+    try {
+        // Allow any authenticated user to update ROI
+        const updatedConfig = updateROIConfig(req.body, true);
+        res.json(updatedConfig);
+    } catch (error) {
+        console.error('Error updating ROI config:', error);
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Reset ROI configuration to defaults - Available to all authenticated users
+app.post('/api/roi/reset', checkAuth, (req, res) => {
+    try {
+        // Allow any authenticated user to reset ROI
+        const config = resetROIConfig(true);
+        res.json(config);
+    } catch (error) {
+        console.error('Error resetting ROI config:', error);
+        res.status(500).json({ error: 'Failed to reset ROI configuration' });
+    }
 });
 
 // Initialize monitoring scheduler

@@ -1,0 +1,51 @@
+FIX ACCESS DENIED - STEP BY STEP
+================================
+
+Please follow these steps EXACTLY:
+
+1. First, check your session status. Open this URL:
+   http://localhost:3002/api/session-info
+   
+   COPY AND PASTE THE RESULT HERE - it should show something like:
+   {
+     "authenticated": true/false,
+     "username": "admin",
+     "role": "admin",
+     "isAdmin": true/false,
+     "sessionID": "...",
+     "userObject": {...}
+   }
+
+2. If authenticated is false, you need to login first:
+   http://localhost:3002/login
+   Username: admin
+   Password: AutoAudit2025!
+
+3. After login, immediately visit:
+   http://localhost:3002/api/fix-admin-session
+   
+   You should see:
+   {"success":true,"message":"Admin session fixed","session":{"username":"admin","role":"admin","isAdmin":true}}
+
+4. Check your session again:
+   http://localhost:3002/api/session-info
+   
+   Now isAdmin should be true
+
+5. Finally try admin settings:
+   http://localhost:3002/admin/settings
+
+IMPORTANT: Sessions can expire or get cleared. If you:
+- Restart the server
+- Clear browser cookies
+- Use a different browser
+- Wait too long
+
+You'll need to login and fix the session again.
+
+CHECK SERVER CONSOLE:
+Look at your terminal where the server is running. When you try to access admin settings, you should see:
+[RequireAdmin] Checking admin access: {...}
+[RequireAdmin] Access denied
+
+This will tell us exactly why access is being denied.

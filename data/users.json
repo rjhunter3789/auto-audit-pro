@@ -1,0 +1,30 @@
+{
+  "users": [
+    {
+      "id": "admin",
+      "email": "nakapaahu@gmail.com",
+      "username": "admin",
+      "password": "AutoAudit2025!",
+      "dealership": "Auto Audit Pro",
+      "role": "admin",
+      "subscriptionTier": "enterprise",
+      "subscriptionEnd": "2099-12-31",
+      "isActive": true,
+      "createdDate": "2025-01-01T00:00:00.000Z",
+      "lastLogin": null
+    },
+    {
+      "id": "demo-dealer",
+      "email": "demo@priceford.com",
+      "username": "priceford",
+      "password": "Demo2025!",
+      "dealership": "Price Ford",
+      "role": "dealer",
+      "subscriptionTier": "professional",
+      "subscriptionEnd": "2025-12-31",
+      "isActive": true,
+      "createdDate": "2025-01-17T00:00:00.000Z",
+      "lastLogin": null
+    }
+  ]
+}

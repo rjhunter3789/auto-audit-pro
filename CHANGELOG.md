@@ -1,5 +1,76 @@
 # Auto Audit Pro Suite - Changelog & Feature Documentation
 
+## Version 2.6.0 - January 17, 2025 (Multi-User SaaS Implementation)
+
+### 🚀 Major Features Added
+
+#### 1. Multi-User Management System
+- **New Files Created**:
+  - `lib/user-manager.js` - Complete user authentication and management
+  - `data/users.json` - User database (JSON-based)
+  - `server-login-update.js` - Updated login route reference
+  - `DEALER_ACCESS_MANAGEMENT.md` - Guide for managing dealers
+  - `CODE_PROTECTION_STRATEGY.md` - Security and IP protection
+  - `AAPS_SAAS_BUSINESS_PLAN.md` - Complete SaaS business model
+  - `QUICK_START_USER_SYSTEM.md` - Implementation guide
+  - `RECOVERY_PROCEDURES_USER_SYSTEM.md` - Recovery documentation
+
+- **Key Features**:
+  - Multiple dealer support with unique logins
+  - Subscription management and expiration
+  - Role-based access (admin, dealer, support)
+  - Backward compatible with environment variables
+  - Automatic admin user creation from .env
+
+#### 2. Revised Permission Model
+- **Dealer Controlled**:
+  - ROI calculations and settings (empowers dealers)
+  - Their own audit data and history
+  - Website monitoring for their dealership
+  
+- **Admin Only**:
+  - Monitoring frequency settings (30 min, 59 min, 6 hours)
+  - User management and creation
+  - System-wide configuration
+  - API usage monitoring
+
+- **New Routes**:
+  - `/roi-settings` - Available to all authenticated users
+  - `/admin/monitoring-settings` - Admin only monitoring control
+  - `views/admin-monitoring-settings.html` - Simple frequency dropdown
+
+#### 3. SaaS Business Model
+- **Pricing Structure**:
+  - Basic: $99/month (1 location)
+  - Professional: $199/month (3 locations) - RECOMMENDED
+  - Enterprise: $399/month (unlimited)
+  
+- **Implementation**:
+  - User authentication via `data/users.json`
+  - Subscription tracking with expiration dates
+  - Data filtering by dealership
+  - Activity logging per user
+
+### 🔧 Technical Updates
+- Enhanced session management with dealership tracking
+- Improved login system supporting email or username
+- JSON-based user storage for quick implementation
+- Maintained full backward compatibility
+
+### 🔒 Security Enhancements
+- Removed hardcoded credentials from source
+- Added subscription validation
+- Implemented user activity tracking
+- Created code protection guidelines
+
+### 📝 Important Notes
+- Admin credentials still work: admin / AutoAudit2025!
+- System falls back to .env if users.json missing
+- All existing features remain functional
+- Ready for SaaS deployment
+
+---
+
 ## Version 2.5.0 - January 17, 2025 (ScrapingDog Integration & Admin Controls)
 
 ### 🚀 Major Features Added

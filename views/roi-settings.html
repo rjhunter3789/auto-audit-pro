@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROI Settings - Auto Audit Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .settings-container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .settings-header {
+            background: linear-gradient(135deg, #4a90e2 0%, #2c3e50 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px 10px 0 0;
+            text-align: center;
+        }
+        .settings-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .form-section {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .form-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .btn-save {
+            background-color: #28a745;
+            color: white;
+        }
+        .btn-save:hover {
+            background-color: #218838;
+            color: white;
+        }
+        .btn-reset {
+            background-color: #6c757d;
+            color: white;
+        }
+        .btn-reset:hover {
+            background-color: #5a6268;
+            color: white;
+        }
+        .help-text {
+            font-size: 0.875rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
+        .nav-buttons {
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="settings-container">
+        <div class="nav-buttons">
+            <a href="/" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Back to Dashboard</a>
+        </div>
+
+        <div class="settings-header">
+            <h1><i class="bi bi-calculator"></i> ROI Configuration</h1>
+            <p class="mb-0">Customize ROI calculations for your dealership</p>
+        </div>
+
+        <div class="settings-card">
+            <form id="roiConfigForm">
+                <!-- Dealership Metrics -->
+                <div class="form-section">
+                    <h4 class="mb-3">Dealership Metrics</h4>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Average Leads Per Month</label>
+                            <input type="number" class="form-control" id="avgLeadsPerMonth" min="1" required>
+                            <div class="help-text">Your typical monthly lead volume</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Lead Conversion Rate (%)</label>
+                            <input type="number" class="form-control" id="avgConversionRate" min="0.1" max="100" step="0.1" required>
+                            <div class="help-text">Percentage of leads that become sales</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Average Deal Value ($)</label>
+                            <input type="number" class="form-control" id="avgDealValue" min="1000" required>
+                            <div class="help-text">Average vehicle sale price</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Average Gross Profit ($)</label>
+                            <input type="number" class="form-control" id="avgGrossProfit" min="100" required>
+                            <div class="help-text">Average profit per vehicle sold</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Expected Improvements -->
+                <div class="form-section">
+                    <h4 class="mb-3">Expected Improvements from Fixes</h4>
+                    <p class="text-muted mb-3">Estimate the impact of fixing various website issues</p>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Missing Phone Number</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="imp_missingPhoneNumber" min="0" max="100" value="15">
+                                <span class="input-group-text">% more leads</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Missing Contact Form</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="imp_missingContactForm" min="0" max="100" value="20">
+                                <span class="input-group-text">% more leads</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Slow Page Load</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="imp_slowPageLoad" min="0" max="100" value="10">
+                                <span class="input-group-text">% better conversion</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Poor Mobile Experience</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="imp_poorMobileExperience" min="0" max="100" value="25">
+                                <span class="input-group-text">% more leads</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-save me-2">
+                        <i class="bi bi-check-circle"></i> Save Changes
+                    </button>
+                    <button type="button" class="btn btn-reset" onclick="resetConfig()">
+                        <i class="bi bi-arrow-clockwise"></i> Reset to Defaults
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Success Alert -->
+    <div id="successAlert" class="alert alert-success alert-dismissible fade position-fixed top-0 start-50 translate-middle-x mt-3" style="display: none; z-index: 1050;">
+        <i class="bi bi-check-circle"></i> <span id="successMessage">Settings saved successfully!</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Error Alert -->
+    <div id="errorAlert" class="alert alert-danger alert-dismissible fade position-fixed top-0 start-50 translate-middle-x mt-3" style="display: none; z-index: 1050;">
+        <i class="bi bi-exclamation-circle"></i> <span id="errorMessage">Error saving settings</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        // Load current configuration
+        async function loadConfig() {
+            try {
+                const response = await axios.get('/api/roi/config');
+                const config = response.data;
+                
+                // Populate form fields
+                document.getElementById('avgLeadsPerMonth').value = config.avgLeadsPerMonth;
+                document.getElementById('avgConversionRate').value = config.avgConversionRate * 100;
+                document.getElementById('avgDealValue').value = config.avgDealValue;
+                document.getElementById('avgGrossProfit').value = config.avgGrossProfit;
+                
+                // Populate improvements
+                if (config.improvements) {
+                    document.getElementById('imp_missingPhoneNumber').value = config.improvements.missingPhoneNumber?.leadIncrease || 0;
+                    document.getElementById('imp_missingContactForm').value = config.improvements.missingContactForm?.leadIncrease || 0;
+                    document.getElementById('imp_slowPageLoad').value = config.improvements.slowPageLoad?.conversionIncrease || 0;
+                    document.getElementById('imp_poorMobileExperience').value = config.improvements.poorMobileExperience?.leadIncrease || 0;
+                }
+            } catch (error) {
+                console.error('Error loading config:', error);
+                showError('Failed to load current settings');
+            }
+        }
+
+        // Save configuration
+        document.getElementById('roiConfigForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const newConfig = {
+                avgLeadsPerMonth: parseInt(document.getElementById('avgLeadsPerMonth').value),
+                avgConversionRate: parseFloat(document.getElementById('avgConversionRate').value) / 100,
+                avgDealValue: parseInt(document.getElementById('avgDealValue').value),
+                avgGrossProfit: parseInt(document.getElementById('avgGrossProfit').value),
+                improvements: {
+                    missingPhoneNumber: { leadIncrease: parseInt(document.getElementById('imp_missingPhoneNumber').value) },
+                    missingContactForm: { leadIncrease: parseInt(document.getElementById('imp_missingContactForm').value) },
+                    slowPageLoad: { conversionIncrease: parseInt(document.getElementById('imp_slowPageLoad').value) },
+                    poorMobileExperience: { leadIncrease: parseInt(document.getElementById('imp_poorMobileExperience').value) }
+                }
+            };
+            
+            try {
+                await axios.put('/api/roi/config', newConfig);
+                showSuccess('Settings saved successfully!');
+                await loadConfig(); // Reload to confirm
+            } catch (error) {
+                console.error('Error saving config:', error);
+                showError(error.response?.data?.error || 'Failed to save settings');
+            }
+        });
+
+        // Reset configuration
+        async function resetConfig() {
+            if (confirm('Are you sure you want to reset all ROI settings to defaults?')) {
+                try {
+                    await axios.post('/api/roi/reset');
+                    showSuccess('Settings reset to defaults');
+                    await loadConfig(); // Reload form
+                } catch (error) {
+                    console.error('Error resetting config:', error);
+                    showError('Failed to reset settings');
+                }
+            }
+        }
+
+        // Alert functions
+        function showSuccess(message) {
+            const alert = document.getElementById('successAlert');
+            document.getElementById('successMessage').textContent = message;
+            alert.style.display = 'block';
+            alert.classList.add('show');
+            setTimeout(() => {
+                alert.classList.remove('show');
+                setTimeout(() => alert.style.display = 'none', 150);
+            }, 3000);
+        }
+
+        function showError(message) {
+            const alert = document.getElementById('errorAlert');
+            document.getElementById('errorMessage').textContent = message;
+            alert.style.display = 'block';
+            alert.classList.add('show');
+        }
+
+        // Load config on page load
+        loadConfig();
+    </script>
+</body>
+</html>

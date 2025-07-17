@@ -1,0 +1,22 @@
+{
+  "avgLeadsPerMonth": 100,
+  "avgConversionRate": 0.02,
+  "avgDealValue": 45000,
+  "avgGrossProfit": 3000,
+  "improvements": {
+    "missingPhoneNumber": {
+      "leadIncrease": 15
+    },
+    "missingContactForm": {
+      "leadIncrease": 20
+    },
+    "slowPageLoad": {
+      "conversionIncrease": 10
+    },
+    "poorMobileExperience": {
+      "leadIncrease": 25
+    }
+  },
+  "lastUpdated": "2025-01-17T00:00:00.000Z",
+  "updatedBy": "admin"
+}
