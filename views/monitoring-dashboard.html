@@ -465,16 +465,6 @@
                                    data-lpignore="true"
                                    data-form-type="other">
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Check Frequency</label>
-                            <select class="form-select" id="checkFrequency">
-                                <option value="15">Every 15 minutes</option>
-                                <option value="30">Every 30 minutes</option>
-                                <option value="59" selected>Every 59 minutes</option>
-                                <option value="60">Every hour</option>
-                                <option value="120">Every 2 hours</option>
-                            </select>
-                        </div>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -601,7 +591,7 @@
             // Hide admin controls for non-admin users
             if (!currentUser.isAdmin) {
                 // Hide frequency selector in add modal
-                const frequencyDiv = document.querySelector('#checkFrequency').closest('.mb-3');
+                // Check frequency is now admin-controlled only
                 if (frequencyDiv) {
                     frequencyDiv.style.display = 'none';
                 }
@@ -891,7 +881,7 @@
                     email: true, // Always enable email
                     sms: false  // SMS disabled
                 },
-                check_frequency: parseInt(document.getElementById('checkFrequency').value)
+                check_frequency: 59 // Default frequency set by admin
             };
             
             try {

@@ -2601,7 +2601,25 @@ app.get('/api/monitoring/profiles', async (req, res) => {
     try {
         const query = 'SELECT * FROM monitoring_profiles ORDER BY dealer_name';
         const result = await pool.query(query);
-        res.json(result.rows);
+        const profiles = result.rows;
+        
+        // Get latest result for each profile to add last check timestamp and status
+        const resultsQuery = 'SELECT * FROM monitoring_results ORDER BY check_timestamp DESC';
+        const resultsData = await pool.query(resultsQuery);
+        const results = resultsData.rows;
+        
+        // Enrich profiles with latest check data
+        const enrichedProfiles = profiles.map(profile => {
+            const latestResult = results.find(r => r.profile_id === profile.id);
+            return {
+                ...profile,
+                check_timestamp: latestResult?.check_timestamp || null,
+                overall_status: latestResult?.overall_status || null,
+                response_time_ms: latestResult?.response_time_ms || null
+            };
+        });
+        
+        res.json(enrichedProfiles);
     } catch (error) {
         console.error('Error fetching monitoring profiles:', error);
         res.status(500).json({ error: 'Failed to fetch monitoring profiles' });
