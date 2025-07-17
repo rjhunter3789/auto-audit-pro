@@ -91,10 +91,48 @@ app.use(checkSuspiciousActivity);
 
 // Middleware to check admin role
 function requireAdmin(req, res, next) {
-    if (req.session.authenticated && req.session.isAdmin) {
+    console.log('[RequireAdmin] Checking admin access:', {
+        authenticated: req.session.authenticated,
+        isAdmin: req.session.isAdmin,
+        role: req.session.role,
+        username: req.session.username,
+        sessionID: req.sessionID
+    });
+    
+    // Check both isAdmin flag and role='admin'
+    if (req.session.authenticated && (req.session.isAdmin === true || req.session.role === 'admin')) {
+        console.log('[RequireAdmin] Access granted');
         next();
     } else {
-        res.status(403).json({ error: 'Admin access required' });
+        console.log('[RequireAdmin] Access denied');
+        // For web pages, show access denied page
+        if (req.path.includes('/admin/')) {
+            res.status(403).send(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Access Denied</title>
+                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+                </head>
+                <body>
+                    <div class="container mt-5">
+                        <div class="alert alert-danger">
+                            <h4>Access Denied</h4>
+                            <p>Admin access required. Your current role: ${req.session.role || 'none'}</p>
+                            <p>Authenticated: ${req.session.authenticated ? 'Yes' : 'No'}</p>
+                            <p>Is Admin: ${req.session.isAdmin ? 'Yes' : 'No'}</p>
+                            <p>Session ID: ${req.sessionID}</p>
+                            <a href="/" class="btn btn-primary">Back to Home</a>
+                            <a href="/api/session-info" class="btn btn-secondary">Check Session</a>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `);
+        } else {
+            // For API endpoints
+            res.status(403).json({ error: 'Admin access required' });
+        }
     }
 }
 
@@ -108,6 +146,43 @@ app.use((req, res, next) => {
         };
     }
     next();
+});
+
+// Session debugging endpoint
+app.get('/api/session-info', (req, res) => {
+    res.json({
+        authenticated: req.session.authenticated,
+        username: req.session.username,
+        role: req.session.role,
+        isAdmin: req.session.isAdmin,
+        sessionID: req.sessionID,
+        userObject: req.user || null
+    });
+});
+
+// Temporary admin session fix endpoint
+app.get('/api/fix-admin-session', (req, res) => {
+    if (req.session.authenticated) {
+        req.session.isAdmin = true;
+        req.session.role = 'admin';
+        req.session.save((err) => {
+            if (err) {
+                res.json({ error: 'Failed to save session' });
+            } else {
+                res.json({ 
+                    success: true, 
+                    message: 'Admin session fixed',
+                    session: {
+                        username: req.session.username,
+                        role: req.session.role,
+                        isAdmin: req.session.isAdmin
+                    }
+                });
+            }
+        });
+    } else {
+        res.json({ error: 'Not authenticated. Please login first.' });
+    }
 });
 
 // Login routes (no auth required)
@@ -137,17 +212,31 @@ app.post('/api/login', (req, res) => {
         req.session.username = username;
         req.session.role = 'admin';
         req.session.isAdmin = true;
-        clearFailedAttempts(ip);
         
-        // Log successful login
-        logSecurityEvent({
-            type: 'LOGIN_SUCCESS',
-            ip: ip,
-            path: '/api/login',
-            details: `User: ${username}`
+        // Force session save before redirect
+        req.session.save((err) => {
+            if (err) {
+                console.error('[Login] Session save error:', err);
+            } else {
+                console.log('[Login] Session saved successfully:', {
+                    username: req.session.username,
+                    role: req.session.role,
+                    isAdmin: req.session.isAdmin
+                });
+            }
+            
+            clearFailedAttempts(ip);
+            
+            // Log successful login
+            logSecurityEvent({
+                type: 'LOGIN_SUCCESS',
+                ip: ip,
+                path: '/api/login',
+                details: `User: ${username}`
+            });
+            
+            res.redirect('/');
         });
-        
-        res.redirect('/');
     } else {
         trackFailedLogin(ip);
         
