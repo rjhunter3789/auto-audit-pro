@@ -55,12 +55,11 @@ app.use(session({
     saveUninitialized: false,
     name: 'autoaudit.sid', // Custom session name
     cookie: { 
-        secure: process.env.NODE_ENV === 'production',
+        secure: false, // Set to false for local development
         httpOnly: true,
-        // maxAge removed - session ends when browser closes
-        sameSite: 'strict', // Added for extra security
-        domain: 'localhost', // Restrict to localhost
-        path: '/' // Restrict to root path
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        sameSite: 'lax' // Changed from 'strict' to 'lax' for better compatibility
+        // Removed domain restriction for better compatibility
     }
 }));
 
@@ -90,6 +89,27 @@ const {
 // Apply security monitoring to ALL requests
 app.use(checkSuspiciousActivity);
 
+// Middleware to check admin role
+function requireAdmin(req, res, next) {
+    if (req.session.authenticated && req.session.isAdmin) {
+        next();
+    } else {
+        res.status(403).json({ error: 'Admin access required' });
+    }
+}
+
+// Add user info to all authenticated requests
+app.use((req, res, next) => {
+    if (req.session.authenticated) {
+        req.user = {
+            username: req.session.username,
+            role: req.session.role || 'dealer',
+            isAdmin: req.session.isAdmin || false
+        };
+    }
+    next();
+});
+
 // Login routes (no auth required)
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'login.html'));
@@ -101,20 +121,22 @@ app.post('/api/login', (req, res) => {
     
     console.log('[Login Debug] Attempting login:', { username, passwordLength: password?.length });
     console.log('[Login Debug] Expected username:', ADMIN_USERNAME);
+    console.log('[Login Debug] Expected password length:', ADMIN_PASSWORD.length);
     console.log('[Login Debug] Password match:', password === ADMIN_PASSWORD);
+    console.log('[Login Debug] Username match:', username === ADMIN_USERNAME);
+    console.log('[Login Debug] Session exists:', !!req.session);
     
-    // Temporary backdoor for troubleshooting
-    if (username === 'admin' && password === 'temp123') {
-        console.log('[LOGIN] Using temporary backdoor');
+    // Check for admin credentials
+    const isAdmin = username === ADMIN_USERNAME && password === ADMIN_PASSWORD;
+    
+    // For future: Add dealer login logic here
+    // const dealer = await checkDealerCredentials(username, password);
+    
+    if (isAdmin) {
         req.session.authenticated = true;
         req.session.username = username;
-        res.redirect('/');
-        return;
-    }
-    
-    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-        req.session.authenticated = true;
-        req.session.username = username;
+        req.session.role = 'admin';
+        req.session.isAdmin = true;
         clearFailedAttempts(ip);
         
         // Log successful login
@@ -2459,11 +2481,66 @@ app.post('/audit', async (req, res) => {
     }
 });
 
+// ============= ROI CONFIGURATION API ENDPOINTS (Admin Only) =============
+
+const { getROIConfig, updateROIConfig, resetROIConfig, calculateROI } = require('./lib/roi-config');
+
+// Get ROI configuration
+app.get('/api/roi/config', requireAdmin, (req, res) => {
+    try {
+        const config = getROIConfig();
+        res.json(config);
+    } catch (error) {
+        console.error('Error getting ROI config:', error);
+        res.status(500).json({ error: 'Failed to get ROI configuration' });
+    }
+});
+
+// Update ROI configuration
+app.put('/api/roi/config', requireAdmin, (req, res) => {
+    try {
+        const updatedConfig = updateROIConfig(req.body, req.session.isAdmin);
+        res.json(updatedConfig);
+    } catch (error) {
+        console.error('Error updating ROI config:', error);
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Reset ROI configuration to defaults
+app.post('/api/roi/reset', requireAdmin, (req, res) => {
+    try {
+        const config = resetROIConfig(req.session.isAdmin);
+        res.json(config);
+    } catch (error) {
+        console.error('Error resetting ROI config:', error);
+        res.status(500).json({ error: 'Failed to reset ROI configuration' });
+    }
+});
+
 // ============= MONITORING SYSTEM API ENDPOINTS =============
+
+// Get current user info
+app.get('/api/user/current', (req, res) => {
+    if (req.session.authenticated) {
+        res.json({
+            username: req.session.username,
+            role: req.session.role || 'dealer',
+            isAdmin: req.session.isAdmin || false
+        });
+    } else {
+        res.status(401).json({ error: 'Not authenticated' });
+    }
+});
 
 // Get monitoring dashboard
 app.get('/monitoring', (req, res) => {
     res.render('monitoring-dashboard.html');
+});
+
+// Admin settings page (Admin only)
+app.get('/admin/settings', requireAdmin, (req, res) => {
+    res.render('admin-settings.html');
 });
 
 // Get monitoring profiles
@@ -2497,7 +2574,7 @@ app.post('/api/monitoring/profiles', async (req, res) => {
             alert_email || contact_email, 
             alert_phone,
             JSON.stringify(alert_preferences || { email: true, sms: false }),
-            check_frequency || 30
+            check_frequency || 59
         ];
         const result = await pool.query(query, values);
         
@@ -2508,8 +2585,8 @@ app.post('/api/monitoring/profiles', async (req, res) => {
     }
 });
 
-// Update monitoring profile
-app.put('/api/monitoring/profiles/:id', async (req, res) => {
+// Update monitoring profile (Admin only)
+app.put('/api/monitoring/profiles/:id', requireAdmin, async (req, res) => {
     try {
         const { id } = req.params;
         const { monitoring_enabled } = req.body;
@@ -2528,8 +2605,8 @@ app.put('/api/monitoring/profiles/:id', async (req, res) => {
     }
 });
 
-// Delete monitoring profile
-app.delete('/api/monitoring/profiles/:id', async (req, res) => {
+// Delete monitoring profile (Admin only)
+app.delete('/api/monitoring/profiles/:id', requireAdmin, async (req, res) => {
     try {
         const { id } = req.params;
         
@@ -2588,6 +2665,41 @@ app.get('/api/monitoring/status', async (req, res) => {
     } catch (error) {
         console.error('Error fetching monitoring status:', error);
         res.status(500).json({ error: 'Failed to fetch monitoring status' });
+    }
+});
+
+// Get monitoring statistics including ScrapingDog usage
+app.get('/api/monitoring/stats', async (req, res) => {
+    try {
+        // Get monitoring engine instance
+        const MonitoringEngine = require('./lib/monitoring-engine');
+        const monitoringEngine = new MonitoringEngine(pool);
+        
+        // Get stats from monitoring engine
+        const stats = monitoringEngine.getMonitoringStats();
+        
+        // Add database stats
+        const dbStatsQuery = `
+            SELECT 
+                COUNT(DISTINCT profile_id) as monitored_sites,
+                COUNT(*) as total_checks,
+                COUNT(CASE WHEN overall_status = 'GREEN' THEN 1 END) as green_checks,
+                COUNT(CASE WHEN overall_status = 'YELLOW' THEN 1 END) as yellow_checks,
+                COUNT(CASE WHEN overall_status = 'RED' THEN 1 END) as red_checks,
+                AVG(response_time_ms) as avg_response_time
+            FROM monitoring_results
+            WHERE check_timestamp > NOW() - INTERVAL '24 hours'`;
+        
+        const dbResult = await pool.query(dbStatsQuery);
+        
+        res.json({
+            ...stats,
+            database: dbResult.rows[0],
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Error fetching monitoring stats:', error);
+        res.status(500).json({ error: 'Failed to fetch monitoring stats' });
     }
 });
 

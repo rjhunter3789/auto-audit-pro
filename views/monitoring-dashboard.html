@@ -285,6 +285,9 @@
                         <a href="/" class="btn btn-outline-light btn-sm">
                             <i class="bi bi-house"></i> <span class="d-none d-sm-inline">Back to Audits</span>
                         </a>
+                        <a href="/admin/settings" class="btn btn-outline-light btn-sm" id="adminSettingsBtn" style="display: none;">
+                            <i class="bi bi-gear"></i> <span class="d-none d-sm-inline">Admin Settings</span>
+                        </a>
                         <button class="btn btn-light btn-sm" onclick="showAddProfileModal()">
                             <i class="bi bi-plus-circle"></i> <span class="d-none d-sm-inline">Add Website</span>
                         </button>
@@ -326,6 +329,45 @@
                 <div class="stat-box">
                     <div class="stat-number text-danger" id="sitesRed">0</div>
                     <div class="stat-label">Critical</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Usage Stats -->
+        <div class="row mb-4" id="apiStatsSection" style="display: none;">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-graph-up"></i> ScrapingDog API Usage</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="stat-box">
+                                    <div class="stat-number text-info" id="scrapingDogRequests">0</div>
+                                    <div class="stat-label">API Requests</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-box">
+                                    <div class="stat-number text-success" id="scrapingDogSuccess">0%</div>
+                                    <div class="stat-label">Success Rate</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-box">
+                                    <div class="stat-number text-primary" id="scrapingDogCost">$0.00</div>
+                                    <div class="stat-label">Estimated Cost</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-box">
+                                    <div class="stat-number text-warning" id="scrapingDogUsage">0%</div>
+                                    <div class="stat-label">API Usage Rate</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -427,7 +469,8 @@
                             <label class="form-label">Check Frequency</label>
                             <select class="form-select" id="checkFrequency">
                                 <option value="15">Every 15 minutes</option>
-                                <option value="30" selected>Every 30 minutes</option>
+                                <option value="30">Every 30 minutes</option>
+                                <option value="59" selected>Every 59 minutes</option>
                                 <option value="60">Every hour</option>
                                 <option value="120">Every 2 hours</option>
                             </select>
@@ -448,9 +491,11 @@
     <script>
         let profiles = [];
         let activeAlerts = [];
+        let currentUser = null;
 
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
+            loadUserInfo();
             loadDashboard();
             // Refresh every 60 seconds
             setInterval(loadDashboard, 60000);
@@ -537,6 +582,56 @@
             }
         });
 
+        async function loadUserInfo() {
+            try {
+                const response = await axios.get('/api/user/current');
+                currentUser = response.data;
+                console.log('Current user:', currentUser);
+                
+                // Update UI based on user role
+                updateUIForRole();
+            } catch (error) {
+                console.error('Error loading user info:', error);
+            }
+        }
+
+        function updateUIForRole() {
+            if (!currentUser) return;
+            
+            // Hide admin controls for non-admin users
+            if (!currentUser.isAdmin) {
+                // Hide frequency selector in add modal
+                const frequencyDiv = document.querySelector('#checkFrequency').closest('.mb-3');
+                if (frequencyDiv) {
+                    frequencyDiv.style.display = 'none';
+                }
+                
+                // Hide delete buttons
+                document.querySelectorAll('.btn-outline-danger').forEach(btn => {
+                    if (btn.innerHTML.includes('bi-trash')) {
+                        btn.style.display = 'none';
+                    }
+                });
+                
+                // Hide settings that should be admin-only
+                // We'll add more restrictions as needed
+            }
+            
+            // Show admin features if admin
+            if (currentUser.isAdmin) {
+                const header = document.querySelector('.dashboard-header h1');
+                if (header && !header.innerHTML.includes('Admin')) {
+                    header.innerHTML += ' <span class="badge bg-danger ms-2">Admin</span>';
+                }
+                
+                // Show admin settings button
+                const adminBtn = document.getElementById('adminSettingsBtn');
+                if (adminBtn) {
+                    adminBtn.style.display = 'inline-block';
+                }
+            }
+        }
+
         async function loadDashboard() {
             try {
                 // Load monitoring status
@@ -549,8 +644,34 @@
                 // Load active alerts - this will update stats
                 await loadActiveAlerts();
                 
+                // Load API usage stats
+                await loadApiStats();
+                
+                // Reapply role-based UI updates
+                updateUIForRole();
+                
             } catch (error) {
                 console.error('Error loading dashboard:', error);
+            }
+        }
+
+        async function loadApiStats() {
+            try {
+                const response = await axios.get('/api/monitoring/stats');
+                const stats = response.data;
+                
+                if (stats.scrapingDogStats && stats.scrapingDogStats.totalRequests > 0) {
+                    // Show the API stats section
+                    document.getElementById('apiStatsSection').style.display = 'block';
+                    
+                    // Update the stats
+                    document.getElementById('scrapingDogRequests').textContent = stats.scrapingDogStats.totalRequests;
+                    document.getElementById('scrapingDogSuccess').textContent = stats.scrapingDogStats.successRate;
+                    document.getElementById('scrapingDogCost').textContent = '$' + stats.scrapingDogStats.totalCost.toFixed(2);
+                    document.getElementById('scrapingDogUsage').textContent = stats.scrapingDogUsageRate;
+                }
+            } catch (error) {
+                console.error('Error loading API stats:', error);
             }
         }
 
@@ -641,9 +762,10 @@
                                     <button class="btn btn-sm btn-outline-warning ms-1" onclick="event.stopPropagation(); sendTestAlert(${profile.id}, event);" title="Send test notifications">
                                         <i class="bi bi-bell"></i> Test
                                     </button>
-                                    <button class="btn btn-sm btn-outline-danger ms-1" onclick="removeProfile(${profile.id}, '${profile.dealer_name}')">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
+                                    ${currentUser && currentUser.isAdmin ? 
+                                        `<button class="btn btn-sm btn-outline-danger ms-1" onclick="removeProfile(${profile.id}, '${profile.dealer_name}')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>` : ''}
                                 </div>
                             </div>
                         </div>

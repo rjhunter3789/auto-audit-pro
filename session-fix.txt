@@ -1,0 +1,17 @@
+
+// Add this to fix session issues in server.js
+// Replace the existing session configuration with:
+
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'AutoAuditPro-Secret-Key-2025',
+    resave: false,
+    saveUninitialized: false,
+    name: 'autoaudit.sid',
+    cookie: { 
+        secure: false,  // Change to false for local development
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        sameSite: 'lax'  // Change from 'strict' to 'lax'
+        // Remove domain restriction
+    }
+}));

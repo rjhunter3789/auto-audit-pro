@@ -1,5 +1,128 @@
 # Auto Audit Pro Suite - Changelog & Feature Documentation
 
+## Version 2.5.0 - January 17, 2025 (ScrapingDog Integration & Admin Controls)
+
+### 🚀 Major Features Added
+
+#### 1. ScrapingDog API Integration
+- **New Files Created**:
+  - `lib/scrapingdog-wrapper.js` - Complete API wrapper with intelligent routing
+  - `test-scrapingdog.js` - Basic integration test
+  - `test-scrapingdog-direct.js` - Direct API test
+  - `test-scrapingdog-integration.js` - Comprehensive integration test
+
+- **Modified Files**:
+  - `lib/monitoring-engine.js`:
+    - Added ScrapingDog as fallback for anti-bot protection
+    - New methods: `checkConnectivityWithScrapingDog()`, `analyzeSite()`, `getMonitoringStats()`
+    - Intelligent routing between free (Selenium) and paid (ScrapingDog) scraping
+  - `.env`:
+    - Added `SCRAPINGDOG_API_KEY=6877d1cfa281473f17abfc7d`
+
+- **Features**:
+  - Automatic anti-bot detection
+  - Seamless fallback to premium scraping
+  - Usage tracking and cost estimation
+  - Success rate monitoring
+
+#### 2. Role-Based Access Control (RBAC)
+- **Authentication System Enhanced**:
+  - Added admin role to session: `req.session.role = 'admin'`
+  - New middleware: `requireAdmin()` for protecting admin-only routes
+  - User object attached to all authenticated requests
+  - ⚠️ **REMOVED SECURITY BACKDOOR** (admin/temp123)
+
+- **Protected Routes** (Admin Only):
+  - `PUT /api/monitoring/profiles/:id` - Update monitoring settings
+  - `DELETE /api/monitoring/profiles/:id` - Delete monitoring profiles
+  - `GET /api/roi/config` - View ROI configuration
+  - `PUT /api/roi/config` - Update ROI configuration
+  - `POST /api/roi/reset` - Reset ROI to defaults
+  - `GET /admin/settings` - Admin settings page
+
+#### 3. Configurable ROI System
+- **New Files**:
+  - `lib/roi-config.js` - Admin-controlled ROI configuration system
+  - `views/admin-settings.html` - Admin settings interface
+
+- **ROI Parameters (Admin Configurable)**:
+  - Average leads per month
+  - Average conversion rate
+  - Average deal value
+  - Average gross profit per deal
+  - Expected improvements from fixes
+
+- **Modified Files**:
+  - `lib/enhanced-recommendations.js` - Now uses configurable ROI values
+  - `server.js` - Added ROI configuration endpoints
+
+#### 4. Monitoring System Updates
+- **Default Frequency Changed**:
+  - From: 30 minutes
+  - To: **59 minutes** (avoiding predictable patterns)
+  - Updated in: `server.js` (line ~2500) and `monitoring-dashboard.html`
+
+- **UI Enhancements**:
+  - ScrapingDog API usage statistics display
+  - Admin badge in header for admin users
+  - Admin Settings button (admin only)
+  - Dynamic show/hide of admin controls
+
+### 🔒 Security Enhancements
+
+1. **Removed Hardcoded Backdoor**:
+   - Eliminated temporary backdoor (admin/temp123)
+   - Now uses proper authentication only
+
+2. **Role-Based UI**:
+   - Non-admin users cannot see:
+     - Delete buttons
+     - Frequency settings
+     - Admin settings link
+   - Dynamic UI based on `currentUser.isAdmin`
+
+3. **API Protection**:
+   - Admin-only endpoints return 403 for non-admin users
+   - Proper error messages for unauthorized access
+
+### 📊 New API Endpoints
+
+1. **User Management**:
+   - `GET /api/user/current` - Get current user info with role
+
+2. **ROI Configuration** (Admin Only):
+   - `GET /api/roi/config` - Get current ROI settings
+   - `PUT /api/roi/config` - Update ROI settings
+   - `POST /api/roi/reset` - Reset to default values
+
+3. **Monitoring Stats**:
+   - `GET /api/monitoring/stats` - Get ScrapingDog usage statistics
+
+4. **Admin Interface**:
+   - `GET /admin/settings` - Admin settings page
+
+### 📚 Documentation Added
+
+1. **RECOVERY_PROCEDURES.md**:
+   - Emergency contacts and procedures
+   - Common issues & quick fixes
+   - Rollback procedures
+   - Backup & restore guides
+   - API key management
+   - Database recovery steps
+
+2. **CHANGELOG.md Updates**:
+   - Comprehensive change tracking
+   - Technical implementation details
+   - Migration notes
+
+### ⚠️ Breaking Changes
+
+1. **Removed backdoor login** - Use proper admin credentials
+2. **Monitoring frequency default** changed from 30 to 59 minutes
+3. **Delete operations** now require admin role
+4. **ROI calculations** no longer hardcoded
+
 ## Version 2.4.4 - July 16, 2025 (Monitoring Fixes & Improvements)
 
 ### 🔧 Monitoring Dashboard Fixes
