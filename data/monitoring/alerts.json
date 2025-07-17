@@ -1165,9 +1165,11 @@
     "alert_type": "ssl_valid",
     "alert_message": "CRITICAL: SSL certificate is invalid - browsers showing security warnings!",
     "notification_sent": false,
-    "acknowledged": false,
+    "acknowledged": true,
     "resolved": false,
-    "created_at": "2025-07-16T21:45:00.704Z"
+    "created_at": "2025-07-16T21:45:00.704Z",
+    "acknowledged_at": "2025-07-17T22:10:35.994Z",
+    "acknowledged_by": "Dashboard User"
   },
   {
     "id": 1752702300742,
