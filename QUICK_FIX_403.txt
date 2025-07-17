@@ -1,0 +1,51 @@
+QUICK FIX FOR 403 ERROR
+======================
+
+Follow these steps EXACTLY in order:
+
+1. Make sure server is running (you should see "Server running on port 3002")
+
+2. Open your browser and go to:
+   http://localhost:3002/login
+
+3. Login with:
+   Username: admin
+   Password: AutoAudit2025!
+
+4. After login, IMMEDIATELY open a new tab and go to:
+   http://localhost:3002/api/fix-admin-session
+
+   You should see something like:
+   {"success":true,"message":"Admin session fixed","session":{"username":"admin","role":"admin","isAdmin":true}}
+
+5. Now try Admin Settings again:
+   http://localhost:3002/admin/settings
+
+If this doesn't work, try the Browser Console method:
+----------------------------------------------
+1. After logging in, press F12 to open Developer Tools
+2. Click on the "Console" tab
+3. Copy and paste this ENTIRE block:
+
+fetch('/api/fix-admin-session')
+  .then(r => r.json())
+  .then(data => {
+    console.log('Fix result:', data);
+    if(data.success) {
+      alert('Admin access fixed! Redirecting...');
+      window.location.href = '/admin/settings';
+    } else {
+      alert('Error: ' + JSON.stringify(data));
+    }
+  });
+
+4. Press Enter
+5. You should see an alert saying "Admin access fixed!" and be redirected
+
+If STILL not working:
+--------------------
+Check the server console output. Look for lines that say:
+[RequireAdmin] Checking admin access:
+[RequireAdmin] Access denied
+
+This will tell us what's wrong with the session.

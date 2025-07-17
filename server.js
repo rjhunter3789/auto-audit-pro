@@ -2624,12 +2624,12 @@ app.get('/api/user/current', (req, res) => {
 
 // Get monitoring dashboard
 app.get('/monitoring', (req, res) => {
-    res.render('monitoring-dashboard.html');
+    res.sendFile(path.join(__dirname, 'views', 'monitoring-dashboard.html'));
 });
 
 // Admin settings page (Admin only)
 app.get('/admin/settings', requireAdmin, (req, res) => {
-    res.render('admin-settings.html');
+    res.sendFile(path.join(__dirname, 'views', 'admin-settings.html'));
 });
 
 // Get monitoring profiles

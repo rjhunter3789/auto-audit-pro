@@ -1,0 +1,43 @@
+FIX FOR MONITORING DASHBOARD 403 ERRORS
+=======================================
+
+The Issue:
+----------
+You're seeing 403 errors for URLs like:
+- https://autoauditpro.io/api/monitoring/alerts/...
+- https://autoauditpro.io/api/monitoring/stats
+
+This means you're accessing the monitoring dashboard through the production domain (autoauditpro.io) 
+instead of your local development server.
+
+The Solution:
+-------------
+1. Make sure you're accessing the monitoring dashboard through localhost:
+   http://localhost:3002/monitoring
+   
+   NOT through:
+   https://autoauditpro.io/monitoring
+
+2. If you're already using localhost and still seeing these errors, check your browser's 
+   address bar to make sure it says "localhost:3002" and not "autoauditpro.io"
+
+3. Clear your browser cache:
+   - Press Ctrl+Shift+Delete
+   - Select "Cached images and files"
+   - Click "Clear data"
+
+4. If you need to access through autoauditpro.io domain, you would need to:
+   - Deploy the application to that domain
+   - Configure proper authentication on the production server
+   - Set up SSL certificates
+
+For Local Development:
+---------------------
+Always use: http://localhost:3002
+This ensures all API calls go to your local server where your data is stored.
+
+Quick Check:
+-----------
+Look at your browser's address bar right now. 
+- If it shows "autoauditpro.io", that's the problem
+- Change it to "localhost:3002" and reload the page
