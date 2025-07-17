@@ -2627,11 +2627,6 @@ app.get('/monitoring', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'monitoring-dashboard.html'));
 });
 
-// Admin settings page (Admin only)
-app.get('/admin/settings', requireAdmin, (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'admin-settings.html'));
-});
-
 // Get monitoring profiles
 app.get('/api/monitoring/profiles', async (req, res) => {
     try {
@@ -3061,6 +3056,18 @@ app.get('/api/security/recent-events', async (req, res) => {
         console.error('Error reading security log:', error);
         res.json([]);
     }
+});
+
+// Admin settings page (MOVED HERE - must be before 404 handler)
+app.get('/admin/settings', (req, res) => {
+    console.log('[Admin Settings] Request received');
+    const filePath = path.join(__dirname, 'views', 'admin-settings.html');
+    res.sendFile(filePath);
+});
+
+// Test route to verify admin routing
+app.get('/admin/test', (req, res) => {
+    res.json({ message: 'Admin routes are working', timestamp: new Date() });
 });
 
 // Initialize monitoring scheduler

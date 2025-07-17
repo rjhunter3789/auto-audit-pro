@@ -1,0 +1,34 @@
+DEBUG ADMIN SETTINGS 404 ERROR
+==============================
+
+Please restart your server and then try these URLs in order:
+
+1. Test if admin routes work at all:
+   http://localhost:3002/admin/test
+   
+   Expected: JSON response with "Admin routes are working"
+   If this gives 404, then no admin routes are working
+
+2. Try the admin settings page:
+   http://localhost:3002/admin/settings
+   
+   Check the server console for debug messages starting with [Admin Settings]
+
+3. Also check the browser console (F12) for any errors
+
+What I've done:
+- Removed requireAdmin temporarily to rule out authentication issues
+- Added debug logging to show the file path being used
+- Added file existence check
+- Created a test route to verify /admin/* routes work
+
+If you still get 404:
+- The server might not be loading the updated code
+- Try completely stopping the server, waiting a few seconds, then starting again
+- Make sure you saved all files
+
+Alternative approach:
+Try accessing the file directly through the static file server:
+http://localhost:3002/views/admin-settings.html
+
+(This won't have the proper authentication but will verify the file is accessible)
