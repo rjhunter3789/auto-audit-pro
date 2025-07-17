@@ -204,17 +204,57 @@ app.post('/api/login', (req, res) => {
     console.log('[Login Debug] Username match:', username === ADMIN_USERNAME);
     console.log('[Login Debug] Session exists:', !!req.session);
     
-    // Check for admin credentials
-    const isAdmin = username === ADMIN_USERNAME && password === ADMIN_PASSWORD;
+    // Try to load users from users.json first
+    let users = [];
+    let authenticatedUser = null;
     
-    // For future: Add dealer login logic here
-    // const dealer = await checkDealerCredentials(username, password);
+    try {
+        const usersData = fs.readFileSync(path.join(__dirname, 'data', 'users.json'), 'utf8');
+        users = JSON.parse(usersData);
+        
+        // Check against users.json
+        console.log('[Login Debug] Users loaded:', users.length);
+        console.log('[Login Debug] Looking for user:', username);
+        
+        authenticatedUser = users.find(u => {
+            const usernameMatch = u.username === username || u.email === username;
+            const passwordMatch = u.password === password;
+            console.log('[Login Debug] Checking user:', u.username, 'Username match:', usernameMatch, 'Password match:', passwordMatch);
+            return usernameMatch && passwordMatch;
+        });
+        
+        console.log('[Login Debug] Authenticated user:', authenticatedUser ? authenticatedUser.username : 'none');
+    } catch (error) {
+        console.log('[Login] No users.json found, will check .env');
+    }
     
-    if (isAdmin) {
+    // Check for admin credentials from .env if no user found
+    const isAdmin = !authenticatedUser && username === ADMIN_USERNAME && password === ADMIN_PASSWORD;
+    
+    if (authenticatedUser || isAdmin) {
         req.session.authenticated = true;
-        req.session.username = username;
-        req.session.role = 'admin';
-        req.session.isAdmin = true;
+        
+        if (authenticatedUser) {
+            // User from users.json
+            req.session.username = authenticatedUser.username;
+            req.session.role = authenticatedUser.role;
+            req.session.isAdmin = authenticatedUser.isAdmin || false;
+            req.session.userId = authenticatedUser.id;
+            req.session.dealership = authenticatedUser.dealership;
+            
+            console.log('[Login] User authenticated from users.json:', {
+                username: authenticatedUser.username,
+                role: authenticatedUser.role,
+                isAdmin: authenticatedUser.isAdmin
+            });
+        } else {
+            // Admin from .env
+            req.session.username = username;
+            req.session.role = 'admin';
+            req.session.isAdmin = true;
+            
+            console.log('[Login] Admin authenticated from .env');
+        }
         
         // Force session save before redirect
         req.session.save((err) => {
@@ -2584,7 +2624,8 @@ app.get('/api/user/current', (req, res) => {
         res.json({
             username: req.session.username,
             role: req.session.role || 'dealer',
-            isAdmin: req.session.isAdmin || false
+            isAdmin: req.session.isAdmin || false,
+            dealership: req.session.dealership || null
         });
     } else {
         res.status(401).json({ error: 'Not authenticated' });
