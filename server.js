@@ -2715,24 +2715,30 @@ app.get('/api/monitoring/results/:profileId', async (req, res) => {
 // Get current status for all profiles
 app.get('/api/monitoring/status', async (req, res) => {
     try {
-        const query = `
-            SELECT 
-                p.*,
-                r.overall_status,
-                r.check_timestamp,
-                r.response_time_ms,
-                r.issues_found
-            FROM monitoring_profiles p
-            LEFT JOIN LATERAL (
-                SELECT * FROM monitoring_results 
-                WHERE profile_id = p.id 
-                ORDER BY check_timestamp DESC 
-                LIMIT 1
-            ) r ON true
-            ORDER BY p.dealer_name`;
+        // Use JSON storage instead of database
+        const JSONStorage = require('./lib/json-storage');
+        const jsonStorage = new JSONStorage();
         
-        const result = await pool.query(query);
-        res.json(result.rows);
+        // Get all profiles
+        const profiles = await jsonStorage.getProfiles();
+        
+        // Get latest result for each profile
+        const profilesWithStatus = await Promise.all(profiles.map(async (profile) => {
+            const latestResult = await jsonStorage.getLatestResult(profile.id);
+            
+            return {
+                ...profile,
+                overall_status: latestResult ? latestResult.overall_status : 'PENDING',
+                check_timestamp: latestResult ? latestResult.check_timestamp : null,
+                response_time_ms: latestResult ? latestResult.response_time_ms : null,
+                issues_found: latestResult ? latestResult.issues_found : []
+            };
+        }));
+        
+        // Sort by dealer name
+        profilesWithStatus.sort((a, b) => (a.dealer_name || '').localeCompare(b.dealer_name || ''));
+        
+        res.json(profilesWithStatus);
     } catch (error) {
         console.error('Error fetching monitoring status:', error);
         res.status(500).json({ error: 'Failed to fetch monitoring status' });
