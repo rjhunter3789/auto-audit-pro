@@ -1,5 +1,29 @@
 # Auto Audit Pro Suite - Changelog & Feature Documentation
 
+## Version 2.6.1 - January 17, 2025 (Fixes and UI Cleanup)
+
+### 🐛 Bug Fixes
+- Fixed admin access "Not Found" error by moving routes before 404 handler
+- Fixed CSP blocking html2canvas (added cdnjs.cloudflare.com to allowed sources)
+- Added session debugging endpoint `/api/session-info`
+- Added session fix endpoint `/api/fix-admin-session`
+- Created alternative route `/settings-config` to bypass admin middleware issues
+
+### 🎨 UI Improvements
+- Removed duplicate "24/7 Website Monitoring" tile from Website Analysis page
+- Monitoring feature now only appears on main suite homepage
+
+### ⚠️ Known Issues
+- Report templates showing raw EJS syntax (`<%= %>`) instead of data
+- Reports need conversion from static HTML to proper server-side rendering
+
+### 📝 Workarounds
+- For admin settings: Use `/settings-config` instead of `/admin/settings`
+- For reports: View raw data at `/api/audit/[AUDIT-ID]`
+- For session issues: Visit `/api/fix-admin-session` after login
+
+---
+
 ## Version 2.6.0 - January 17, 2025 (Multi-User SaaS Implementation)
 
 ### 🚀 Major Features Added
