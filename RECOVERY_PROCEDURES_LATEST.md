@@ -6,6 +6,9 @@
 3. Fixed Content Security Policy for report scripts
 4. Removed duplicate monitoring tile from Website Analysis
 5. Separated dealer ROI controls from admin monitoring controls
+6. Fixed monitoring dashboard display issues (was showing "Checking..." instead of timestamps)
+7. Updated all monitoring endpoints to use JSON storage instead of PostgreSQL
+8. Fixed acknowledge/resolve alert functionality
 
 ## Recovery Scenarios
 
@@ -75,6 +78,24 @@
 - Website Analysis page (index-new.html)
 - Now only on main suite homepage
 
+### 7. Monitoring Dashboard Fixes (January 17, 2025 - Evening)
+
+**Issues Fixed:**
+- Dashboard showing "Checking..." instead of actual timestamps
+- Alert acknowledge/resolve buttons not working
+- 500 errors on API calls
+
+**What Was Changed:**
+1. Updated `/api/monitoring/status` endpoint to use JSON storage
+2. Updated `/api/monitoring/profiles` endpoint to use JSON storage  
+3. Fixed acknowledge alert endpoint (`/api/monitoring/alerts/:alertId/acknowledge`)
+4. Fixed resolve alert endpoint (`/api/monitoring/alerts/:alertId/resolve`)
+5. Changed from `new JSONStorage()` to `require('./lib/json-storage').storage`
+
+**Files Modified:**
+- `server.js` - Multiple endpoint updates
+- Created fix scripts: `fix-monitoring-status-display.js`, `fix-all-monitoring-endpoints.js`, `fix-json-storage-usage.js`
+
 ## Emergency Rollback Commands
 
 ### Full System Reset
@@ -110,16 +131,19 @@ npm start
 
 ### Working Features
 - ✅ Admin login (admin / AutoAudit2025!)
-- ✅ Website monitoring
+- ✅ Website monitoring with correct timestamp display
+- ✅ Alert acknowledgment and resolution
 - ✅ New audits
 - ✅ ROI calculations (dealer controlled)
 - ✅ Monitoring frequency (admin controlled)
 - ✅ Session management
+- ✅ Manual monitoring checks ("Check Now" button)
 
 ### Known Issues
 - ⚠️ Report templates not rendering (showing raw code)
 - ⚠️ Multi-user system ready but not active
 - ⚠️ Some routes require /settings-config workaround
+- ⚠️ Monitoring gets 403 errors from sites with Cloudflare (need ScrapingDog)
 
 ## Prevention Tips
 

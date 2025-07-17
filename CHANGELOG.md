@@ -1,5 +1,34 @@
 # Auto Audit Pro Suite - Changelog & Feature Documentation
 
+## Version 2.6.2 - January 17, 2025 (Evening - Monitoring Dashboard Fixes)
+
+### 🐛 Bug Fixes - Monitoring System
+- Fixed monitoring dashboard showing "Checking..." instead of actual timestamps
+- Fixed "PENDING CHECK" status displaying instead of actual monitoring status
+- Fixed acknowledge/resolve alert buttons not functioning
+- Fixed 500 errors on monitoring API endpoints
+
+### 🔧 Technical Fixes
+- Converted `/api/monitoring/status` endpoint from PostgreSQL to JSON storage
+- Converted `/api/monitoring/profiles` endpoint from PostgreSQL to JSON storage
+- Fixed `/api/monitoring/alerts/:alertId/acknowledge` to use JSON storage
+- Fixed `/api/monitoring/alerts/:alertId/resolve` to use JSON storage
+- Corrected JSONStorage usage from class instantiation to exported instance
+
+### ✅ Monitoring Features Now Working
+- Last check time displays correctly (e.g., "7/17/2025, 2:53:10 PM")
+- Alert acknowledgment workflow (Acknowledge → Resolve)
+- Manual check functionality ("Check Now" button)
+- Alert history tracking with timestamps
+- Automatic monitoring every 15 minutes (configurable)
+
+### 📝 Implementation Notes
+- Monitoring continues to receive 403 errors from Cloudflare-protected sites
+- This is expected behavior and why ScrapingDog integration exists
+- All monitoring data stored in JSON files (no database required)
+
+---
+
 ## Version 2.6.1 - January 17, 2025 (Fixes and UI Cleanup)
 
 ### 🐛 Bug Fixes

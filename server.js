@@ -2599,25 +2599,26 @@ app.get('/monitoring', (req, res) => {
 // Get monitoring profiles
 app.get('/api/monitoring/profiles', async (req, res) => {
     try {
-        const query = 'SELECT * FROM monitoring_profiles ORDER BY dealer_name';
-        const result = await pool.query(query);
-        const profiles = result.rows;
+        // Use JSON storage instead of database
+        const { storage: jsonStorage } = require('./lib/json-storage');
         
-        // Get latest result for each profile to add last check timestamp and status
-        const resultsQuery = 'SELECT * FROM monitoring_results ORDER BY check_timestamp DESC';
-        const resultsData = await pool.query(resultsQuery);
-        const results = resultsData.rows;
+        // Get all profiles
+        const profiles = await jsonStorage.getProfiles();
         
-        // Enrich profiles with latest check data
-        const enrichedProfiles = profiles.map(profile => {
-            const latestResult = results.find(r => r.profile_id === profile.id);
+        // Get latest result for each profile
+        const enrichedProfiles = await Promise.all(profiles.map(async (profile) => {
+            const latestResult = await jsonStorage.getLatestResult(profile.id);
+            
             return {
                 ...profile,
                 check_timestamp: latestResult?.check_timestamp || null,
                 overall_status: latestResult?.overall_status || null,
                 response_time_ms: latestResult?.response_time_ms || null
             };
-        });
+        }));
+        
+        // Sort by dealer name
+        enrichedProfiles.sort((a, b) => (a.dealer_name || '').localeCompare(b.dealer_name || ''));
         
         res.json(enrichedProfiles);
     } catch (error) {
@@ -2716,8 +2717,7 @@ app.get('/api/monitoring/results/:profileId', async (req, res) => {
 app.get('/api/monitoring/status', async (req, res) => {
     try {
         // Use JSON storage instead of database
-        const JSONStorage = require('./lib/json-storage');
-        const jsonStorage = new JSONStorage();
+        const { storage: jsonStorage } = require('./lib/json-storage');
         
         // Get all profiles
         const profiles = await jsonStorage.getProfiles();
@@ -2812,16 +2812,30 @@ app.put('/api/monitoring/alerts/:alertId/acknowledge', async (req, res) => {
         const { alertId } = req.params;
         const { acknowledged_by } = req.body;
         
-        const query = `
-            UPDATE alert_history 
-            SET acknowledged = true,
-                acknowledged_by = $2,
-                acknowledged_at = CURRENT_TIMESTAMP
-            WHERE id = $1
-            RETURNING *`;
+        // Use JSON storage
+        const { storage: jsonStorage } = require('./lib/json-storage');
+        const fs = require('fs').promises;
+        const path = require('path');
         
-        const result = await pool.query(query, [alertId, acknowledged_by || 'User']);
-        res.json(result.rows[0]);
+        // Get all alerts
+        const alertsPath = path.join(__dirname, 'data', 'monitoring', 'alerts.json');
+        const alertsData = await fs.readFile(alertsPath, 'utf8');
+        const alerts = JSON.parse(alertsData);
+        
+        // Find and update the alert
+        const alertIndex = alerts.findIndex(a => a.id == alertId);
+        if (alertIndex === -1) {
+            return res.status(404).json({ error: 'Alert not found' });
+        }
+        
+        alerts[alertIndex].acknowledged = true;
+        alerts[alertIndex].acknowledged_at = new Date().toISOString();
+        alerts[alertIndex].acknowledged_by = acknowledged_by || 'User';
+        
+        // Save back to file
+        await fs.writeFile(alertsPath, JSON.stringify(alerts, null, 2));
+        
+        res.json(alerts[alertIndex]);
     } catch (error) {
         console.error('Error acknowledging alert:', error);
         res.status(500).json({ error: 'Failed to acknowledge alert' });
@@ -2833,15 +2847,28 @@ app.put('/api/monitoring/alerts/:alertId/resolve', async (req, res) => {
     try {
         const { alertId } = req.params;
         
-        const query = `
-            UPDATE alert_history 
-            SET resolved = true,
-                resolved_at = CURRENT_TIMESTAMP
-            WHERE id = $1
-            RETURNING *`;
+        // Use JSON storage
+        const fs = require('fs').promises;
+        const path = require('path');
         
-        const result = await pool.query(query, [alertId]);
-        res.json(result.rows[0]);
+        // Get all alerts
+        const alertsPath = path.join(__dirname, 'data', 'monitoring', 'alerts.json');
+        const alertsData = await fs.readFile(alertsPath, 'utf8');
+        const alerts = JSON.parse(alertsData);
+        
+        // Find and update the alert
+        const alertIndex = alerts.findIndex(a => a.id == alertId);
+        if (alertIndex === -1) {
+            return res.status(404).json({ error: 'Alert not found' });
+        }
+        
+        alerts[alertIndex].resolved = true;
+        alerts[alertIndex].resolved_at = new Date().toISOString();
+        
+        // Save back to file
+        await fs.writeFile(alertsPath, JSON.stringify(alerts, null, 2));
+        
+        res.json(alerts[alertIndex]);
     } catch (error) {
         console.error('Error resolving alert:', error);
         res.status(500).json({ error: 'Failed to resolve alert' });
