@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>EJS Test Page</title>
+</head>
+<body>
+    <h1>EJS Test Results</h1>
+    <p>If you see actual values below, EJS is working:</p>
+    <ul>
+        <li>Domain: <%= results.domain %></li>
+        <li>Brand: <%= results.brand %></li>
+        <li>Score: <%= results.overallScore %></li>
+        <li>Current Time: <%= new Date().toISOString() %></li>
+    </ul>
+    <p>If you see template tags like &lt;%= results.domain %&gt;, then EJS is NOT working.</p>
+</body>
+</html>

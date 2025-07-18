@@ -550,9 +550,16 @@ app.use((req, res, next) => {
 // app.use(express.static('frontend')); // We turn this off because EJS will handle our HTML now
 
 // --- Setup for EJS Templates ---
+// IMPORTANT: This must be BEFORE any routes are defined
+const ejs = require('ejs');
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-app.engine('html', require('ejs').renderFile);
+app.engine('html', ejs.renderFile);
+app.engine('ejs', ejs.renderFile);
+
+// Debug EJS setup
+console.log('[EJS Setup] View engine:', app.get('view engine'));
+console.log('[EJS Setup] Views directory:', app.get('views'));
 
 // In-memory storage for MVP
 let auditResults = new Map();
@@ -3252,6 +3259,33 @@ app.get('/api/session-debug', checkAuth, (req, res) => {
     });
 });
 
+// Debug views directory
+app.get('/api/debug-views', (req, res) => {
+    const viewsDir = path.join(__dirname, 'views');
+    
+    try {
+        const files = fs.readdirSync(viewsDir);
+        const reportFiles = files.filter(f => f.includes('report'));
+        
+        res.json({
+            viewsDirectory: viewsDir,
+            totalFiles: files.length,
+            reportFiles: reportFiles,
+            ejsConfigured: !!app.get('view engine'),
+            viewEngine: app.get('view engine'),
+            viewsPath: app.get('views'),
+            workingDirectory: process.cwd(),
+            __dirname: __dirname
+        });
+    } catch (error) {
+        res.status(500).json({
+            error: error.message,
+            viewsDir: viewsDir,
+            exists: fs.existsSync(viewsDir)
+        });
+    }
+});
+
 // Test EJS rendering
 app.get('/api/test-ejs', (req, res) => {
     const testData = {
@@ -3266,7 +3300,7 @@ app.get('/api/test-ejs', (req, res) => {
     };
     
     try {
-        res.render('reports-dealer-style.html', testData);
+        res.render('test-ejs', testData);
     } catch (error) {
         res.status(500).json({
             error: 'EJS rendering failed',
