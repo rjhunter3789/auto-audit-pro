@@ -3270,25 +3270,25 @@ app.put('/api/admin/monitoring-config', requireAdmin, (req, res) => {
     }
 });
 
-// ============= ROI CONFIGURATION API ENDPOINTS (Available to all dealers) =============
-const { getROIConfig, updateROIConfig, resetROIConfig, calculateROI } = require('./lib/roi-config');
 
-// Get ROI configuration - Available to all authenticated users
+// ROI Configuration API Routes
+const roiConfig = require('./lib/roi-config');
+
+// Get ROI configuration
 app.get('/api/roi/config', checkAuth, (req, res) => {
     try {
-        const config = getROIConfig();
+        const config = roiConfig.getROIConfig();
         res.json(config);
     } catch (error) {
         console.error('Error getting ROI config:', error);
-        res.status(500).json({ error: 'Failed to get ROI configuration' });
+        res.status(500).json({ error: 'Failed to load ROI configuration' });
     }
 });
 
-// Update ROI configuration - Available to all authenticated users
-app.put('/api/roi/config', checkAuth, (req, res) => {
+// Update ROI configuration (Admin only)
+app.put('/api/roi/config', requireAdmin, (req, res) => {
     try {
-        // Allow any authenticated user to update ROI
-        const updatedConfig = updateROIConfig(req.body, true);
+        const updatedConfig = roiConfig.updateROIConfig(req.body, true);
         res.json(updatedConfig);
     } catch (error) {
         console.error('Error updating ROI config:', error);
@@ -3296,15 +3296,14 @@ app.put('/api/roi/config', checkAuth, (req, res) => {
     }
 });
 
-// Reset ROI configuration to defaults - Available to all authenticated users
-app.post('/api/roi/reset', checkAuth, (req, res) => {
+// Reset ROI configuration (Admin only)
+app.post('/api/roi/reset', requireAdmin, (req, res) => {
     try {
-        // Allow any authenticated user to reset ROI
-        const config = resetROIConfig(true);
+        const config = roiConfig.resetROIConfig(true);
         res.json(config);
     } catch (error) {
         console.error('Error resetting ROI config:', error);
-        res.status(500).json({ error: 'Failed to reset ROI configuration' });
+        res.status(500).json({ error: 'Failed to reset configuration' });
     }
 });
 
