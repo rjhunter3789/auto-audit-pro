@@ -1,0 +1,35 @@
+{
+  "avgLeadsPerMonth": 100,
+  "avgConversionRate": 0.02,
+  "avgDealValue": 45000,
+  "avgGrossProfit": 3000,
+  "leadValueMultiplier": 1.0,
+  "improvements": {
+    "missingPhoneNumber": {
+      "leadIncrease": 15
+    },
+    "missingContactForm": {
+      "leadIncrease": 20
+    },
+    "slowPageLoad": {
+      "conversionIncrease": 10
+    },
+    "poorMobileExperience": {
+      "leadIncrease": 25
+    },
+    "missingMetaDescription": {
+      "trafficIncrease": 15
+    },
+    "expiredOffers": {
+      "conversionIncrease": 5
+    },
+    "missingInventory": {
+      "leadIncrease": 30
+    },
+    "sslIssues": {
+      "conversionIncrease": 15
+    }
+  },
+  "lastUpdated": "2025-01-17T00:00:00.000Z",
+  "updatedBy": "admin"
+}

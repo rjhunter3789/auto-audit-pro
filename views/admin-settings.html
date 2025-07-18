@@ -219,7 +219,19 @@
         // Load current configuration
         async function loadConfig() {
             try {
-                const response = await axios.get('/api/roi/config');
+                let response;
+                try {
+                    response = await axios.get('/api/roi/config');
+                } catch (apiError) {
+                    if (apiError.response && apiError.response.status === 404) {
+                        console.warn('ROI API not available, using static config as fallback');
+                        // Fallback to static config file
+                        response = await axios.get('/roi-config-static.json');
+                        showError('Server restart needed - ROI settings are read-only until restart');
+                    } else {
+                        throw apiError;
+                    }
+                }
                 currentConfig = response.data;
                 
                 // Populate form fields
@@ -289,7 +301,11 @@
                 await loadConfig(); // Reload to confirm
             } catch (error) {
                 console.error('Error saving config:', error);
-                showError(error.response?.data?.error || 'Failed to save settings');
+                if (error.response && error.response.status === 404) {
+                    showError('Cannot save - Server restart needed to enable ROI settings API');
+                } else {
+                    showError(error.response?.data?.error || 'Failed to save settings');
+                }
             }
         });
 
@@ -302,7 +318,11 @@
                     await loadConfig();
                 } catch (error) {
                     console.error('Error resetting config:', error);
-                    showError('Failed to reset settings');
+                    if (error.response && error.response.status === 404) {
+                        showError('Cannot reset - Server restart needed to enable ROI settings API');
+                    } else {
+                        showError('Failed to reset settings');
+                    }
                 }
             }
         }
