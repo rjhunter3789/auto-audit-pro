@@ -2910,5 +2910,19 @@
     "metrics": {},
     "error_details": "Request failed with status code 403",
     "check_timestamp": "2025-07-18T00:45:00.408Z"
+  },
+  {
+    "id": 1752799617322,
+    "profile_id": 1752551890324,
+    "overall_status": "RED",
+    "is_reachable": true,
+    "response_time_ms": 289,
+    "http_status_code": 403,
+    "ssl_valid": true,
+    "ssl_expiry_days": 76,
+    "issues_found": [],
+    "metrics": {},
+    "error_details": "Request failed with status code 403",
+    "check_timestamp": "2025-07-18T00:46:57.322Z"
   }
 ]
