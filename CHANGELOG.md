@@ -1,6 +1,32 @@
 # Auto Audit Pro Suite - Changelog & Feature Documentation
 
-## Version 2.6.3 - January 17, 2025 (Late Evening - Multi-User System Active)
+## Version 2.6.4 - July 18, 2025 (Monitoring System Complete Fix)
+
+### 🐛 Major Bug Fixes
+- Fixed profile deletion failing with "Failed to delete monitoring profile" error
+- Fixed TypeError: `jsonStorage.saveProfiles is not a function`
+- Fixed RED alerts not displaying in Active Alerts section
+- Fixed monitoring stats endpoint 500 error
+
+### 🔧 Technical Fixes
+- Converted delete profile endpoint to use direct file writes instead of non-existent methods
+- Updated alerts endpoint to use JSON storage instead of PostgreSQL
+- Updated stats endpoint to calculate statistics from JSON data
+- Fixed profile/alert/result deletion to properly write to JSON files
+
+### ✅ Features Now Working
+- Delete button successfully removes monitoring profiles
+- RED alerts display correctly regardless of acknowledgment status
+- Monitoring stats API no longer throws errors
+- All CRUD operations work with JSON storage
+
+### 📁 Files Modified
+- `server.js` - Fixed delete endpoint, alerts endpoint, and stats endpoint
+- `views/monitoring-dashboard.html` - Improved error handling and RED alert filtering
+
+---
+
+## Version 2.6.3 - July 17, 2025 (Late Evening - Multi-User System Active)
 
 ### 🚀 Multi-User System Enabled
 - Fixed `fs.existsSync is not a function` error blocking dealer login

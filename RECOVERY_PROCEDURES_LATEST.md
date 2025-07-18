@@ -1,4 +1,4 @@
-# Recovery Procedures - Latest Updates (January 17, 2025)
+# Recovery Procedures - Latest Updates (July 18, 2025)
 
 ## Recent Changes Summary
 1. Fixed admin access issues (session persistence)
@@ -12,6 +12,9 @@
 9. Fixed fs import issue (fs.existsSync error) preventing dealer login
 10. Added password visibility toggle to login page
 11. Confirmed role-based UI working (dealers don't see delete buttons)
+12. Fixed profile deletion - now uses direct file writes instead of non-existent methods
+13. Fixed RED alerts display in Active Alerts section
+14. Fixed monitoring stats endpoint to use JSON calculations
 
 ## Recovery Scenarios
 
@@ -118,6 +121,25 @@
 - Admin sees: Red "Admin" badge, Admin Settings button, Delete buttons
 - Dealer sees: Clean interface without admin controls
 - Dealers cannot delete monitoring profiles (by design)
+
+### 9. Profile Deletion Fixed (July 18, 2025)
+
+**Previous Issue:**
+- Delete button showed "Failed to delete monitoring profile"
+- Error: `TypeError: jsonStorage.saveProfiles is not a function`
+
+**Root Cause:**
+- json-storage.js module didn't have saveProfiles/saveAlerts/saveResults methods
+- Code was trying to call non-existent functions
+
+**Fix Applied:**
+- Changed to use direct file writes with fs.writeFile()
+- Delete endpoint now writes directly to JSON files
+- All profile/alert/result data properly cleaned up on delete
+
+**Files Modified:**
+- `server.js` - Updated delete endpoint, alerts endpoint, stats endpoint
+- Now uses: `await fs.writeFile(profilesFile, JSON.stringify(updatedProfiles, null, 2))`
 
 ## Emergency Rollback Commands
 
