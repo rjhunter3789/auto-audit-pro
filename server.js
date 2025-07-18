@@ -3175,8 +3175,8 @@ app.get('/api/security/recent-events', async (req, res) => {
 });
 
 // Admin settings page (MOVED HERE - must be before 404 handler)
-app.get('/admin/settings', (req, res) => {
-    console.log('[Admin Settings] BYPASSING AUTH - TEMPORARY');
+app.get('/admin/settings', requireAdmin, (req, res) => {
+    console.log('[Admin Settings] Accessed by:', req.session.username);
     const filePath = path.join(__dirname, 'views', 'admin-settings.html');
     res.sendFile(filePath);
 });
@@ -3258,7 +3258,7 @@ app.post('/api/roi/reset', checkAuth, (req, res) => {
 
 // Initialize monitoring scheduler
 const MonitoringScheduler = require('./lib/monitoring-scheduler');
-const monitoringScheduler = new MonitoringScheduler(pool);
+const monitoringScheduler = new MonitoringScheduler();
 
 // Add 404 handler for debugging
 app.use((req, res, next) => {
