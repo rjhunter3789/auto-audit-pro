@@ -2268,6 +2268,12 @@ app.get('/settings-guide', (req, res) => {
 });
 
 // This runs the audit when the user submits the form
+// Handle GET requests to /audit (redirect to website-audit page)
+app.get('/audit', (req, res) => {
+    console.log('[Audit GET] Redirecting to website-audit page');
+    res.redirect('/website-audit');
+});
+
 app.post('/audit', async (req, res) => {
     let siteUrl = req.body.url;
     const auditType = req.body.auditType || 'comprehensive';
@@ -3244,6 +3250,30 @@ app.get('/api/session-debug', checkAuth, (req, res) => {
         authenticated: req.session.authenticated,
         sessionID: req.sessionID
     });
+});
+
+// Test EJS rendering
+app.get('/api/test-ejs', (req, res) => {
+    const testData = {
+        results: {
+            domain: 'test.com',
+            brand: 'Test Brand',
+            overallScore: 85,
+            timestamp: new Date().toISOString(),
+            auditDepth: 'Test Audit',
+            categories: []
+        }
+    };
+    
+    try {
+        res.render('reports-dealer-style.html', testData);
+    } catch (error) {
+        res.status(500).json({
+            error: 'EJS rendering failed',
+            message: error.message,
+            stack: error.stack
+        });
+    }
 });
 
 // Fix admin session if needed
