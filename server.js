@@ -2600,6 +2600,12 @@ app.post('/audit', async (req, res) => {
         if (!auditResults.timestamp) {
             auditResults.timestamp = new Date().toISOString();
         }
+        if (!auditResults.categories) {
+            auditResults.categories = [];
+        }
+        if (!auditResults.issues) {
+            auditResults.issues = [];
+        }
         
         // Render appropriate report based on site type
         if (siteType === 'group') {
@@ -3304,14 +3310,23 @@ app.get('/api/test-ejs', async (req, res) => {
     };
     
     try {
-        // Test both methods
-        const method1 = await ejs.renderFile(path.join(__dirname, 'views', 'test-ejs.ejs'), testData);
-        res.send(method1);
+        // Check which file exists
+        const ejsPath = path.join(__dirname, 'views', 'test-ejs.ejs');
+        const htmlPath = path.join(__dirname, 'views', 'reports-dealer-style.html');
+        
+        console.log('[Test EJS] Trying to render:', htmlPath);
+        console.log('[Test EJS] File exists:', fs.existsSync(htmlPath));
+        
+        // Use the dealer report template for testing
+        const html = await ejs.renderFile(htmlPath, testData);
+        res.send(html);
     } catch (error) {
         res.status(500).json({
             error: 'EJS rendering failed',
             message: error.message,
-            stack: error.stack
+            stack: error.stack,
+            cwd: process.cwd(),
+            dirname: __dirname
         });
     }
 });
