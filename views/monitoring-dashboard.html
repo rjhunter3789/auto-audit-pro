@@ -779,8 +779,8 @@
                 const responses = await Promise.all(alertPromises);
                 activeAlerts = responses.flatMap(r => r.data);
                 
-                // Filter for RED alerts only and remove duplicates (keep latest)
-                const redAlerts = activeAlerts.filter(a => a.alert_level === 'RED');
+                // Filter for RED alerts only (show ALL red alerts, even acknowledged ones)
+                const redAlerts = activeAlerts.filter(a => a.alert_level === 'RED' && !a.resolved);
                 
                 // Group by alert_type and keep only the latest one
                 const latestRedAlerts = {};

@@ -2833,22 +2833,29 @@ app.get('/api/monitoring/stats', async (req, res) => {
 app.get('/api/monitoring/alerts/:profileId', async (req, res) => {
     try {
         const { profileId } = req.params;
-        // Convert string "false" to boolean false
         const resolvedParam = req.query.resolved;
         const resolved = resolvedParam === 'true';
         
         console.log(`[ALERTS API] ProfileId: ${profileId}, resolved: ${resolved} (from param: ${resolvedParam})`);
         
-        const query = `
-            SELECT * FROM alert_history 
-            WHERE profile_id = $1 
-            AND resolved = $2
-            ORDER BY created_at DESC`;
+        // Use JSON storage instead of database
+        const { storage: jsonStorage } = require('./lib/json-storage');
         
-        const result = await pool.query(query, [profileId, resolved]);
-        console.log(`[ALERTS API] Found ${result.rows.length} alerts`);
+        // Get all alerts
+        const allAlerts = await jsonStorage.getAlerts();
         
-        res.json(result.rows);
+        // Filter by profile ID and resolved status
+        const alerts = allAlerts.filter(alert => 
+            alert.profile_id == profileId && 
+            alert.resolved === resolved
+        );
+        
+        // Sort by created_at DESC
+        alerts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        
+        console.log(`[ALERTS API] Found ${alerts.length} alerts for profile ${profileId}`);
+        
+        res.json(alerts);
     } catch (error) {
         console.error('Error fetching alerts:', error);
         res.status(500).json({ error: 'Failed to fetch alerts' });
