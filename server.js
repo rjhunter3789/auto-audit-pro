@@ -75,6 +75,12 @@ app.use('/css', express.static(path.join(__dirname, 'public/css')));
 app.use('/images', express.static(path.join(__dirname, 'public/images')));
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
+// IMPORTANT: Block direct access to views folder to force EJS rendering
+app.use('/views', (req, res) => {
+    console.log('[BLOCKED] Direct access to views folder:', req.path);
+    res.status(403).send('Direct access to template files is not allowed');
+});
+
 // Authentication middleware
 const { checkAuth, ADMIN_USERNAME, ADMIN_PASSWORD } = require('./middleware/auth');
 
@@ -3332,6 +3338,34 @@ app.post('/api/roi/reset', requireAdmin, (req, res) => {
 // Initialize monitoring scheduler
 const MonitoringScheduler = require('./lib/monitoring-scheduler');
 const monitoringScheduler = new MonitoringScheduler();
+
+// Catch direct access to view files and render them properly
+app.use((req, res, next) => {
+    // If someone tries to access a view file directly, render it instead
+    if (req.path.startsWith('/views/') && req.path.endsWith('.html')) {
+        const viewName = req.path.replace('/views/', '');
+        console.log(`[Direct View Access] Attempting to render: ${viewName}`);
+        
+        // For report templates, we need to provide dummy data to prevent errors
+        if (viewName.includes('report')) {
+            const dummyResults = {
+                domain: 'example.com',
+                brand: 'Unknown',
+                overallScore: 0,
+                timestamp: new Date().toISOString(),
+                auditDepth: 'Unknown',
+                auditType: 'unknown',
+                categories: [],
+                issues: [],
+                dealershipName: 'Unknown Dealership'
+            };
+            return res.render(viewName, { results: dummyResults });
+        }
+        
+        return res.status(403).send('Direct access to view files is not allowed');
+    }
+    next();
+});
 
 // Add 404 handler for debugging
 app.use((req, res, next) => {
