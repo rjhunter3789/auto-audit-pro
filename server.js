@@ -2730,15 +2730,24 @@ app.put('/api/monitoring/profiles/:id', async (req, res) => {
 app.delete('/api/monitoring/profiles/:id', requireAdmin, async (req, res) => {
     try {
         const { id } = req.params;
+        console.log(`[DELETE PROFILE] Attempting to delete profile ${id}`);
+        console.log(`[DELETE PROFILE] User session:`, {
+            authenticated: req.session.authenticated,
+            isAdmin: req.session.isAdmin,
+            role: req.session.role,
+            username: req.session.username
+        });
         
         // Use JSON storage instead of database
         const { storage: jsonStorage } = require('./lib/json-storage');
         
         // Get all profiles
         const profiles = await jsonStorage.getProfiles();
+        console.log(`[DELETE PROFILE] Found ${profiles.length} profiles`);
         
         // Filter out the profile to delete
         const updatedProfiles = profiles.filter(p => p.id != id);
+        console.log(`[DELETE PROFILE] After filter: ${updatedProfiles.length} profiles`);
         
         // Save updated profiles
         await jsonStorage.saveProfiles(updatedProfiles);
@@ -2753,7 +2762,7 @@ app.delete('/api/monitoring/profiles/:id', requireAdmin, async (req, res) => {
         await jsonStorage.saveAlerts(updatedAlerts);
         await jsonStorage.saveResults(updatedResults);
         
-        console.log(`[DELETE PROFILE] Deleted profile ${id} and associated data`);
+        console.log(`[DELETE PROFILE] Successfully deleted profile ${id} and associated data`);
         
         res.json({ success: true });
     } catch (error) {
@@ -2819,28 +2828,33 @@ app.get('/api/monitoring/stats', async (req, res) => {
     try {
         // Get monitoring engine instance
         const MonitoringEngine = require('./lib/monitoring-engine');
-        const monitoringEngine = new MonitoringEngine(pool);
+        const monitoringEngine = new MonitoringEngine();
         
         // Get stats from monitoring engine
         const stats = monitoringEngine.getMonitoringStats();
         
-        // Add database stats
-        const dbStatsQuery = `
-            SELECT 
-                COUNT(DISTINCT profile_id) as monitored_sites,
-                COUNT(*) as total_checks,
-                COUNT(CASE WHEN overall_status = 'GREEN' THEN 1 END) as green_checks,
-                COUNT(CASE WHEN overall_status = 'YELLOW' THEN 1 END) as yellow_checks,
-                COUNT(CASE WHEN overall_status = 'RED' THEN 1 END) as red_checks,
-                AVG(response_time_ms) as avg_response_time
-            FROM monitoring_results
-            WHERE check_timestamp > NOW() - INTERVAL '24 hours'`;
+        // Get JSON storage stats
+        const { storage: jsonStorage } = require('./lib/json-storage');
+        const results = await jsonStorage.getResults();
         
-        const dbResult = await pool.query(dbStatsQuery);
+        // Calculate stats from last 24 hours
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const recentResults = results.filter(r => new Date(r.check_timestamp) > twentyFourHoursAgo);
+        
+        const statsData = {
+            monitored_sites: new Set(recentResults.map(r => r.profile_id)).size,
+            total_checks: recentResults.length,
+            green_checks: recentResults.filter(r => r.overall_status === 'GREEN').length,
+            yellow_checks: recentResults.filter(r => r.overall_status === 'YELLOW').length,
+            red_checks: recentResults.filter(r => r.overall_status === 'RED').length,
+            avg_response_time: recentResults.length > 0 
+                ? recentResults.reduce((sum, r) => sum + (r.response_time_ms || 0), 0) / recentResults.length 
+                : 0
+        };
         
         res.json({
             ...stats,
-            database: dbResult.rows[0],
+            database: statsData,
             timestamp: new Date().toISOString()
         });
     } catch (error) {

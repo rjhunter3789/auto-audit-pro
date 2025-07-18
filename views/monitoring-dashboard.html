@@ -1023,7 +1023,7 @@
             }
             
             try {
-                await axios.delete(`/api/monitoring/profiles/${profileId}`);
+                const response = await axios.delete(`/api/monitoring/profiles/${profileId}`);
                 
                 await loadDashboard();
                 
@@ -1031,7 +1031,28 @@
                 
             } catch (error) {
                 console.error('Error removing profile:', error);
-                alert('Failed to remove profile');
+                if (error.response) {
+                    console.error('Error response data:', error.response.data);
+                    console.error('Error status:', error.response.status);
+                    
+                    // Try to extract the actual error message
+                    let errorMessage = 'Unknown error';
+                    if (error.response.data && error.response.data.error) {
+                        errorMessage = error.response.data.error;
+                    } else if (error.response.data && typeof error.response.data === 'string') {
+                        errorMessage = error.response.data;
+                    }
+                    
+                    if (error.response.status === 403) {
+                        alert('Admin access required to delete profiles');
+                    } else if (error.response.status === 500) {
+                        alert(`Server error: ${errorMessage}\n\nPlease check server logs.`);
+                    } else {
+                        alert(`Failed to remove profile: ${errorMessage}`);
+                    }
+                } else {
+                    alert('Failed to remove profile - network error');
+                }
             }
         }
         
