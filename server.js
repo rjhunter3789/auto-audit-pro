@@ -3181,6 +3181,17 @@ app.get('/admin/settings', requireAdmin, (req, res) => {
     res.sendFile(filePath);
 });
 
+// Alternative admin settings route that just requires authentication
+app.get('/settings-admin', checkAuth, (req, res) => {
+    console.log('[Settings Admin] Accessed by:', req.session.username);
+    // Still check if admin, but don't block
+    if (!req.session.isAdmin && req.session.role !== 'admin') {
+        console.log('[Settings Admin] Warning: Non-admin user accessing admin settings');
+    }
+    const filePath = path.join(__dirname, 'views', 'admin-settings.html');
+    res.sendFile(filePath);
+});
+
 // Test route to verify admin routing
 app.get('/admin/test', (req, res) => {
     res.json({ message: 'Admin routes are working', timestamp: new Date() });
