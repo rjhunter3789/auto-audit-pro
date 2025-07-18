@@ -22,7 +22,8 @@ const express = require('express');
 const session = require('express-session');
 const cors = require('cors');
 const axios = require('axios');
-const fs = require('fs').promises;
+const fs = require('fs');
+const fsPromises = require('fs').promises;
 const path = require('path');
 const cheerio = require('cheerio');
 const url = require('url');
@@ -208,9 +209,15 @@ app.post('/api/login', (req, res) => {
     let users = [];
     let authenticatedUser = null;
     
+    console.log('[Login] Attempting to load users.json...');
+    const usersPath = path.join(__dirname, 'data', 'users.json');
+    console.log('[Login] Looking for users.json at:', usersPath);
+    console.log('[Login] File exists:', fs.existsSync(usersPath));
+    
     try {
-        const usersData = fs.readFileSync(path.join(__dirname, 'data', 'users.json'), 'utf8');
+        const usersData = fs.readFileSync(usersPath, 'utf8');
         users = JSON.parse(usersData);
+        console.log('[Login] Successfully loaded users.json with', users.length, 'users');
         
         // Check against users.json
         console.log('[Login Debug] Users loaded:', users.length);
@@ -225,7 +232,8 @@ app.post('/api/login', (req, res) => {
         
         console.log('[Login Debug] Authenticated user:', authenticatedUser ? authenticatedUser.username : 'none');
     } catch (error) {
-        console.log('[Login] No users.json found, will check .env');
+        console.log('[Login] Error loading users.json:', error.message);
+        console.log('[Login] Full error:', error);
     }
     
     // Check for admin credentials from .env if no user found

@@ -9,6 +9,9 @@
 6. Fixed monitoring dashboard display issues (was showing "Checking..." instead of timestamps)
 7. Updated all monitoring endpoints to use JSON storage instead of PostgreSQL
 8. Fixed acknowledge/resolve alert functionality
+9. Fixed fs import issue (fs.existsSync error) preventing dealer login
+10. Added password visibility toggle to login page
+11. Confirmed role-based UI working (dealers don't see delete buttons)
 
 ## Recovery Scenarios
 
@@ -96,6 +99,26 @@
 - `server.js` - Multiple endpoint updates
 - Created fix scripts: `fix-monitoring-status-display.js`, `fix-all-monitoring-endpoints.js`, `fix-json-storage-usage.js`
 
+### 8. Multi-User System Enabled (January 17, 2025 - Late Evening)
+
+**Login Credentials:**
+- Admin: username `admin`, password `AutoAudit2025!`
+- Dealer: username `dealer`, password `dealer123`
+
+**Fixed Issues:**
+- fs.existsSync error - changed `fs.promises` to separate `fs` and `fsPromises`
+- Added debug logging to troubleshoot login issues
+- Created `data/users.json` with both admin and dealer accounts
+
+**UI Enhancements:**
+- Added password visibility toggle (eye icon) on login page
+- Click eye to show/hide password while typing
+
+**Role-Based Features Working:**
+- Admin sees: Red "Admin" badge, Admin Settings button, Delete buttons
+- Dealer sees: Clean interface without admin controls
+- Dealers cannot delete monitoring profiles (by design)
+
 ## Emergency Rollback Commands
 
 ### Full System Reset
@@ -131,6 +154,8 @@ npm start
 
 ### Working Features
 - ✅ Admin login (admin / AutoAudit2025!)
+- ✅ Dealer login (dealer / dealer123) 
+- ✅ Multi-user system ACTIVE with role-based UI
 - ✅ Website monitoring with correct timestamp display
 - ✅ Alert acknowledgment and resolution
 - ✅ New audits
@@ -138,10 +163,10 @@ npm start
 - ✅ Monitoring frequency (admin controlled)
 - ✅ Session management
 - ✅ Manual monitoring checks ("Check Now" button)
+- ✅ Password visibility toggle on login page
 
 ### Known Issues
 - ⚠️ Report templates not rendering (showing raw code)
-- ⚠️ Multi-user system ready but not active
 - ⚠️ Some routes require /settings-config workaround
 - ⚠️ Monitoring gets 403 errors from sites with Cloudflare (need ScrapingDog)
 

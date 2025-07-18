@@ -1,5 +1,36 @@
 # Auto Audit Pro Suite - Changelog & Feature Documentation
 
+## Version 2.6.3 - January 17, 2025 (Late Evening - Multi-User System Active)
+
+### 🚀 Multi-User System Enabled
+- Fixed `fs.existsSync is not a function` error blocking dealer login
+- Changed `const fs = require('fs').promises` to separate imports
+- Dealer account now working: username `dealer`, password `dealer123`
+- Admin account continues to work: username `admin`, password `AutoAudit2025!`
+
+### 🔒 Login Page Enhancement
+- Added password visibility toggle (eye icon)
+- Click eye icon to show/hide password while typing
+- Prevents typing errors on complex passwords
+- Uses Font Awesome icons for better UX
+
+### ✅ Role-Based UI Confirmed Working
+- **Admin users see**: Red "Admin" badge, Admin Settings button, Delete buttons on monitoring
+- **Dealer users see**: Clean interface, no admin controls, no delete buttons
+- Permission system working as designed to prevent accidental deletions
+
+### 🔧 Technical Fixes
+- Split fs imports: `const fs = require('fs')` and `const fsPromises = require('fs').promises`
+- Enhanced login debugging with detailed console output
+- Updated `/api/user/current` to include dealership information
+
+### 📁 Files Modified
+- `server.js` - Fixed fs import, enhanced login route
+- `views/login.html` - Added password toggle functionality
+- `data/users.json` - Created with admin and dealer accounts
+
+---
+
 ## Version 2.6.2 - January 17, 2025 (Evening - Monitoring Dashboard Fixes)
 
 ### 🐛 Bug Fixes - Monitoring System
