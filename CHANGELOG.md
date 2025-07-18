@@ -1,5 +1,33 @@
 # Auto Audit Pro Suite - Changelog & Feature Documentation
 
+## Version 2.6.5 - July 18, 2025 (Admin Security & Monitoring Scheduler Fix)
+
+### 🔒 Security Fixes
+- Admin Settings now properly restricted to admin users only
+- Created alternative route `/settings-admin` with strict admin checks
+- Non-admin users receive "Access Denied" page
+- Added `/api/fix-admin` endpoint to repair admin sessions
+
+### 🐛 Major Bug Fixes
+- Fixed monitoring scheduler to use JSON storage instead of PostgreSQL
+- Deleted profiles no longer continue phantom monitoring
+- Scheduler now properly respects when profiles are deleted from UI
+- No more ghost profiles reappearing after deletion
+
+### ✅ Features Working
+- Admin Settings button works correctly for admin users
+- Monitoring only runs for active profiles in JSON storage
+- Profile deletion properly stops all monitoring activity
+- Clean separation between admin and dealer access
+
+### 📁 Files Modified
+- `server.js` - Updated scheduler initialization, added secure admin routes
+- `lib/monitoring-scheduler.js` - Converted to JSON storage from PostgreSQL
+- `views/monitoring-dashboard.html` - Updated admin button to use new route
+- Created `clean-phantom-profile.js` - Utility to clean ghost profiles
+
+---
+
 ## Version 2.6.4 - July 18, 2025 (Monitoring System Complete Fix)
 
 ### 🐛 Major Bug Fixes

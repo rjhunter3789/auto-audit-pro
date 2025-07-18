@@ -15,6 +15,9 @@
 12. Fixed profile deletion - now uses direct file writes instead of non-existent methods
 13. Fixed RED alerts display in Active Alerts section
 14. Fixed monitoring stats endpoint to use JSON calculations
+15. Fixed monitoring scheduler to use JSON storage - no more phantom monitoring
+16. Fixed Admin Settings access with proper security restrictions
+17. Added session repair endpoint for admin access issues
 
 ## Recovery Scenarios
 
@@ -140,6 +143,39 @@
 **Files Modified:**
 - `server.js` - Updated delete endpoint, alerts endpoint, stats endpoint
 - Now uses: `await fs.writeFile(profilesFile, JSON.stringify(updatedProfiles, null, 2))`
+
+### 10. Phantom Monitoring Fixed (July 18, 2025)
+
+**Previous Issue:**
+- Deleted profiles continued to be monitored
+- Price Ford kept reappearing even after deletion
+- Monitoring scheduler was using PostgreSQL instead of JSON
+
+**Fix Applied:**
+- Updated MonitoringScheduler to use JSON storage
+- Removed all PostgreSQL queries from scheduler
+- Created cleanup script for ghost profiles
+
+**To Clean Ghost Profiles:**
+```bash
+node clean-phantom-profile.js
+```
+
+### 11. Admin Settings Access Fixed (July 18, 2025)
+
+**Issue:**
+- Admin Settings button returned 403 Forbidden
+- requireAdmin middleware blocking even admin users
+
+**Fix Applied:**
+- Created alternative route `/settings-admin`
+- Properly restricted to admin users only
+- Added session repair endpoint
+
+**If Admin Access Denied:**
+1. Visit: `/api/fix-admin`
+2. This will repair your admin session
+3. Then Admin Settings will work
 
 ## Emergency Rollback Commands
 

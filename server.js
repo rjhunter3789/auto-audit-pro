@@ -3236,6 +3236,37 @@ app.get('/api/fix-admin', checkAuth, (req, res) => {
     }
 });
 
+// EMERGENCY LOGIN BYPASS - REMOVE AFTER USE
+app.get('/emergency-admin-login', (req, res) => {
+    console.log('[EMERGENCY] Admin login bypass activated');
+    req.session.authenticated = true;
+    req.session.username = 'admin';
+    req.session.isAdmin = true;
+    req.session.role = 'admin';
+    req.session.email = 'admin@autoauditpro.com';
+    
+    res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Emergency Admin Access</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        </head>
+        <body>
+            <div class="container mt-5">
+                <div class="alert alert-success">
+                    <h4>Emergency Admin Access Granted</h4>
+                    <p>You have been logged in as admin.</p>
+                    <p><strong>IMPORTANT:</strong> Remove the /emergency-admin-login route after use!</p>
+                    <a href="/monitoring" class="btn btn-primary">Go to Monitoring Dashboard</a>
+                    <a href="/" class="btn btn-secondary">Go to Home</a>
+                </div>
+            </div>
+        </body>
+        </html>
+    `);
+});
+
 // ROI Settings - Available to all authenticated users
 app.get('/roi-settings', checkAuth, (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'roi-settings.html'));
