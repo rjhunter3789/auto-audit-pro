@@ -2571,6 +2571,17 @@ app.post('/audit', async (req, res) => {
             }
         }
         
+        // Ensure results object has all required properties
+        if (!auditResults.domain) {
+            auditResults.domain = siteUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+        }
+        if (!auditResults.brand) {
+            auditResults.brand = auditResults.dealershipName || 'Unknown';
+        }
+        if (!auditResults.timestamp) {
+            auditResults.timestamp = new Date().toISOString();
+        }
+        
         // Render appropriate report based on site type
         if (siteType === 'group') {
             res.render('reports-group.html', { results: auditResults });
