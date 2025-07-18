@@ -2994,5 +2994,33 @@
     "metrics": {},
     "error_details": "Request failed with status code 403",
     "check_timestamp": "2025-07-18T01:09:22.832Z"
+  },
+  {
+    "id": 1752801260171,
+    "profile_id": 1752551890324,
+    "overall_status": "RED",
+    "is_reachable": true,
+    "response_time_ms": 316,
+    "http_status_code": 403,
+    "ssl_valid": true,
+    "ssl_expiry_days": 76,
+    "issues_found": [],
+    "metrics": {},
+    "error_details": "Request failed with status code 403",
+    "check_timestamp": "2025-07-18T01:14:20.171Z"
+  },
+  {
+    "id": 1752801300205,
+    "profile_id": 1752551890324,
+    "overall_status": "RED",
+    "is_reachable": true,
+    "response_time_ms": 64,
+    "http_status_code": 403,
+    "ssl_valid": false,
+    "ssl_expiry_days": null,
+    "issues_found": [],
+    "metrics": {},
+    "error_details": "Request failed with status code 403",
+    "check_timestamp": "2025-07-18T01:15:00.205Z"
   }
 ]
