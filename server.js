@@ -2731,9 +2731,29 @@ app.delete('/api/monitoring/profiles/:id', requireAdmin, async (req, res) => {
     try {
         const { id } = req.params;
         
-        // Delete profile (cascades to results and alerts)
-        const query = 'DELETE FROM monitoring_profiles WHERE id = $1';
-        await pool.query(query, [id]);
+        // Use JSON storage instead of database
+        const { storage: jsonStorage } = require('./lib/json-storage');
+        
+        // Get all profiles
+        const profiles = await jsonStorage.getProfiles();
+        
+        // Filter out the profile to delete
+        const updatedProfiles = profiles.filter(p => p.id != id);
+        
+        // Save updated profiles
+        await jsonStorage.saveProfiles(updatedProfiles);
+        
+        // Also delete associated alerts and results
+        const alerts = await jsonStorage.getAlerts();
+        const results = await jsonStorage.getResults();
+        
+        const updatedAlerts = alerts.filter(a => a.profile_id != id);
+        const updatedResults = results.filter(r => r.profile_id != id);
+        
+        await jsonStorage.saveAlerts(updatedAlerts);
+        await jsonStorage.saveResults(updatedResults);
+        
+        console.log(`[DELETE PROFILE] Deleted profile ${id} and associated data`);
         
         res.json({ success: true });
     } catch (error) {
