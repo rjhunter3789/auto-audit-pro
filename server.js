@@ -2603,10 +2603,14 @@ app.post('/audit', async (req, res) => {
         
         // Render appropriate report based on site type
         if (siteType === 'group') {
-            res.render('reports-group.html', { results: auditResults });
+            // Force EJS to process the template
+            const html = await ejs.renderFile(path.join(__dirname, 'views', 'reports-group.html'), { results: auditResults });
+            res.send(html);
         } else {
             // Use dealer-style report for individual dealerships
-            res.render('reports-dealer-style.html', { results: auditResults });
+            // Force EJS to process the template
+            const html = await ejs.renderFile(path.join(__dirname, 'views', 'reports-dealer-style.html'), { results: auditResults });
+            res.send(html);
         }
 
     } catch (error) {
@@ -3287,7 +3291,7 @@ app.get('/api/debug-views', (req, res) => {
 });
 
 // Test EJS rendering
-app.get('/api/test-ejs', (req, res) => {
+app.get('/api/test-ejs', async (req, res) => {
     const testData = {
         results: {
             domain: 'test.com',
@@ -3300,7 +3304,9 @@ app.get('/api/test-ejs', (req, res) => {
     };
     
     try {
-        res.render('test-ejs', testData);
+        // Test both methods
+        const method1 = await ejs.renderFile(path.join(__dirname, 'views', 'test-ejs.ejs'), testData);
+        res.send(method1);
     } catch (error) {
         res.status(500).json({
             error: 'EJS rendering failed',
