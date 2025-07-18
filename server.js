@@ -3181,20 +3181,59 @@ app.get('/admin/settings', requireAdmin, (req, res) => {
     res.sendFile(filePath);
 });
 
-// Alternative admin settings route that just requires authentication
+// Alternative admin settings route - ADMIN ONLY
 app.get('/settings-admin', checkAuth, (req, res) => {
-    console.log('[Settings Admin] Accessed by:', req.session.username);
-    // Still check if admin, but don't block
-    if (!req.session.isAdmin && req.session.role !== 'admin') {
-        console.log('[Settings Admin] Warning: Non-admin user accessing admin settings');
+    console.log('[Settings Admin] Access attempt by:', req.session.username, 'Role:', req.session.role);
+    
+    // Strict admin check - only allow admin access
+    if (req.session.isAdmin === true || req.session.role === 'admin') {
+        console.log('[Settings Admin] Admin access granted');
+        const filePath = path.join(__dirname, 'views', 'admin-settings.html');
+        res.sendFile(filePath);
+    } else {
+        console.log('[Settings Admin] Access DENIED - not an admin');
+        res.status(403).send(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Access Denied</title>
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+            </head>
+            <body>
+                <div class="container mt-5">
+                    <div class="alert alert-danger">
+                        <h4>Access Denied</h4>
+                        <p>This page is restricted to administrators only.</p>
+                        <a href="/monitoring" class="btn btn-primary">Back to Monitoring</a>
+                    </div>
+                </div>
+            </body>
+            </html>
+        `);
     }
-    const filePath = path.join(__dirname, 'views', 'admin-settings.html');
-    res.sendFile(filePath);
 });
 
 // Test route to verify admin routing
 app.get('/admin/test', (req, res) => {
     res.json({ message: 'Admin routes are working', timestamp: new Date() });
+});
+
+// Fix admin session if needed
+app.get('/api/fix-admin', checkAuth, (req, res) => {
+    if (req.session.username === 'admin') {
+        req.session.isAdmin = true;
+        req.session.role = 'admin';
+        res.json({ 
+            message: 'Admin session fixed',
+            session: {
+                username: req.session.username,
+                isAdmin: req.session.isAdmin,
+                role: req.session.role
+            }
+        });
+    } else {
+        res.status(403).json({ error: 'Only admin user can fix admin session' });
+    }
 });
 
 // ROI Settings - Available to all authenticated users
