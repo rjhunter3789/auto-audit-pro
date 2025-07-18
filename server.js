@@ -3218,6 +3218,17 @@ app.get('/admin/test', (req, res) => {
     res.json({ message: 'Admin routes are working', timestamp: new Date() });
 });
 
+// Debug session state
+app.get('/api/session-debug', checkAuth, (req, res) => {
+    res.json({
+        username: req.session.username,
+        role: req.session.role,
+        isAdmin: req.session.isAdmin,
+        authenticated: req.session.authenticated,
+        sessionID: req.sessionID
+    });
+});
+
 // Fix admin session if needed
 app.get('/api/fix-admin', checkAuth, (req, res) => {
     if (req.session.username === 'admin') {
