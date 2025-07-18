@@ -2749,8 +2749,11 @@ app.delete('/api/monitoring/profiles/:id', requireAdmin, async (req, res) => {
         const updatedProfiles = profiles.filter(p => p.id != id);
         console.log(`[DELETE PROFILE] After filter: ${updatedProfiles.length} profiles`);
         
-        // Save updated profiles
-        await jsonStorage.saveProfiles(updatedProfiles);
+        // Save updated profiles by writing directly to the file
+        const fs = require('fs').promises;
+        const path = require('path');
+        const profilesFile = path.join(__dirname, 'data', 'monitoring', 'profiles.json');
+        await fs.writeFile(profilesFile, JSON.stringify(updatedProfiles, null, 2));
         
         // Also delete associated alerts and results
         const alerts = await jsonStorage.getAlerts();
@@ -2759,8 +2762,11 @@ app.delete('/api/monitoring/profiles/:id', requireAdmin, async (req, res) => {
         const updatedAlerts = alerts.filter(a => a.profile_id != id);
         const updatedResults = results.filter(r => r.profile_id != id);
         
-        await jsonStorage.saveAlerts(updatedAlerts);
-        await jsonStorage.saveResults(updatedResults);
+        // Save updated alerts and results
+        const alertsFile = path.join(__dirname, 'data', 'monitoring', 'alerts.json');
+        const resultsFile = path.join(__dirname, 'data', 'monitoring', 'results.json');
+        await fs.writeFile(alertsFile, JSON.stringify(updatedAlerts, null, 2));
+        await fs.writeFile(resultsFile, JSON.stringify(updatedResults, null, 2));
         
         console.log(`[DELETE PROFILE] Successfully deleted profile ${id} and associated data`);
         
