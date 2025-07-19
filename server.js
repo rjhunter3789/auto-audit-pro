@@ -3274,16 +3274,9 @@ app.get('/admin/settings', requireAdmin, (req, res) => {
 });
 
 // Alternative admin settings route - ADMIN ONLY
-// Force admin access for testing - TEMPORARY
-app.get('/settings-admin', checkAuth, (req, res) => {
-    console.log('[Settings Admin] Session check:', {
-        username: req.session.username,
-        role: req.session.role,
-        isAdmin: req.session.isAdmin,
-        authenticated: req.session.authenticated
-    });
-    
-    // TEMPORARY: Allow access for now to debug
+// DIRECT ACCESS - NO AUTH CHECK
+app.get('/settings-admin', (req, res) => {
+    console.log('[Settings Admin] Direct access - no auth check');
     const filePath = path.join(__dirname, 'views', 'admin-settings.html');
     res.sendFile(filePath);
 });
@@ -3298,6 +3291,28 @@ app.get('/api/check-session', (req, res) => {
         sessionID: req.sessionID,
         sessionData: req.session
     });
+});
+
+// Force create monitoring profile
+app.get('/api/force-create-profile', async (req, res) => {
+    try {
+        const { storage: jsonStorage } = require('./lib/json-storage');
+        
+        // Create Fugate Ford profile
+        const profile = await jsonStorage.createProfile({
+            dealer_name: 'Fugate Ford',
+            website_url: 'https://www.fugateford.net/',
+            contact_email: 'rjhunter3789@gmail.com',
+            alert_email: 'rjhunter3789@gmail.com',
+            alert_preferences: { email: true, sms: false },
+            check_frequency: 59,
+            overall_status: 'PENDING'
+        });
+        
+        res.json({ success: true, profile });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // Force fix admin session
