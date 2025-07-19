@@ -56,7 +56,7 @@ app.use(session({
     saveUninitialized: false,
     name: 'autoaudit.sid', // Custom session name
     cookie: { 
-        secure: false, // Set to false for local development
+        secure: false, // Set to false for better compatibility
         httpOnly: true,
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days (extended for admin convenience)
         sameSite: 'lax' // Changed from 'strict' to 'lax' for better compatibility

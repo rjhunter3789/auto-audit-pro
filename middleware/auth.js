@@ -5,6 +5,13 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'AutoAudit2025!'; // CHANGE
 
 function checkAuth(req, res, next) {
     console.log(`[AUTH] Checking auth for path: ${req.path}`);
+    console.log(`[AUTH] Session:`, {
+        exists: !!req.session,
+        authenticated: req.session?.authenticated,
+        username: req.session?.username,
+        role: req.session?.role,
+        isAdmin: req.session?.isAdmin
+    });
     
     // Allow access to login page and logout
     if (req.path === '/login' || req.path === '/api/login' || req.path === '/logout') {

@@ -483,6 +483,9 @@
         let activeAlerts = [];
         let currentUser = null;
 
+        // Configure axios to include credentials
+        axios.defaults.withCredentials = true;
+        
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
             loadUserInfo();
@@ -642,6 +645,17 @@
                 
             } catch (error) {
                 console.error('Error loading dashboard:', error);
+                if (error.response) {
+                    console.error('Response status:', error.response.status);
+                    console.error('Response data:', error.response.data);
+                    
+                    if (error.response.status === 401) {
+                        alert('Session expired. Please login again.');
+                        window.location.href = '/login';
+                    } else if (error.response.status === 403) {
+                        alert('Access denied. Please check your permissions.');
+                    }
+                }
             }
         }
 
