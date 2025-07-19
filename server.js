@@ -2724,8 +2724,7 @@ app.post('/api/monitoring/profiles', async (req, res) => {
         // Use JSON storage instead of database
         const { storage: jsonStorage } = require('./lib/json-storage');
         
-        const newProfile = {
-            id: Date.now(), // Generate unique ID
+        const profileData = {
             dealer_id: dealer_id || null,
             dealer_name,
             website_url,
@@ -2734,15 +2733,12 @@ app.post('/api/monitoring/profiles', async (req, res) => {
             alert_phone: alert_phone || null,
             alert_preferences: alert_preferences || { email: true, sms: false },
             check_frequency: check_frequency || 59,
-            monitoring_enabled: true,
-            last_check: null,
             overall_status: 'PENDING',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+            last_check: null
         };
         
-        // Save to JSON storage
-        await jsonStorage.saveProfile(newProfile);
+        // Save to JSON storage - createProfile will add id and timestamps
+        const newProfile = await jsonStorage.createProfile(profileData);
         
         // Schedule initial check after 1 minute
         setTimeout(async () => {
