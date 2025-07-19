@@ -352,6 +352,13 @@ app.get('/settings-admin', (req, res) => {
     res.sendFile(filePath);
 });
 
+// Another admin route to bypass any issues
+app.get('/admin-settings', (req, res) => {
+    console.log('[Admin Settings] Alternative route - no auth');
+    const filePath = path.join(__dirname, 'views', 'admin-settings.html');
+    res.sendFile(filePath);
+});
+
 // ALTERNATIVE ADMIN ROUTE - COMPLETELY DIFFERENT PATH
 app.get('/admin-emergency', (req, res) => {
     res.send(`
