@@ -356,6 +356,36 @@ app.get('/admin-test', (req, res) => {
     `);
 });
 
+// DIRECT ADMIN PAGE - NO FILE ACCESS NEEDED
+app.get('/admin', (req, res) => {
+    res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Settings - Auto Audit Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Admin Settings</h1>
+        <p>Direct admin page - no file access needed.</p>
+        <div class="alert alert-info">
+            The actual admin settings page is having access issues.
+            This is a temporary page.
+        </div>
+        <hr>
+        <h3>Quick Links:</h3>
+        <ul>
+            <li><a href="/monitoring">Back to Monitoring</a></li>
+            <li><a href="/api/debug-alerts">Debug Alerts</a></li>
+            <li><a href="/api/check-session">Check Session</a></li>
+        </ul>
+    </div>
+</body>
+</html>
+    `);
+});
+
 // Add simple render method to response object
 app.use((req, res, next) => {
     res.render = function(viewName) {
