@@ -419,6 +419,79 @@ app.get('/api/force-admin-fix', (req, res) => {
     }
 });
 
+// Debug why no alerts are showing - NO AUTH
+app.get('/api/debug-alerts', async (req, res) => {
+    try {
+        const { storage: jsonStorage } = require('./lib/json-storage');
+        const fs = require('fs').promises;
+        const path = require('path');
+        
+        // Get all data
+        const profiles = await jsonStorage.getProfiles();
+        const allAlerts = await fs.readFile(path.join(__dirname, 'data', 'monitoring', 'alerts.json'), 'utf8')
+            .then(data => JSON.parse(data))
+            .catch(() => []);
+        const results = await fs.readFile(path.join(__dirname, 'data', 'monitoring', 'results.json'), 'utf8')
+            .then(data => JSON.parse(data))
+            .catch(() => []);
+        
+        // Get alerts for each profile
+        const alertsByProfile = {};
+        for (const profile of profiles) {
+            alertsByProfile[profile.id] = await jsonStorage.getAlerts(profile.id, false);
+        }
+        
+        res.json({
+            profileCount: profiles.length,
+            totalAlerts: allAlerts.length,
+            resultCount: results.length,
+            profiles: profiles.map(p => ({ 
+                id: p.id, 
+                name: p.dealer_name, 
+                status: p.overall_status,
+                lastCheck: p.last_check 
+            })),
+            allAlertsRaw: allAlerts,
+            alertsByProfile,
+            latestResults: results.slice(-5).map(r => ({
+                id: r.id,
+                profile_id: r.profile_id,
+                overall_status: r.overall_status,
+                check_timestamp: r.check_timestamp
+            }))
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message, stack: error.stack });
+    }
+});
+
+// Force create test alert - NO AUTH
+app.post('/api/force-create-alert', async (req, res) => {
+    try {
+        const { storage: jsonStorage } = require('./lib/json-storage');
+        const profiles = await jsonStorage.getProfiles();
+        
+        if (profiles.length === 0) {
+            return res.status(400).json({ error: 'No profiles exist. Create a profile first.' });
+        }
+        
+        const profile = profiles[0];
+        const testAlert = {
+            profile_id: profile.id,
+            result_id: Date.now(),
+            rule_id: 2,
+            alert_level: 'RED',
+            alert_type: 'ssl_valid',
+            alert_message: 'TEST ALERT: SSL certificate is invalid!',
+        };
+        
+        const savedAlert = await jsonStorage.saveAlert(testAlert);
+        res.json({ success: true, alert: savedAlert, profile: profile });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // LOCKDOWN: Apply authentication to ALL routes after this point
 app.use(checkAuth);
 
@@ -3031,14 +3104,8 @@ app.get('/api/monitoring/alerts/:profileId', async (req, res) => {
         // Use JSON storage instead of database
         const { storage: jsonStorage } = require('./lib/json-storage');
         
-        // Get all alerts
-        const allAlerts = await jsonStorage.getAlerts();
-        
-        // Filter by profile ID and resolved status
-        const alerts = allAlerts.filter(alert => 
-            alert.profile_id == profileId && 
-            alert.resolved === resolved
-        );
+        // Get alerts for this profile
+        const alerts = await jsonStorage.getAlerts(profileId, resolved);
         
         // Sort by created_at DESC
         alerts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
