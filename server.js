@@ -2788,14 +2788,15 @@ app.put('/api/monitoring/profiles/:id', async (req, res) => {
         const { id } = req.params;
         const { monitoring_enabled } = req.body;
         
-        const query = `
-            UPDATE monitoring_profiles 
-            SET monitoring_enabled = $2, updated_at = CURRENT_TIMESTAMP
-            WHERE id = $1
-            RETURNING *`;
+        // Use JSON storage
+        const { storage: jsonStorage } = require('./lib/json-storage');
+        const updatedProfile = await jsonStorage.updateProfile(parseInt(id), { monitoring_enabled });
         
-        const result = await pool.query(query, [id, monitoring_enabled]);
-        res.json(result.rows[0]);
+        if (!updatedProfile) {
+            return res.status(404).json({ error: 'Profile not found' });
+        }
+        
+        res.json(updatedProfile);
     } catch (error) {
         console.error('Error updating monitoring profile:', error);
         res.status(500).json({ error: 'Failed to update monitoring profile' });
@@ -2859,14 +2860,11 @@ app.get('/api/monitoring/results/:profileId', async (req, res) => {
         const { profileId } = req.params;
         const { limit = 100 } = req.query;
         
-        const query = `
-            SELECT * FROM monitoring_results 
-            WHERE profile_id = $1 
-            ORDER BY check_timestamp DESC 
-            LIMIT $2`;
+        // Use JSON storage
+        const { storage: jsonStorage } = require('./lib/json-storage');
+        const results = await jsonStorage.getResults(parseInt(profileId), parseInt(limit));
         
-        const result = await pool.query(query, [profileId, limit]);
-        res.json(result.rows);
+        res.json(results);
     } catch (error) {
         console.error('Error fetching monitoring results:', error);
         res.status(500).json({ error: 'Failed to fetch monitoring results' });
@@ -3099,15 +3097,13 @@ app.post('/api/monitoring/test-alert/:profileId', async (req, res) => {
     try {
         const { profileId } = req.params;
         
-        // Get profile
-        const profileQuery = 'SELECT * FROM monitoring_profiles WHERE id = $1';
-        const profileResult = await pool.query(profileQuery, [profileId]);
+        // Get profile from JSON storage
+        const { storage: jsonStorage } = require('./lib/json-storage');
+        const profile = await jsonStorage.getProfile(profileId);
         
-        if (profileResult.rows.length === 0) {
+        if (!profile) {
             return res.status(404).json({ error: 'Profile not found' });
         }
-        
-        const profile = profileResult.rows[0];
         
         // Parse alert_preferences if it's a string
         if (typeof profile.alert_preferences === 'string') {
