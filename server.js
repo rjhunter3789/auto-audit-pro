@@ -2721,25 +2721,65 @@ app.post('/api/monitoring/profiles', async (req, res) => {
     try {
         const { dealer_id, dealer_name, website_url, contact_email, alert_email, alert_phone, alert_preferences, check_frequency } = req.body;
         
-        const query = `
-            INSERT INTO monitoring_profiles 
-            (dealer_id, dealer_name, website_url, contact_email, alert_email, alert_phone, alert_preferences, check_frequency)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-            RETURNING *`;
+        // Use JSON storage instead of database
+        const { storage: jsonStorage } = require('./lib/json-storage');
         
-        const values = [
-            dealer_id, 
-            dealer_name, 
-            website_url, 
-            contact_email, 
-            alert_email || contact_email, 
-            alert_phone,
-            JSON.stringify(alert_preferences || { email: true, sms: false }),
-            check_frequency || 59
-        ];
-        const result = await pool.query(query, values);
+        const newProfile = {
+            id: Date.now(), // Generate unique ID
+            dealer_id: dealer_id || null,
+            dealer_name,
+            website_url,
+            contact_email,
+            alert_email: alert_email || contact_email,
+            alert_phone: alert_phone || null,
+            alert_preferences: alert_preferences || { email: true, sms: false },
+            check_frequency: check_frequency || 59,
+            monitoring_enabled: true,
+            last_check: null,
+            overall_status: 'PENDING',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        };
         
-        res.json(result.rows[0]);
+        // Save to JSON storage
+        await jsonStorage.saveProfile(newProfile);
+        
+        // Schedule initial check after 1 minute
+        setTimeout(async () => {
+            try {
+                const MonitoringEngine = require('./lib/monitoring-engine');
+                const engine = new MonitoringEngine();
+                const results = await engine.runFullCheck(newProfile);
+                
+                // Check for alerts
+                const alerts = await engine.checkAlertRules(results);
+                
+                // Process alerts if any
+                if (alerts.length > 0) {
+                    const MonitoringScheduler = require('./lib/monitoring-scheduler');
+                    const scheduler = new MonitoringScheduler();
+                    await scheduler.processAlerts(newProfile, results, alerts);
+                }
+                
+                // Update profile status
+                const profiles = await jsonStorage.getProfiles();
+                const profileIndex = profiles.findIndex(p => p.id === newProfile.id);
+                if (profileIndex !== -1) {
+                    profiles[profileIndex].overall_status = results.overall_status;
+                    profiles[profileIndex].last_check = new Date().toISOString();
+                    const fs = require('fs').promises;
+                    const path = require('path');
+                    const profilesFile = path.join(__dirname, 'data', 'monitoring', 'profiles.json');
+                    await fs.writeFile(profilesFile, JSON.stringify(profiles, null, 2));
+                }
+                
+                console.log(`[Initial Check] Completed for ${newProfile.dealer_name}: ${results.overall_status}`);
+            } catch (error) {
+                console.error(`[Initial Check] Failed for ${newProfile.dealer_name}:`, error);
+            }
+        }, 60000); // 1 minute delay
+        
+        res.json(newProfile);
     } catch (error) {
         console.error('Error creating monitoring profile:', error);
         res.status(500).json({ error: 'Failed to create monitoring profile' });
@@ -3016,20 +3056,40 @@ app.post('/api/monitoring/check/:profileId', async (req, res) => {
     try {
         const { profileId } = req.params;
         
-        // Get profile
-        const profileQuery = 'SELECT * FROM monitoring_profiles WHERE id = $1';
-        const profileResult = await pool.query(profileQuery, [profileId]);
+        // Get profile from JSON storage
+        const { storage: jsonStorage } = require('./lib/json-storage');
+        const profiles = await jsonStorage.getProfiles();
+        const profile = profiles.find(p => p.id == profileId);
         
-        if (profileResult.rows.length === 0) {
+        if (!profile) {
             return res.status(404).json({ error: 'Profile not found' });
         }
         
-        const profile = profileResult.rows[0];
-        
         // Run monitoring check
         const MonitoringEngine = require('./lib/monitoring-engine');
-        const engine = new MonitoringEngine(pool);
+        const engine = new MonitoringEngine();
         const results = await engine.runFullCheck(profile);
+        
+        // Check for alerts
+        const alerts = await engine.checkAlertRules(results);
+        
+        // Process alerts if any
+        if (alerts.length > 0) {
+            const MonitoringScheduler = require('./lib/monitoring-scheduler');
+            const scheduler = new MonitoringScheduler();
+            await scheduler.processAlerts(profile, results, alerts);
+        }
+        
+        // Update profile status
+        const profileIndex = profiles.findIndex(p => p.id == profileId);
+        if (profileIndex !== -1) {
+            profiles[profileIndex].overall_status = results.overall_status;
+            profiles[profileIndex].last_check = new Date().toISOString();
+            const fs = require('fs').promises;
+            const path = require('path');
+            const profilesFile = path.join(__dirname, 'data', 'monitoring', 'profiles.json');
+            await fs.writeFile(profilesFile, JSON.stringify(profiles, null, 2));
+        }
         
         res.json(results);
     } catch (error) {
