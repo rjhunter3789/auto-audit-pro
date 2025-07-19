@@ -350,6 +350,33 @@ app.get('/settings-admin', (req, res) => {
     res.sendFile(filePath);
 });
 
+// ALTERNATIVE ADMIN ROUTE - COMPLETELY DIFFERENT PATH
+app.get('/admin-emergency', (req, res) => {
+    res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Admin Emergency Access</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        </head>
+        <body>
+            <div class="container mt-5">
+                <h1>Emergency Admin Access</h1>
+                <p>Direct links to admin functions:</p>
+                <ul>
+                    <li><a href="/views/admin-settings.html">Admin Settings (direct file)</a></li>
+                    <li><a href="/api/check-session">Check Session</a></li>
+                    <li><a href="/api/force-admin-fix">Force Admin Fix</a></li>
+                    <li><a href="/api/debug-monitoring">Debug Monitoring</a></li>
+                </ul>
+                <hr>
+                <iframe src="/views/admin-settings.html" style="width: 100%; height: 600px; border: 1px solid #ccc;"></iframe>
+            </div>
+        </body>
+        </html>
+    `);
+});
+
 // Session check endpoint - NO AUTH
 app.get('/api/check-session', (req, res) => {
     res.json({
