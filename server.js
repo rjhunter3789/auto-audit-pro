@@ -473,9 +473,10 @@ app.get('/api/debug-alerts', async (req, res) => {
 });
 
 // Force create test alert - NO AUTH
-app.post('/api/force-create-alert', async (req, res) => {
+app.post('/api/force-create-alert/:level?', async (req, res) => {
     try {
         const { storage: jsonStorage } = require('./lib/json-storage');
+        const { level = 'RED' } = req.params;
         const profiles = await jsonStorage.getProfiles();
         
         if (profiles.length === 0) {
@@ -483,15 +484,28 @@ app.post('/api/force-create-alert', async (req, res) => {
         }
         
         const profile = profiles[0];
-        const testAlert = {
-            profile_id: profile.id,
-            result_id: Date.now(),
-            rule_id: 2,
-            alert_level: 'RED',
-            alert_type: 'ssl_valid',
-            alert_message: 'TEST ALERT: SSL certificate is invalid!',
+        
+        // Create different alerts based on level
+        const alerts = {
+            RED: {
+                profile_id: profile.id,
+                result_id: Date.now(),
+                rule_id: 3,
+                alert_level: 'RED',
+                alert_type: 'forms_working',
+                alert_message: 'CRITICAL: Contact forms not working - losing potential leads!',
+            },
+            YELLOW: {
+                profile_id: profile.id,
+                result_id: Date.now(),
+                rule_id: 7,
+                alert_level: 'YELLOW',
+                alert_type: 'ssl_expiry_days',
+                alert_message: 'WARNING: SSL certificate expires within 30 days',
+            }
         };
         
+        const testAlert = alerts[level.toUpperCase()] || alerts.RED;
         const savedAlert = await jsonStorage.saveAlert(testAlert);
         res.json({ success: true, alert: savedAlert, profile: profile });
     } catch (error) {

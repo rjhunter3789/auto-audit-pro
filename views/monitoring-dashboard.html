@@ -791,15 +791,27 @@
                 activeAlerts = responses.flatMap(r => r.data);
                 
                 // Filter for active alerts (RED and YELLOW, not resolved)
-                const activeUnresolvedAlerts = activeAlerts.filter(a => !a.resolved);
+                const activeUnresolvedAlerts = activeAlerts.filter(a => !a.resolved && (a.alert_level === 'RED' || a.alert_level === 'YELLOW'));
                 
-                // Group by alert_type and alert_level, keeping only the latest one
+                console.log('All alerts:', activeAlerts);
+                console.log('Unresolved alerts:', activeUnresolvedAlerts);
+                
+                // Group by alert_type only, keeping the highest severity alert
                 const latestAlerts = {};
                 activeUnresolvedAlerts.forEach(alert => {
-                    const key = `${alert.alert_type}_${alert.alert_level}`;
-                    if (!latestAlerts[key] || 
-                        new Date(alert.created_at) > new Date(latestAlerts[key].created_at)) {
+                    const key = alert.alert_type;
+                    const existing = latestAlerts[key];
+                    
+                    if (!existing) {
                         latestAlerts[key] = alert;
+                    } else {
+                        // Keep RED over YELLOW, or most recent if same level
+                        if (alert.alert_level === 'RED' && existing.alert_level === 'YELLOW') {
+                            latestAlerts[key] = alert;
+                        } else if (alert.alert_level === existing.alert_level && 
+                                   new Date(alert.created_at) > new Date(existing.created_at)) {
+                            latestAlerts[key] = alert;
+                        }
                     }
                 });
                 
@@ -811,7 +823,7 @@
                 });
                 
                 console.log('Active alerts loaded:', activeAlerts.length);
-                console.log('Active unresolved alerts:', uniqueAlerts.length);
+                console.log('Unique alerts by type:', uniqueAlerts);
                 
                 loading.classList.remove('active');
                 
