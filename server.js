@@ -563,6 +563,526 @@ app.post('/api/force-create-alert/:level?', async (req, res) => {
     }
 });
 
+// ===== MONITORING API ROUTES (moved before auth middleware) =====
+// These routes handle their own authentication internally
+
+app.get('/api/monitoring/profiles', async (req, res) => {
+    try {
+        // Use JSON storage instead of database
+        const { storage: jsonStorage } = require('./lib/json-storage');
+        
+        // Get all profiles
+        const profiles = await jsonStorage.getProfiles();
+        
+        // Get latest result for each profile
+        const enrichedProfiles = await Promise.all(profiles.map(async (profile) => {
+            const latestResult = await jsonStorage.getLatestResult(profile.id);
+            
+            return {
+                ...profile,
+                check_timestamp: latestResult?.check_timestamp || null,
+                overall_status: latestResult?.overall_status || null,
+                response_time_ms: latestResult?.response_time_ms || null
+            };
+        }));
+        
+        // Sort by dealer name
+        enrichedProfiles.sort((a, b) => (a.dealer_name || '').localeCompare(b.dealer_name || ''));
+        
+        res.json(enrichedProfiles);
+    } catch (error) {
+        console.error('Error fetching monitoring profiles:', error);
+        res.status(500).json({ error: 'Failed to fetch monitoring profiles' });
+    }
+});
+
+app.post('/api/monitoring/profiles', async (req, res) => {
+    try {
+        const { dealer_id, dealer_name, website_url, contact_email, alert_email, alert_phone, alert_preferences, check_frequency } = req.body;
+        
+        // Use JSON storage instead of database
+        const { storage: jsonStorage } = require('./lib/json-storage');
+        
+        const profileData = {
+            dealer_id: dealer_id || null,
+            dealer_name,
+            website_url,
+            contact_email,
+            alert_email: alert_email || contact_email,
+            alert_phone: alert_phone || null,
+            alert_preferences: alert_preferences || { email: true, sms: false },
+            check_frequency: check_frequency || 59,
+            overall_status: 'PENDING',
+            last_check: null
+        };
+        
+        // Save to JSON storage - createProfile will add id and timestamps
+        const newProfile = await jsonStorage.createProfile(profileData);
+        
+        // Schedule initial check after 1 minute
+        setTimeout(async () => {
+            try {
+                const MonitoringEngine = require('./lib/monitoring-engine');
+                const engine = new MonitoringEngine();
+                const results = await engine.runFullCheck(newProfile);
+                
+                // Check for alerts
+                const alerts = await engine.checkAlertRules(results);
+                
+                // Process alerts if any
+                if (alerts.length > 0) {
+                    const MonitoringScheduler = require('./lib/monitoring-scheduler');
+                    const scheduler = new MonitoringScheduler();
+                    await scheduler.processAlerts(newProfile, results, alerts);
+                }
+                
+                // Update profile status
+                const profiles = await jsonStorage.getProfiles();
+                const profileIndex = profiles.findIndex(p => p.id === newProfile.id);
+                if (profileIndex !== -1) {
+                    profiles[profileIndex].overall_status = results.overall_status;
+                    profiles[profileIndex].last_check = new Date().toISOString();
+                    const fs = require('fs').promises;
+                    const path = require('path');
+                    const profilesFile = path.join(__dirname, 'data', 'monitoring', 'profiles.json');
+                    await fs.writeFile(profilesFile, JSON.stringify(profiles, null, 2));
+                }
+                
+                console.log(`[Initial Check] Completed for ${newProfile.dealer_name}: ${results.overall_status}`);
+            } catch (error) {
+                console.error(`[Initial Check] Failed for ${newProfile.dealer_name}:`, error);
+            }
+        }, 60000); // 1 minute delay
+        
+        res.json(newProfile);
+    } catch (error) {
+        console.error('Error creating monitoring profile:', error);
+        res.status(500).json({ error: 'Failed to create monitoring profile' });
+    }
+});
+
+app.put('/api/monitoring/profiles/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { monitoring_enabled } = req.body;
+        
+        // Use JSON storage
+        const { storage: jsonStorage } = require('./lib/json-storage');
+        const updatedProfile = await jsonStorage.updateProfile(parseInt(id), { monitoring_enabled });
+        
+        if (!updatedProfile) {
+            return res.status(404).json({ error: 'Profile not found' });
+        }
+        
+        res.json(updatedProfile);
+    } catch (error) {
+        console.error('Error updating monitoring profile:', error);
+        res.status(500).json({ error: 'Failed to update monitoring profile' });
+    }
+});
+
+app.delete('/api/monitoring/profiles/:id', requireAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        console.log(`[DELETE PROFILE] Attempting to delete profile ${id}`);
+        console.log(`[DELETE PROFILE] User session:`, {
+            authenticated: req.session.authenticated,
+            isAdmin: req.session.isAdmin,
+            role: req.session.role,
+            username: req.session.username
+        });
+        
+        // Use JSON storage instead of database
+        const { storage: jsonStorage } = require('./lib/json-storage');
+        
+        // Get all profiles
+        const profiles = await jsonStorage.getProfiles();
+        console.log(`[DELETE PROFILE] Found ${profiles.length} profiles`);
+        
+        // Filter out the profile to delete
+        const updatedProfiles = profiles.filter(p => p.id != id);
+        console.log(`[DELETE PROFILE] After filter: ${updatedProfiles.length} profiles`);
+        
+        // Save updated profiles by writing directly to the file
+        const fs = require('fs').promises;
+        const path = require('path');
+        const profilesFile = path.join(__dirname, 'data', 'monitoring', 'profiles.json');
+        await fs.writeFile(profilesFile, JSON.stringify(updatedProfiles, null, 2));
+        
+        // Also delete associated alerts and results
+        const alerts = await jsonStorage.getAlerts();
+        const results = await jsonStorage.getResults();
+        
+        const updatedAlerts = alerts.filter(a => a.profile_id != id);
+        const updatedResults = results.filter(r => r.profile_id != id);
+        
+        // Save updated alerts and results
+        const alertsFile = path.join(__dirname, 'data', 'monitoring', 'alerts.json');
+        const resultsFile = path.join(__dirname, 'data', 'monitoring', 'results.json');
+        await fs.writeFile(alertsFile, JSON.stringify(updatedAlerts, null, 2));
+        await fs.writeFile(resultsFile, JSON.stringify(updatedResults, null, 2));
+        
+        console.log(`[DELETE PROFILE] Successfully deleted profile ${id} and associated data`);
+        
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting monitoring profile:', error);
+        res.status(500).json({ error: 'Failed to delete monitoring profile' });
+    }
+});
+
+app.get('/api/monitoring/results/:profileId', async (req, res) => {
+    try {
+        const { profileId } = req.params;
+        const { limit = 100 } = req.query;
+        
+        // Use JSON storage
+        const { storage: jsonStorage } = require('./lib/json-storage');
+        const results = await jsonStorage.getResults(parseInt(profileId), parseInt(limit));
+        
+        res.json(results);
+    } catch (error) {
+        console.error('Error fetching monitoring results:', error);
+        res.status(500).json({ error: 'Failed to fetch monitoring results' });
+    }
+});
+
+app.get('/api/monitoring/status', checkAuth, async (req, res) => {
+    try {
+        // Use JSON storage instead of database
+        const { storage: jsonStorage } = require('./lib/json-storage');
+        
+        // Get all profiles
+        const profiles = await jsonStorage.getProfiles();
+        
+        // Get latest result for each profile
+        const profilesWithStatus = await Promise.all(profiles.map(async (profile) => {
+            const latestResult = await jsonStorage.getLatestResult(profile.id);
+            
+            return {
+                ...profile,
+                overall_status: latestResult ? latestResult.overall_status : 'PENDING',
+                check_timestamp: latestResult ? latestResult.check_timestamp : null,
+                response_time_ms: latestResult ? latestResult.response_time_ms : null,
+                issues_found: latestResult ? latestResult.issues_found : []
+            };
+        }));
+        
+        // Sort by dealer name
+        profilesWithStatus.sort((a, b) => (a.dealer_name || '').localeCompare(b.dealer_name || ''));
+        
+        res.json(profilesWithStatus);
+    } catch (error) {
+        console.error('Error fetching monitoring status:', error);
+        res.status(500).json({ error: 'Failed to fetch monitoring status' });
+    }
+});
+
+app.get('/api/monitoring/stats', async (req, res) => {
+    try {
+        // Get monitoring engine instance
+        const MonitoringEngine = require('./lib/monitoring-engine');
+        const monitoringEngine = new MonitoringEngine();
+        
+        // Get stats from monitoring engine
+        const stats = monitoringEngine.getMonitoringStats();
+        
+        // Get JSON storage stats
+        const { storage: jsonStorage } = require('./lib/json-storage');
+        const results = await jsonStorage.getResults();
+        
+        // Calculate stats from last 24 hours
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const recentResults = results.filter(r => new Date(r.check_timestamp) > twentyFourHoursAgo);
+        
+        const statsData = {
+            monitored_sites: new Set(recentResults.map(r => r.profile_id)).size,
+            total_checks: recentResults.length,
+            green_checks: recentResults.filter(r => r.overall_status === 'GREEN').length,
+            yellow_checks: recentResults.filter(r => r.overall_status === 'YELLOW').length,
+            red_checks: recentResults.filter(r => r.overall_status === 'RED').length,
+            avg_response_time: recentResults.length > 0 
+                ? recentResults.reduce((sum, r) => sum + (r.response_time_ms || 0), 0) / recentResults.length 
+                : 0
+        };
+        
+        res.json({
+            ...stats,
+            database: statsData,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Error fetching monitoring stats:', error);
+        res.status(500).json({ error: 'Failed to fetch monitoring stats' });
+    }
+});
+
+app.get('/api/monitoring/alerts/:profileId', async (req, res) => {
+    try {
+        const { profileId } = req.params;
+        const resolvedParam = req.query.resolved;
+        const resolved = resolvedParam === 'true';
+        
+        console.log(`[ALERTS API] ProfileId: ${profileId}, resolved: ${resolved} (from param: ${resolvedParam})`);
+        
+        // Use JSON storage instead of database
+        const { storage: jsonStorage } = require('./lib/json-storage');
+        
+        // Get alerts for this profile
+        const alerts = await jsonStorage.getAlerts(profileId, resolved);
+        
+        // Sort by created_at DESC
+        alerts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        
+        console.log(`[ALERTS API] Found ${alerts.length} alerts for profile ${profileId}`);
+        
+        res.json(alerts);
+    } catch (error) {
+        console.error('Error fetching alerts:', error);
+        res.status(500).json({ error: 'Failed to fetch alerts' });
+    }
+});
+
+app.put('/api/monitoring/alerts/:alertId/acknowledge', async (req, res) => {
+    try {
+        const { alertId } = req.params;
+        const { acknowledged_by } = req.body;
+        
+        // Use JSON storage
+        const { storage: jsonStorage } = require('./lib/json-storage');
+        const fs = require('fs').promises;
+        const path = require('path');
+        
+        // Get all alerts
+        const alertsPath = path.join(__dirname, 'data', 'monitoring', 'alerts.json');
+        const alertsData = await fs.readFile(alertsPath, 'utf8');
+        const alerts = JSON.parse(alertsData);
+        
+        // Find and update the alert
+        const alertIndex = alerts.findIndex(a => a.id == alertId);
+        if (alertIndex === -1) {
+            return res.status(404).json({ error: 'Alert not found' });
+        }
+        
+        alerts[alertIndex].acknowledged = true;
+        alerts[alertIndex].acknowledged_at = new Date().toISOString();
+        alerts[alertIndex].acknowledged_by = acknowledged_by || 'User';
+        
+        // Save back to file
+        await fs.writeFile(alertsPath, JSON.stringify(alerts, null, 2));
+        
+        res.json(alerts[alertIndex]);
+    } catch (error) {
+        console.error('Error acknowledging alert:', error);
+        res.status(500).json({ error: 'Failed to acknowledge alert' });
+    }
+});
+
+app.put('/api/monitoring/alerts/:alertId/resolve', async (req, res) => {
+    try {
+        const { alertId } = req.params;
+        
+        // Use JSON storage
+        const fs = require('fs').promises;
+        const path = require('path');
+        
+        // Get all alerts
+        const alertsPath = path.join(__dirname, 'data', 'monitoring', 'alerts.json');
+        const alertsData = await fs.readFile(alertsPath, 'utf8');
+        const alerts = JSON.parse(alertsData);
+        
+        // Find and update the alert
+        const alertIndex = alerts.findIndex(a => a.id == alertId);
+        if (alertIndex === -1) {
+            return res.status(404).json({ error: 'Alert not found' });
+        }
+        
+        alerts[alertIndex].resolved = true;
+        alerts[alertIndex].resolved_at = new Date().toISOString();
+        
+        // Save back to file
+        await fs.writeFile(alertsPath, JSON.stringify(alerts, null, 2));
+        
+        res.json(alerts[alertIndex]);
+    } catch (error) {
+        console.error('Error resolving alert:', error);
+        res.status(500).json({ error: 'Failed to resolve alert' });
+    }
+});
+
+app.post('/api/monitoring/check/:profileId', async (req, res) => {
+    try {
+        const { profileId } = req.params;
+        
+        // Get profile from JSON storage
+        const { storage: jsonStorage } = require('./lib/json-storage');
+        const profiles = await jsonStorage.getProfiles();
+        const profile = profiles.find(p => p.id == profileId);
+        
+        if (!profile) {
+            return res.status(404).json({ error: 'Profile not found' });
+        }
+        
+        // Run monitoring check
+        const MonitoringEngine = require('./lib/monitoring-engine');
+        const engine = new MonitoringEngine();
+        const results = await engine.runFullCheck(profile);
+        
+        // Check for alerts
+        const alerts = await engine.checkAlertRules(results);
+        
+        // Process alerts if any
+        if (alerts.length > 0) {
+            const MonitoringScheduler = require('./lib/monitoring-scheduler');
+            const scheduler = new MonitoringScheduler();
+            await scheduler.processAlerts(profile, results, alerts);
+        }
+        
+        // Update profile status
+        const profileIndex = profiles.findIndex(p => p.id == profileId);
+        if (profileIndex !== -1) {
+            profiles[profileIndex].overall_status = results.overall_status;
+            profiles[profileIndex].last_check = new Date().toISOString();
+            const fs = require('fs').promises;
+            const path = require('path');
+            const profilesFile = path.join(__dirname, 'data', 'monitoring', 'profiles.json');
+            await fs.writeFile(profilesFile, JSON.stringify(profiles, null, 2));
+        }
+        
+        res.json(results);
+    } catch (error) {
+        console.error('Error running manual check:', error);
+        res.status(500).json({ error: 'Failed to run monitoring check' });
+    }
+});
+
+app.post('/api/monitoring/test-alert/:profileId', async (req, res) => {
+    try {
+        const { profileId } = req.params;
+        
+        // Get profile from JSON storage
+        const { storage: jsonStorage } = require('./lib/json-storage');
+        const profile = await jsonStorage.getProfile(profileId);
+        
+        if (!profile) {
+            return res.status(404).json({ error: 'Profile not found' });
+        }
+        
+        // Parse alert_preferences if it's a string
+        if (typeof profile.alert_preferences === 'string') {
+            try {
+                profile.alert_preferences = JSON.parse(profile.alert_preferences);
+            } catch (e) {
+                profile.alert_preferences = { email: true, sms: false };
+            }
+        }
+        
+        // Initialize notification service
+        const NotificationService = require('./lib/notification-service');
+        const notificationService = new NotificationService(pool);
+        
+        // Create test alert data
+        const testAlert = {
+            profile_id: profileId,
+            alert_type: 'TEST_NOTIFICATION',
+            alert_level: 'INFO',
+            alert_message: 'This is a test notification from Auto Audit Pro Website Monitoring',
+            created_at: new Date()
+        };
+        
+        // Debug logging
+        console.log('[Test Alert] Profile alert_preferences:', profile.alert_preferences);
+        console.log('[Test Alert] Type of alert_preferences:', typeof profile.alert_preferences);
+        
+        // Send test notifications based on preferences
+        const emailEnabled = profile.alert_preferences?.email === true;
+        const smsEnabled = profile.alert_preferences?.sms === true && profile.alert_phone;
+        
+        console.log('[Test Alert] Email enabled:', emailEnabled);
+        console.log('[Test Alert] SMS enabled:', smsEnabled);
+        console.log('[Test Alert] Alert email:', profile.alert_email);
+        
+        let message = '';
+        let emailSent = false;
+        let smsSent = false;
+        
+        if (emailEnabled) {
+            try {
+                // Send test email
+                const result = await notificationService.sendEmail(
+                    profile.alert_email || profile.contact_email,
+                    '🔔 Test Alert - Auto Audit Pro Monitoring',
+                    `<h2>Test Notification</h2>
+                    <p>This is a test notification from Auto Audit Pro Website Monitoring.</p>
+                    <p><strong>Website:</strong> ${profile.dealer_name}</p>
+                    <p><strong>URL:</strong> ${profile.website_url}</p>
+                    <hr>
+                    <p>If you received this email, your email notifications are working correctly!</p>
+                    <p>When monitoring detects issues, you'll receive alerts similar to this one.</p>`
+                );
+                
+                if (result) {
+                    emailSent = true;
+                    message = '✅ Test email sent successfully to ' + (profile.alert_email || profile.contact_email);
+                } else {
+                    message = '⚠️ Email service not available. Please check server logs.';
+                }
+            } catch (error) {
+                message += '\n❌ Email failed: ' + error.message;
+            }
+        }
+        
+        if (smsEnabled) {
+            try {
+                // Send test SMS only if phone number exists
+                const result = await notificationService.sendSMS(
+                    profile.alert_phone,
+                    `🔔 TEST ALERT - Auto Audit Pro\n\nThis is a test SMS for ${profile.dealer_name}.\n\nIf you see this, SMS alerts are working!`
+                );
+                
+                if (result) {
+                    smsSent = true;
+                    message += '\n✅ SMS sent to ' + profile.alert_phone;
+                } else {
+                    message += '\n⚠️ SMS notifications not configured on server (Twilio settings required)';
+                }
+            } catch (error) {
+                message += '\n❌ SMS failed: ' + error.message;
+            }
+        }
+        
+        if (!emailEnabled && !smsEnabled) {
+            message = 'No notifications enabled. Please configure email or SMS alerts in your profile.';
+        } else if (message.trim() === '') {
+            message = 'Test notifications attempted but no services are configured on the server.';
+        } else {
+            message = 'Test notification results:' + message;
+        }
+        
+        // Determine overall success
+        const anyServiceConfigured = message.includes('✅') || message.includes('not configured on server');
+        const actualSuccess = emailSent || smsSent;
+        
+        res.json({ 
+            success: actualSuccess, 
+            message: message,
+            emailEnabled: emailEnabled,
+            smsEnabled: smsEnabled,
+            serviceConfigured: anyServiceConfigured
+        });
+        
+    } catch (error) {
+        console.error('Error sending test alert:', error);
+        res.status(500).json({ 
+            error: 'Failed to send test notifications',
+            details: error.message 
+        });
+    }
+});
+
+// ===== END MONITORING API ROUTES =====
+
+
 // LOCKDOWN: Apply authentication to ALL routes after this point
 app.use(checkAuth);
 
@@ -2906,530 +3426,28 @@ app.get('/monitoring', (req, res) => {
 });
 
 // Get monitoring profiles
-app.get('/api/monitoring/profiles', async (req, res) => {
-    try {
-        // Use JSON storage instead of database
-        const { storage: jsonStorage } = require('./lib/json-storage');
-        
-        // Get all profiles
-        const profiles = await jsonStorage.getProfiles();
-        
-        // Get latest result for each profile
-        const enrichedProfiles = await Promise.all(profiles.map(async (profile) => {
-            const latestResult = await jsonStorage.getLatestResult(profile.id);
-            
-            return {
-                ...profile,
-                check_timestamp: latestResult?.check_timestamp || null,
-                overall_status: latestResult?.overall_status || null,
-                response_time_ms: latestResult?.response_time_ms || null
-            };
-        }));
-        
-        // Sort by dealer name
-        enrichedProfiles.sort((a, b) => (a.dealer_name || '').localeCompare(b.dealer_name || ''));
-        
-        res.json(enrichedProfiles);
-    } catch (error) {
-        console.error('Error fetching monitoring profiles:', error);
-        res.status(500).json({ error: 'Failed to fetch monitoring profiles' });
-    }
-});
 
 // Create new monitoring profile
-app.post('/api/monitoring/profiles', async (req, res) => {
-    try {
-        const { dealer_id, dealer_name, website_url, contact_email, alert_email, alert_phone, alert_preferences, check_frequency } = req.body;
-        
-        // Use JSON storage instead of database
-        const { storage: jsonStorage } = require('./lib/json-storage');
-        
-        const profileData = {
-            dealer_id: dealer_id || null,
-            dealer_name,
-            website_url,
-            contact_email,
-            alert_email: alert_email || contact_email,
-            alert_phone: alert_phone || null,
-            alert_preferences: alert_preferences || { email: true, sms: false },
-            check_frequency: check_frequency || 59,
-            overall_status: 'PENDING',
-            last_check: null
-        };
-        
-        // Save to JSON storage - createProfile will add id and timestamps
-        const newProfile = await jsonStorage.createProfile(profileData);
-        
-        // Schedule initial check after 1 minute
-        setTimeout(async () => {
-            try {
-                const MonitoringEngine = require('./lib/monitoring-engine');
-                const engine = new MonitoringEngine();
-                const results = await engine.runFullCheck(newProfile);
-                
-                // Check for alerts
-                const alerts = await engine.checkAlertRules(results);
-                
-                // Process alerts if any
-                if (alerts.length > 0) {
-                    const MonitoringScheduler = require('./lib/monitoring-scheduler');
-                    const scheduler = new MonitoringScheduler();
-                    await scheduler.processAlerts(newProfile, results, alerts);
-                }
-                
-                // Update profile status
-                const profiles = await jsonStorage.getProfiles();
-                const profileIndex = profiles.findIndex(p => p.id === newProfile.id);
-                if (profileIndex !== -1) {
-                    profiles[profileIndex].overall_status = results.overall_status;
-                    profiles[profileIndex].last_check = new Date().toISOString();
-                    const fs = require('fs').promises;
-                    const path = require('path');
-                    const profilesFile = path.join(__dirname, 'data', 'monitoring', 'profiles.json');
-                    await fs.writeFile(profilesFile, JSON.stringify(profiles, null, 2));
-                }
-                
-                console.log(`[Initial Check] Completed for ${newProfile.dealer_name}: ${results.overall_status}`);
-            } catch (error) {
-                console.error(`[Initial Check] Failed for ${newProfile.dealer_name}:`, error);
-            }
-        }, 60000); // 1 minute delay
-        
-        res.json(newProfile);
-    } catch (error) {
-        console.error('Error creating monitoring profile:', error);
-        res.status(500).json({ error: 'Failed to create monitoring profile' });
-    }
-});
 
 // Update monitoring profile (Admin only)
-app.put('/api/monitoring/profiles/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { monitoring_enabled } = req.body;
-        
-        // Use JSON storage
-        const { storage: jsonStorage } = require('./lib/json-storage');
-        const updatedProfile = await jsonStorage.updateProfile(parseInt(id), { monitoring_enabled });
-        
-        if (!updatedProfile) {
-            return res.status(404).json({ error: 'Profile not found' });
-        }
-        
-        res.json(updatedProfile);
-    } catch (error) {
-        console.error('Error updating monitoring profile:', error);
-        res.status(500).json({ error: 'Failed to update monitoring profile' });
-    }
-});
 
 // Delete monitoring profile (Admin only)
-app.delete('/api/monitoring/profiles/:id', requireAdmin, async (req, res) => {
-    try {
-        const { id } = req.params;
-        console.log(`[DELETE PROFILE] Attempting to delete profile ${id}`);
-        console.log(`[DELETE PROFILE] User session:`, {
-            authenticated: req.session.authenticated,
-            isAdmin: req.session.isAdmin,
-            role: req.session.role,
-            username: req.session.username
-        });
-        
-        // Use JSON storage instead of database
-        const { storage: jsonStorage } = require('./lib/json-storage');
-        
-        // Get all profiles
-        const profiles = await jsonStorage.getProfiles();
-        console.log(`[DELETE PROFILE] Found ${profiles.length} profiles`);
-        
-        // Filter out the profile to delete
-        const updatedProfiles = profiles.filter(p => p.id != id);
-        console.log(`[DELETE PROFILE] After filter: ${updatedProfiles.length} profiles`);
-        
-        // Save updated profiles by writing directly to the file
-        const fs = require('fs').promises;
-        const path = require('path');
-        const profilesFile = path.join(__dirname, 'data', 'monitoring', 'profiles.json');
-        await fs.writeFile(profilesFile, JSON.stringify(updatedProfiles, null, 2));
-        
-        // Also delete associated alerts and results
-        const alerts = await jsonStorage.getAlerts();
-        const results = await jsonStorage.getResults();
-        
-        const updatedAlerts = alerts.filter(a => a.profile_id != id);
-        const updatedResults = results.filter(r => r.profile_id != id);
-        
-        // Save updated alerts and results
-        const alertsFile = path.join(__dirname, 'data', 'monitoring', 'alerts.json');
-        const resultsFile = path.join(__dirname, 'data', 'monitoring', 'results.json');
-        await fs.writeFile(alertsFile, JSON.stringify(updatedAlerts, null, 2));
-        await fs.writeFile(resultsFile, JSON.stringify(updatedResults, null, 2));
-        
-        console.log(`[DELETE PROFILE] Successfully deleted profile ${id} and associated data`);
-        
-        res.json({ success: true });
-    } catch (error) {
-        console.error('Error deleting monitoring profile:', error);
-        res.status(500).json({ error: 'Failed to delete monitoring profile' });
-    }
-});
 
 // Get monitoring results for a profile
-app.get('/api/monitoring/results/:profileId', async (req, res) => {
-    try {
-        const { profileId } = req.params;
-        const { limit = 100 } = req.query;
-        
-        // Use JSON storage
-        const { storage: jsonStorage } = require('./lib/json-storage');
-        const results = await jsonStorage.getResults(parseInt(profileId), parseInt(limit));
-        
-        res.json(results);
-    } catch (error) {
-        console.error('Error fetching monitoring results:', error);
-        res.status(500).json({ error: 'Failed to fetch monitoring results' });
-    }
-});
 
 // Get current status for all profiles
-app.get('/api/monitoring/status', checkAuth, async (req, res) => {
-    try {
-        // Use JSON storage instead of database
-        const { storage: jsonStorage } = require('./lib/json-storage');
-        
-        // Get all profiles
-        const profiles = await jsonStorage.getProfiles();
-        
-        // Get latest result for each profile
-        const profilesWithStatus = await Promise.all(profiles.map(async (profile) => {
-            const latestResult = await jsonStorage.getLatestResult(profile.id);
-            
-            return {
-                ...profile,
-                overall_status: latestResult ? latestResult.overall_status : 'PENDING',
-                check_timestamp: latestResult ? latestResult.check_timestamp : null,
-                response_time_ms: latestResult ? latestResult.response_time_ms : null,
-                issues_found: latestResult ? latestResult.issues_found : []
-            };
-        }));
-        
-        // Sort by dealer name
-        profilesWithStatus.sort((a, b) => (a.dealer_name || '').localeCompare(b.dealer_name || ''));
-        
-        res.json(profilesWithStatus);
-    } catch (error) {
-        console.error('Error fetching monitoring status:', error);
-        res.status(500).json({ error: 'Failed to fetch monitoring status' });
-    }
-});
 
 // Get monitoring statistics including ScrapingDog usage
-app.get('/api/monitoring/stats', async (req, res) => {
-    try {
-        // Get monitoring engine instance
-        const MonitoringEngine = require('./lib/monitoring-engine');
-        const monitoringEngine = new MonitoringEngine();
-        
-        // Get stats from monitoring engine
-        const stats = monitoringEngine.getMonitoringStats();
-        
-        // Get JSON storage stats
-        const { storage: jsonStorage } = require('./lib/json-storage');
-        const results = await jsonStorage.getResults();
-        
-        // Calculate stats from last 24 hours
-        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-        const recentResults = results.filter(r => new Date(r.check_timestamp) > twentyFourHoursAgo);
-        
-        const statsData = {
-            monitored_sites: new Set(recentResults.map(r => r.profile_id)).size,
-            total_checks: recentResults.length,
-            green_checks: recentResults.filter(r => r.overall_status === 'GREEN').length,
-            yellow_checks: recentResults.filter(r => r.overall_status === 'YELLOW').length,
-            red_checks: recentResults.filter(r => r.overall_status === 'RED').length,
-            avg_response_time: recentResults.length > 0 
-                ? recentResults.reduce((sum, r) => sum + (r.response_time_ms || 0), 0) / recentResults.length 
-                : 0
-        };
-        
-        res.json({
-            ...stats,
-            database: statsData,
-            timestamp: new Date().toISOString()
-        });
-    } catch (error) {
-        console.error('Error fetching monitoring stats:', error);
-        res.status(500).json({ error: 'Failed to fetch monitoring stats' });
-    }
-});
 
 // Get alerts for a profile
-app.get('/api/monitoring/alerts/:profileId', async (req, res) => {
-    try {
-        const { profileId } = req.params;
-        const resolvedParam = req.query.resolved;
-        const resolved = resolvedParam === 'true';
-        
-        console.log(`[ALERTS API] ProfileId: ${profileId}, resolved: ${resolved} (from param: ${resolvedParam})`);
-        
-        // Use JSON storage instead of database
-        const { storage: jsonStorage } = require('./lib/json-storage');
-        
-        // Get alerts for this profile
-        const alerts = await jsonStorage.getAlerts(profileId, resolved);
-        
-        // Sort by created_at DESC
-        alerts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-        
-        console.log(`[ALERTS API] Found ${alerts.length} alerts for profile ${profileId}`);
-        
-        res.json(alerts);
-    } catch (error) {
-        console.error('Error fetching alerts:', error);
-        res.status(500).json({ error: 'Failed to fetch alerts' });
-    }
-});
 
 // Acknowledge an alert
-app.put('/api/monitoring/alerts/:alertId/acknowledge', async (req, res) => {
-    try {
-        const { alertId } = req.params;
-        const { acknowledged_by } = req.body;
-        
-        // Use JSON storage
-        const { storage: jsonStorage } = require('./lib/json-storage');
-        const fs = require('fs').promises;
-        const path = require('path');
-        
-        // Get all alerts
-        const alertsPath = path.join(__dirname, 'data', 'monitoring', 'alerts.json');
-        const alertsData = await fs.readFile(alertsPath, 'utf8');
-        const alerts = JSON.parse(alertsData);
-        
-        // Find and update the alert
-        const alertIndex = alerts.findIndex(a => a.id == alertId);
-        if (alertIndex === -1) {
-            return res.status(404).json({ error: 'Alert not found' });
-        }
-        
-        alerts[alertIndex].acknowledged = true;
-        alerts[alertIndex].acknowledged_at = new Date().toISOString();
-        alerts[alertIndex].acknowledged_by = acknowledged_by || 'User';
-        
-        // Save back to file
-        await fs.writeFile(alertsPath, JSON.stringify(alerts, null, 2));
-        
-        res.json(alerts[alertIndex]);
-    } catch (error) {
-        console.error('Error acknowledging alert:', error);
-        res.status(500).json({ error: 'Failed to acknowledge alert' });
-    }
-});
 
 // Resolve an alert
-app.put('/api/monitoring/alerts/:alertId/resolve', async (req, res) => {
-    try {
-        const { alertId } = req.params;
-        
-        // Use JSON storage
-        const fs = require('fs').promises;
-        const path = require('path');
-        
-        // Get all alerts
-        const alertsPath = path.join(__dirname, 'data', 'monitoring', 'alerts.json');
-        const alertsData = await fs.readFile(alertsPath, 'utf8');
-        const alerts = JSON.parse(alertsData);
-        
-        // Find and update the alert
-        const alertIndex = alerts.findIndex(a => a.id == alertId);
-        if (alertIndex === -1) {
-            return res.status(404).json({ error: 'Alert not found' });
-        }
-        
-        alerts[alertIndex].resolved = true;
-        alerts[alertIndex].resolved_at = new Date().toISOString();
-        
-        // Save back to file
-        await fs.writeFile(alertsPath, JSON.stringify(alerts, null, 2));
-        
-        res.json(alerts[alertIndex]);
-    } catch (error) {
-        console.error('Error resolving alert:', error);
-        res.status(500).json({ error: 'Failed to resolve alert' });
-    }
-});
 
 // Run manual check for a profile
-app.post('/api/monitoring/check/:profileId', async (req, res) => {
-    try {
-        const { profileId } = req.params;
-        
-        // Get profile from JSON storage
-        const { storage: jsonStorage } = require('./lib/json-storage');
-        const profiles = await jsonStorage.getProfiles();
-        const profile = profiles.find(p => p.id == profileId);
-        
-        if (!profile) {
-            return res.status(404).json({ error: 'Profile not found' });
-        }
-        
-        // Run monitoring check
-        const MonitoringEngine = require('./lib/monitoring-engine');
-        const engine = new MonitoringEngine();
-        const results = await engine.runFullCheck(profile);
-        
-        // Check for alerts
-        const alerts = await engine.checkAlertRules(results);
-        
-        // Process alerts if any
-        if (alerts.length > 0) {
-            const MonitoringScheduler = require('./lib/monitoring-scheduler');
-            const scheduler = new MonitoringScheduler();
-            await scheduler.processAlerts(profile, results, alerts);
-        }
-        
-        // Update profile status
-        const profileIndex = profiles.findIndex(p => p.id == profileId);
-        if (profileIndex !== -1) {
-            profiles[profileIndex].overall_status = results.overall_status;
-            profiles[profileIndex].last_check = new Date().toISOString();
-            const fs = require('fs').promises;
-            const path = require('path');
-            const profilesFile = path.join(__dirname, 'data', 'monitoring', 'profiles.json');
-            await fs.writeFile(profilesFile, JSON.stringify(profiles, null, 2));
-        }
-        
-        res.json(results);
-    } catch (error) {
-        console.error('Error running manual check:', error);
-        res.status(500).json({ error: 'Failed to run monitoring check' });
-    }
-});
 
 // Send test notifications for a profile
-app.post('/api/monitoring/test-alert/:profileId', async (req, res) => {
-    try {
-        const { profileId } = req.params;
-        
-        // Get profile from JSON storage
-        const { storage: jsonStorage } = require('./lib/json-storage');
-        const profile = await jsonStorage.getProfile(profileId);
-        
-        if (!profile) {
-            return res.status(404).json({ error: 'Profile not found' });
-        }
-        
-        // Parse alert_preferences if it's a string
-        if (typeof profile.alert_preferences === 'string') {
-            try {
-                profile.alert_preferences = JSON.parse(profile.alert_preferences);
-            } catch (e) {
-                profile.alert_preferences = { email: true, sms: false };
-            }
-        }
-        
-        // Initialize notification service
-        const NotificationService = require('./lib/notification-service');
-        const notificationService = new NotificationService(pool);
-        
-        // Create test alert data
-        const testAlert = {
-            profile_id: profileId,
-            alert_type: 'TEST_NOTIFICATION',
-            alert_level: 'INFO',
-            alert_message: 'This is a test notification from Auto Audit Pro Website Monitoring',
-            created_at: new Date()
-        };
-        
-        // Debug logging
-        console.log('[Test Alert] Profile alert_preferences:', profile.alert_preferences);
-        console.log('[Test Alert] Type of alert_preferences:', typeof profile.alert_preferences);
-        
-        // Send test notifications based on preferences
-        const emailEnabled = profile.alert_preferences?.email === true;
-        const smsEnabled = profile.alert_preferences?.sms === true && profile.alert_phone;
-        
-        console.log('[Test Alert] Email enabled:', emailEnabled);
-        console.log('[Test Alert] SMS enabled:', smsEnabled);
-        console.log('[Test Alert] Alert email:', profile.alert_email);
-        
-        let message = '';
-        let emailSent = false;
-        let smsSent = false;
-        
-        if (emailEnabled) {
-            try {
-                // Send test email
-                const result = await notificationService.sendEmail(
-                    profile.alert_email || profile.contact_email,
-                    '🔔 Test Alert - Auto Audit Pro Monitoring',
-                    `<h2>Test Notification</h2>
-                    <p>This is a test notification from Auto Audit Pro Website Monitoring.</p>
-                    <p><strong>Website:</strong> ${profile.dealer_name}</p>
-                    <p><strong>URL:</strong> ${profile.website_url}</p>
-                    <hr>
-                    <p>If you received this email, your email notifications are working correctly!</p>
-                    <p>When monitoring detects issues, you'll receive alerts similar to this one.</p>`
-                );
-                
-                if (result) {
-                    emailSent = true;
-                    message = '✅ Test email sent successfully to ' + (profile.alert_email || profile.contact_email);
-                } else {
-                    message = '⚠️ Email service not available. Please check server logs.';
-                }
-            } catch (error) {
-                message += '\n❌ Email failed: ' + error.message;
-            }
-        }
-        
-        if (smsEnabled) {
-            try {
-                // Send test SMS only if phone number exists
-                const result = await notificationService.sendSMS(
-                    profile.alert_phone,
-                    `🔔 TEST ALERT - Auto Audit Pro\n\nThis is a test SMS for ${profile.dealer_name}.\n\nIf you see this, SMS alerts are working!`
-                );
-                
-                if (result) {
-                    smsSent = true;
-                    message += '\n✅ SMS sent to ' + profile.alert_phone;
-                } else {
-                    message += '\n⚠️ SMS notifications not configured on server (Twilio settings required)';
-                }
-            } catch (error) {
-                message += '\n❌ SMS failed: ' + error.message;
-            }
-        }
-        
-        if (!emailEnabled && !smsEnabled) {
-            message = 'No notifications enabled. Please configure email or SMS alerts in your profile.';
-        } else if (message.trim() === '') {
-            message = 'Test notifications attempted but no services are configured on the server.';
-        } else {
-            message = 'Test notification results:' + message;
-        }
-        
-        // Determine overall success
-        const anyServiceConfigured = message.includes('✅') || message.includes('not configured on server');
-        const actualSuccess = emailSent || smsSent;
-        
-        res.json({ 
-            success: actualSuccess, 
-            message: message,
-            emailEnabled: emailEnabled,
-            smsEnabled: smsEnabled,
-            serviceConfigured: anyServiceConfigured
-        });
-        
-    } catch (error) {
-        console.error('Error sending test alert:', error);
-        res.status(500).json({ 
-            error: 'Failed to send test notifications',
-            details: error.message 
-        });
-    }
-});
 
 // ============= SECURITY DASHBOARD ROUTES =============
 
