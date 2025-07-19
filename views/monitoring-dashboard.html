@@ -681,25 +681,37 @@
 
         function updateStats() {
             const total = profiles.length;
-            let red = 0;
-            let yellow = 0;
-            let green = 0;
+            let redAlerts = 0;
+            let yellowAlerts = 0;
+            let greenSites = 0;
             
-            // Count profiles by their overall_status
+            // Count actual alerts by level
+            if (activeAlerts && activeAlerts.length > 0) {
+                activeAlerts.forEach(alert => {
+                    if (!alert.resolved) {
+                        if (alert.alert_level === 'RED') {
+                            redAlerts++;
+                        } else if (alert.alert_level === 'YELLOW') {
+                            yellowAlerts++;
+                        }
+                    }
+                });
+            }
+            
+            // Count profiles that have no alerts (GREEN)
             profiles.forEach(profile => {
-                if (profile.overall_status === 'RED') {
-                    red++;
-                } else if (profile.overall_status === 'YELLOW') {
-                    yellow++;
-                } else if (profile.overall_status === 'GREEN') {
-                    green++;
+                const hasAlerts = activeAlerts.some(alert => 
+                    alert.profile_id == profile.id && !alert.resolved
+                );
+                if (!hasAlerts) {
+                    greenSites++;
                 }
             });
             
             document.getElementById('totalSites').textContent = total;
-            document.getElementById('sitesGreen').textContent = green;
-            document.getElementById('sitesYellow').textContent = yellow;
-            document.getElementById('sitesRed').textContent = red;
+            document.getElementById('sitesGreen').textContent = greenSites;
+            document.getElementById('sitesYellow').textContent = yellowAlerts;
+            document.getElementById('sitesRed').textContent = redAlerts;
         }
 
         function renderSites() {
