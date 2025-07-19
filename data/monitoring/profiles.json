@@ -1,1 +1,21 @@
-[]
+[
+  {
+    "id": 1737130000000,
+    "dealer_id": null,
+    "dealer_name": "Fugate Ford",
+    "website_url": "https://www.fugateford.net/",
+    "contact_email": "rjhunter3789@gmail.com",
+    "alert_email": "rjhunter3789@gmail.com",
+    "alert_phone": null,
+    "alert_preferences": {
+      "email": true,
+      "sms": false
+    },
+    "check_frequency": 59,
+    "monitoring_enabled": true,
+    "last_check": "2025-01-17T12:06:56.000Z",
+    "overall_status": "RED",
+    "created_at": "2025-01-17T12:00:00.000Z",
+    "updated_at": "2025-01-17T12:06:56.000Z"
+  }
+]

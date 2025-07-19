@@ -3325,6 +3325,44 @@ app.get('/api/session-debug', checkAuth, (req, res) => {
     });
 });
 
+// Debug monitoring data
+app.get('/api/debug-monitoring', async (req, res) => {
+    try {
+        const { storage: jsonStorage } = require('./lib/json-storage');
+        const fs = require('fs').promises;
+        const path = require('path');
+        
+        // Read raw JSON files
+        const profilesPath = path.join(__dirname, 'data', 'monitoring', 'profiles.json');
+        const alertsPath = path.join(__dirname, 'data', 'monitoring', 'alerts.json');
+        const resultsPath = path.join(__dirname, 'data', 'monitoring', 'results.json');
+        
+        const profilesRaw = await fs.readFile(profilesPath, 'utf8');
+        const alertsRaw = await fs.readFile(alertsPath, 'utf8');
+        const resultsRaw = await fs.readFile(resultsPath, 'utf8');
+        
+        const profiles = JSON.parse(profilesRaw);
+        const alerts = JSON.parse(alertsRaw);
+        const results = JSON.parse(resultsRaw);
+        
+        res.json({
+            profilesCount: profiles.length,
+            alertsCount: alerts.length,
+            resultsCount: results.length,
+            profiles: profiles.slice(0, 5), // First 5 profiles
+            recentAlerts: alerts.slice(0, 10), // Recent 10 alerts
+            recentResults: results.slice(0, 5), // Recent 5 results
+            paths: {
+                profiles: profilesPath,
+                alerts: alertsPath,
+                results: resultsPath
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message, stack: error.stack });
+    }
+});
+
 // Debug views directory
 app.get('/api/debug-views', (req, res) => {
     const viewsDir = path.join(__dirname, 'views');
