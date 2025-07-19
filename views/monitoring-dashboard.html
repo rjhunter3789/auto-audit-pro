@@ -776,30 +776,35 @@
                 const responses = await Promise.all(alertPromises);
                 activeAlerts = responses.flatMap(r => r.data);
                 
-                // Filter for RED alerts only (show ALL red alerts, even acknowledged ones)
-                const redAlerts = activeAlerts.filter(a => a.alert_level === 'RED' && !a.resolved);
+                // Filter for active alerts (RED and YELLOW, not resolved)
+                const activeUnresolvedAlerts = activeAlerts.filter(a => !a.resolved);
                 
-                // Group by alert_type and keep only the latest one
-                const latestRedAlerts = {};
-                redAlerts.forEach(alert => {
-                    if (!latestRedAlerts[alert.alert_type] || 
-                        new Date(alert.created_at) > new Date(latestRedAlerts[alert.alert_type].created_at)) {
-                        latestRedAlerts[alert.alert_type] = alert;
+                // Group by alert_type and alert_level, keeping only the latest one
+                const latestAlerts = {};
+                activeUnresolvedAlerts.forEach(alert => {
+                    const key = `${alert.alert_type}_${alert.alert_level}`;
+                    if (!latestAlerts[key] || 
+                        new Date(alert.created_at) > new Date(latestAlerts[key].created_at)) {
+                        latestAlerts[key] = alert;
                     }
                 });
                 
-                // Convert back to array for display
-                const uniqueRedAlerts = Object.values(latestRedAlerts);
+                // Convert back to array and sort by severity (RED first, then YELLOW)
+                const uniqueAlerts = Object.values(latestAlerts).sort((a, b) => {
+                    if (a.alert_level === 'RED' && b.alert_level !== 'RED') return -1;
+                    if (b.alert_level === 'RED' && a.alert_level !== 'RED') return 1;
+                    return new Date(b.created_at) - new Date(a.created_at);
+                });
                 
                 console.log('Active alerts loaded:', activeAlerts.length);
-                console.log('Unique RED alerts:', uniqueRedAlerts.length);
+                console.log('Active unresolved alerts:', uniqueAlerts.length);
                 
                 loading.classList.remove('active');
                 
                 // Update stats after loading alerts
                 updateStats();
                 
-                if (uniqueRedAlerts.length === 0) {
+                if (uniqueAlerts.length === 0) {
                     container.innerHTML = `
                         <div class="p-4 text-center text-muted">
                             <i class="bi bi-check-circle" style="font-size: 2rem;"></i>
@@ -821,7 +826,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            ${uniqueRedAlerts.map(alert => {
+                            ${uniqueAlerts.map(alert => {
                                 const profile = profiles.find(p => p.id === alert.profile_id);
                                 const level = alert.alert_level.toLowerCase();
                                 const time = new Date(alert.created_at).toLocaleString();
