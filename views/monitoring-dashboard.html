@@ -285,7 +285,7 @@
                         <a href="/" class="btn btn-outline-light btn-sm">
                             <i class="bi bi-house"></i> <span class="d-none d-sm-inline">Back to Audits</span>
                         </a>
-                        <a href="/admin-settings" class="btn btn-outline-light btn-sm" id="adminSettingsBtn">
+                        <a href="/views/admin-settings.html" class="btn btn-outline-light btn-sm" id="adminSettingsBtn">
                             <i class="bi bi-gear"></i> <span class="d-none d-sm-inline">Admin Settings</span>
                         </a>
                         <button class="btn btn-light btn-sm" onclick="showAddProfileModal()">
@@ -685,15 +685,14 @@
             let yellowAlerts = 0;
             let greenSites = 0;
             
-            // Count actual alerts by level
-            if (activeAlerts && activeAlerts.length > 0) {
-                activeAlerts.forEach(alert => {
-                    if (!alert.resolved) {
-                        if (alert.alert_level === 'RED') {
-                            redAlerts++;
-                        } else if (alert.alert_level === 'YELLOW') {
-                            yellowAlerts++;
-                        }
+            // Use the deduplicated uniqueAlerts instead of all alerts
+            // This is set in loadActiveAlerts after grouping
+            if (window.uniqueAlerts && window.uniqueAlerts.length > 0) {
+                window.uniqueAlerts.forEach(alert => {
+                    if (alert.alert_level === 'RED') {
+                        redAlerts++;
+                    } else if (alert.alert_level === 'YELLOW') {
+                        yellowAlerts++;
                     }
                 });
             }
@@ -833,6 +832,9 @@
                     if (b.alert_level === 'RED' && a.alert_level !== 'RED') return 1;
                     return new Date(b.created_at) - new Date(a.created_at);
                 });
+                
+                // Store uniqueAlerts globally for stats
+                window.uniqueAlerts = uniqueAlerts;
                 
                 console.log('Active alerts loaded:', activeAlerts.length);
                 console.log('Unique alerts by type:', uniqueAlerts);
