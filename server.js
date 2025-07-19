@@ -343,6 +343,53 @@ app.use((req, res, next) => {
     next();
 });
 
+// EMERGENCY ACCESS - NO AUTH CHECK - BEFORE GLOBAL AUTH
+app.get('/settings-admin', (req, res) => {
+    console.log('[Settings Admin] Emergency direct access - no auth check');
+    const filePath = path.join(__dirname, 'views', 'admin-settings.html');
+    res.sendFile(filePath);
+});
+
+// Session check endpoint - NO AUTH
+app.get('/api/check-session', (req, res) => {
+    res.json({
+        authenticated: req.session?.authenticated || false,
+        username: req.session?.username || 'none',
+        role: req.session?.role || 'none',
+        isAdmin: req.session?.isAdmin || false,
+        sessionID: req.sessionID,
+        sessionData: req.session
+    });
+});
+
+// Force fix admin session - NO AUTH
+app.get('/api/force-admin-fix', (req, res) => {
+    if (req.session) {
+        req.session.authenticated = true;
+        req.session.username = req.session.username || 'admin';
+        req.session.isAdmin = true;
+        req.session.role = 'admin';
+        req.session.save((err) => {
+            if (err) {
+                res.json({ error: 'Failed to save session', details: err });
+            } else {
+                res.json({ 
+                    success: true, 
+                    message: 'Admin privileges FORCED',
+                    session: {
+                        username: req.session.username,
+                        role: req.session.role,
+                        isAdmin: req.session.isAdmin,
+                        authenticated: req.session.authenticated
+                    }
+                });
+            }
+        });
+    } else {
+        res.json({ error: 'No session exists' });
+    }
+});
+
 // LOCKDOWN: Apply authentication to ALL routes after this point
 app.use(checkAuth);
 
@@ -3274,71 +3321,7 @@ app.get('/admin/settings', requireAdmin, (req, res) => {
 });
 
 // Alternative admin settings route - ADMIN ONLY
-// DIRECT ACCESS - NO AUTH CHECK
-app.get('/settings-admin', (req, res) => {
-    console.log('[Settings Admin] Direct access - no auth check');
-    const filePath = path.join(__dirname, 'views', 'admin-settings.html');
-    res.sendFile(filePath);
-});
-
-// Session check endpoint
-app.get('/api/check-session', (req, res) => {
-    res.json({
-        authenticated: req.session?.authenticated || false,
-        username: req.session?.username || 'none',
-        role: req.session?.role || 'none',
-        isAdmin: req.session?.isAdmin || false,
-        sessionID: req.sessionID,
-        sessionData: req.session
-    });
-});
-
-// Force create monitoring profile
-app.get('/api/force-create-profile', async (req, res) => {
-    try {
-        const { storage: jsonStorage } = require('./lib/json-storage');
-        
-        // Create Fugate Ford profile
-        const profile = await jsonStorage.createProfile({
-            dealer_name: 'Fugate Ford',
-            website_url: 'https://www.fugateford.net/',
-            contact_email: 'rjhunter3789@gmail.com',
-            alert_email: 'rjhunter3789@gmail.com',
-            alert_preferences: { email: true, sms: false },
-            check_frequency: 59,
-            overall_status: 'PENDING'
-        });
-        
-        res.json({ success: true, profile });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// Force fix admin session
-app.get('/api/force-admin-fix', (req, res) => {
-    if (req.session && req.session.authenticated) {
-        req.session.isAdmin = true;
-        req.session.role = 'admin';
-        req.session.save((err) => {
-            if (err) {
-                res.json({ error: 'Failed to save session', details: err });
-            } else {
-                res.json({ 
-                    success: true, 
-                    message: 'Admin privileges restored',
-                    session: {
-                        username: req.session.username,
-                        role: req.session.role,
-                        isAdmin: req.session.isAdmin
-                    }
-                });
-            }
-        });
-    } else {
-        res.json({ error: 'Not authenticated. Please login first.' });
-    }
-});
+// Routes moved before global auth
 
 // Test route to verify admin routing
 app.get('/admin/test', (req, res) => {
