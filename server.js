@@ -112,8 +112,11 @@ function requireAdmin(req, res, next) {
         next();
     } else {
         console.log('[RequireAdmin] Access denied');
-        // For web pages, show access denied page
-        if (req.path.includes('/admin/')) {
+        // For API requests, return JSON error
+        if (req.path.startsWith('/api/')) {
+            res.status(403).json({ error: 'Admin access required' });
+        } else {
+            // For web pages, show access denied page
             res.status(403).send(`
                 <!DOCTYPE html>
                 <html>
@@ -3274,35 +3277,10 @@ app.get('/admin/settings', requireAdmin, (req, res) => {
 });
 
 // Alternative admin settings route - ADMIN ONLY
-app.get('/settings-admin', checkAuth, (req, res) => {
-    console.log('[Settings Admin] Access attempt by:', req.session.username, 'Role:', req.session.role);
-    
-    // Strict admin check - only allow admin access
-    if (req.session.isAdmin === true || req.session.role === 'admin') {
-        console.log('[Settings Admin] Admin access granted');
-        const filePath = path.join(__dirname, 'views', 'admin-settings.html');
-        res.sendFile(filePath);
-    } else {
-        console.log('[Settings Admin] Access DENIED - not an admin');
-        res.status(403).send(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Access Denied</title>
-                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-            </head>
-            <body>
-                <div class="container mt-5">
-                    <div class="alert alert-danger">
-                        <h4>Access Denied</h4>
-                        <p>This page is restricted to administrators only.</p>
-                        <a href="/monitoring" class="btn btn-primary">Back to Monitoring</a>
-                    </div>
-                </div>
-            </body>
-            </html>
-        `);
-    }
+app.get('/settings-admin', requireAdmin, (req, res) => {
+    console.log('[Settings Admin] Admin access granted for:', req.session.username);
+    const filePath = path.join(__dirname, 'views', 'admin-settings.html');
+    res.sendFile(filePath);
 });
 
 // Test route to verify admin routing
@@ -3319,6 +3297,32 @@ app.get('/api/session-debug', checkAuth, (req, res) => {
         authenticated: req.session.authenticated,
         sessionID: req.sessionID
     });
+});
+
+// Force create test alert for debugging
+app.post('/api/debug-create-alert/:profileId', requireAdmin, async (req, res) => {
+    try {
+        const { profileId } = req.params;
+        const { storage: jsonStorage } = require('./lib/json-storage');
+        
+        // Create a test alert
+        const testAlert = {
+            profile_id: parseInt(profileId),
+            result_id: Date.now(),
+            rule_id: 2,
+            alert_level: 'RED',
+            alert_type: 'ssl_valid',
+            alert_message: 'TEST: SSL certificate is invalid - browsers showing security warnings!',
+            notification_sent: false,
+            acknowledged: false,
+            resolved: false
+        };
+        
+        const savedAlert = await jsonStorage.saveAlert(testAlert);
+        res.json({ success: true, alert: savedAlert });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // Debug monitoring data
