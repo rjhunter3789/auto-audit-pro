@@ -75,11 +75,8 @@ app.use('/css', express.static(path.join(__dirname, 'public/css')));
 app.use('/images', express.static(path.join(__dirname, 'public/images')));
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
-// IMPORTANT: Block direct access to views folder to force EJS rendering
-app.use('/views', (req, res) => {
-    console.log('[BLOCKED] Direct access to views folder:', req.path);
-    res.status(403).send('Direct access to template files is not allowed');
-});
+// Allow access to views for admin pages
+app.use('/views', express.static(path.join(__dirname, 'views')));
 
 // Authentication middleware
 const { checkAuth, ADMIN_USERNAME, ADMIN_PASSWORD } = require('./middleware/auth');
@@ -332,6 +329,11 @@ app.get('/api/health', (req, res) => {
         features: ['8-category testing', 'real performance data', 'content analysis'],
         environment: process.env.NODE_ENV || 'development'
     });
+});
+
+// TEST ROUTE - ABSOLUTELY NO AUTH
+app.get('/test-no-auth', (req, res) => {
+    res.send('This route has NO authentication. If you see this, routes work.');
 });
 
 // Add simple render method to response object
