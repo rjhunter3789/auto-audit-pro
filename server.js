@@ -2838,7 +2838,7 @@ app.get('/api/monitoring/results/:profileId', async (req, res) => {
 });
 
 // Get current status for all profiles
-app.get('/api/monitoring/status', async (req, res) => {
+app.get('/api/monitoring/status', checkAuth, async (req, res) => {
     try {
         // Use JSON storage instead of database
         const { storage: jsonStorage } = require('./lib/json-storage');

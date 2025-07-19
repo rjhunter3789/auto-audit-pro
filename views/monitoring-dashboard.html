@@ -667,23 +667,20 @@
 
         function updateStats() {
             const total = profiles.length;
+            let red = 0;
+            let yellow = 0;
+            let green = 0;
             
-            // Count based on actual alerts, not profile status
-            // Get unique alert types for counting
-            const redAlertTypes = new Set();
-            const yellowAlertTypes = new Set();
-            
-            activeAlerts.forEach(alert => {
-                if (alert.alert_level === 'RED') {
-                    redAlertTypes.add(alert.alert_type);
-                } else if (alert.alert_level === 'YELLOW') {
-                    yellowAlertTypes.add(alert.alert_type);
+            // Count profiles by their overall_status
+            profiles.forEach(profile => {
+                if (profile.overall_status === 'RED') {
+                    red++;
+                } else if (profile.overall_status === 'YELLOW') {
+                    yellow++;
+                } else if (profile.overall_status === 'GREEN') {
+                    green++;
                 }
             });
-            
-            const red = redAlertTypes.size;
-            const yellow = yellowAlertTypes.size;
-            const green = (red === 0 && yellow === 0) ? total : 0;
             
             document.getElementById('totalSites').textContent = total;
             document.getElementById('sitesGreen').textContent = green;
