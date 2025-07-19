@@ -244,3 +244,69 @@ npm start
    - Clear old sessions weekly
    - Backup data/ folder
    - Monitor error logs
+
+---
+
+## July 19, 2025 - Major Fixes Applied
+
+### 1. Admin Settings 403 Error - FIXED
+**Issue**: Persistent 403 errors when accessing Admin Settings, even when logged in as admin
+**Root Cause**: 
+- Views folder was being blocked by middleware
+- Global auth middleware position blocking admin routes
+- Admin routes placed after global auth check
+
+**Solution**:
+- Changed views blocking to static file serving
+- Moved admin routes BEFORE global auth middleware (critical!)
+- Updated admin button to use direct path: `/views/admin-settings.html`
+- Disabled JavaScript 403 redirect in admin-settings.html
+
+**Files Changed**:
+- `server.js` - Lines 79-82 (views access)
+- `server.js` - Admin routes moved before line 347
+- `views/monitoring-dashboard.html` - Admin button href
+- `views/admin-settings.html` - Added default config population
+
+### 2. Active Alerts Display - FIXED
+**Issue**: Active Alerts showed no alerts even with RED/YELLOW conditions
+**Root Cause**: 
+- Alert deduplication not working
+- Stats counting duplicates
+- Mixed database/JSON storage
+
+**Solution**:
+- Fixed updateStats() to use uniqueAlerts array
+- Proper alert grouping - one per type with highest severity
+- All monitoring now uses JSON storage exclusively
+
+**Files Changed**:
+- `views/monitoring-dashboard.html` - updateStats function
+- `server.js` - Monitoring endpoints converted to JSON
+
+### 3. Phantom Monitoring - FIXED
+**Issue**: Deleted profiles (Price Ford) continued being monitored
+**Root Cause**: Monitoring scheduler still using PostgreSQL queries
+
+**Solution**:
+- Updated checkRecentAlert() to use JSON storage
+- Updated updateLastCheck() to use JSON storage
+- Monitoring engine now properly saves to JSON
+
+**Files Changed**:
+- `lib/monitoring-scheduler.js` - Database queries replaced
+- `lib/monitoring-engine.js` - Added JSON storage
+
+### Emergency Access Methods
+If locked out with 403 errors:
+1. Direct HTML: `/views/admin-settings.html`
+2. Emergency route: `/settings-admin`
+3. Repair session: `/api/fix-admin`
+
+### Critical Middleware Order
+**IMPORTANT**: In server.js, admin routes MUST come before:
+```javascript
+app.use(checkAuth); // Line ~347
+```
+
+Any routes after this line require authentication!
