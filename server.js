@@ -139,9 +139,6 @@ function requireAdmin(req, res, next) {
                 </body>
                 </html>
             `);
-        } else {
-            // For API endpoints
-            res.status(403).json({ error: 'Admin access required' });
         }
     }
 }
