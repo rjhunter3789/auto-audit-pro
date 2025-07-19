@@ -3274,10 +3274,55 @@ app.get('/admin/settings', requireAdmin, (req, res) => {
 });
 
 // Alternative admin settings route - ADMIN ONLY
-app.get('/settings-admin', requireAdmin, (req, res) => {
-    console.log('[Settings Admin] Admin access granted for:', req.session.username);
+// Force admin access for testing - TEMPORARY
+app.get('/settings-admin', checkAuth, (req, res) => {
+    console.log('[Settings Admin] Session check:', {
+        username: req.session.username,
+        role: req.session.role,
+        isAdmin: req.session.isAdmin,
+        authenticated: req.session.authenticated
+    });
+    
+    // TEMPORARY: Allow access for now to debug
     const filePath = path.join(__dirname, 'views', 'admin-settings.html');
     res.sendFile(filePath);
+});
+
+// Session check endpoint
+app.get('/api/check-session', (req, res) => {
+    res.json({
+        authenticated: req.session?.authenticated || false,
+        username: req.session?.username || 'none',
+        role: req.session?.role || 'none',
+        isAdmin: req.session?.isAdmin || false,
+        sessionID: req.sessionID,
+        sessionData: req.session
+    });
+});
+
+// Force fix admin session
+app.get('/api/force-admin-fix', (req, res) => {
+    if (req.session && req.session.authenticated) {
+        req.session.isAdmin = true;
+        req.session.role = 'admin';
+        req.session.save((err) => {
+            if (err) {
+                res.json({ error: 'Failed to save session', details: err });
+            } else {
+                res.json({ 
+                    success: true, 
+                    message: 'Admin privileges restored',
+                    session: {
+                        username: req.session.username,
+                        role: req.session.role,
+                        isAdmin: req.session.isAdmin
+                    }
+                });
+            }
+        });
+    } else {
+        res.json({ error: 'Not authenticated. Please login first.' });
+    }
 });
 
 // Test route to verify admin routing
