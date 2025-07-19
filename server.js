@@ -336,6 +336,26 @@ app.get('/test-no-auth', (req, res) => {
     res.send('This route has NO authentication. If you see this, routes work.');
 });
 
+// SIMPLE ADMIN TEST
+app.get('/admin-test', (req, res) => {
+    res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head><title>Admin Test</title></head>
+        <body>
+            <h1>Admin Test Page</h1>
+            <p>If you see this, routing works.</p>
+            <p>Try these links:</p>
+            <ul>
+                <li><a href="/admin-settings">Admin Settings</a></li>
+                <li><a href="/settings-admin">Settings Admin</a></li>
+                <li><a href="/views/admin-settings.html">Direct HTML</a></li>
+            </ul>
+        </body>
+        </html>
+    `);
+});
+
 // Add simple render method to response object
 app.use((req, res, next) => {
     res.render = function(viewName) {
