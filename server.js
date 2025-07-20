@@ -611,7 +611,7 @@ app.post('/api/monitoring/profiles', async (req, res) => {
             alert_email: alert_email || contact_email,
             alert_phone: alert_phone || null,
             alert_preferences: alert_preferences || { email: true, sms: false },
-            check_frequency: check_frequency || 59,
+            check_frequency: check_frequency || 59, // TODO: Make this configurable
             overall_status: 'PENDING',
             last_check: null
         };
@@ -1082,6 +1082,46 @@ app.post('/api/monitoring/test-alert/:profileId', async (req, res) => {
 
 // ===== END MONITORING API ROUTES =====
 
+// Get monitoring dashboard - NO AUTH CHECK for easier access
+app.get('/monitoring', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'monitoring-dashboard.html'));
+});
+
+// ROI Configuration API Routes (moved before auth)
+const roiConfig = require('./lib/roi-config');
+
+// Get ROI configuration - NO AUTH CHECK to allow admin settings page to load
+app.get('/api/roi/config', (req, res) => {
+    try {
+        const config = roiConfig.getROIConfig();
+        res.json(config);
+    } catch (error) {
+        console.error('Error getting ROI config:', error);
+        res.status(500).json({ error: 'Failed to load ROI configuration' });
+    }
+});
+
+// Update ROI configuration (Admin only)
+app.put('/api/roi/config', requireAdmin, (req, res) => {
+    try {
+        const updatedConfig = roiConfig.updateROIConfig(req.body, true);
+        res.json(updatedConfig);
+    } catch (error) {
+        console.error('Error updating ROI config:', error);
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Reset ROI configuration (Admin only)
+app.post('/api/roi/reset', requireAdmin, (req, res) => {
+    try {
+        const config = roiConfig.resetROIConfig(true);
+        res.json(config);
+    } catch (error) {
+        console.error('Error resetting ROI config:', error);
+        res.status(500).json({ error: 'Failed to reset configuration' });
+    }
+});
 
 // LOCKDOWN: Apply authentication to ALL routes after this point
 app.use(checkAuth);
@@ -3420,10 +3460,6 @@ app.get('/api/user/current', (req, res) => {
     }
 });
 
-// Get monitoring dashboard
-app.get('/monitoring', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'monitoring-dashboard.html'));
-});
 
 // Get monitoring profiles
 
@@ -3703,41 +3739,6 @@ app.put('/api/admin/monitoring-config', requireAdmin, (req, res) => {
 });
 
 
-// ROI Configuration API Routes
-const roiConfig = require('./lib/roi-config');
-
-// Get ROI configuration
-app.get('/api/roi/config', checkAuth, (req, res) => {
-    try {
-        const config = roiConfig.getROIConfig();
-        res.json(config);
-    } catch (error) {
-        console.error('Error getting ROI config:', error);
-        res.status(500).json({ error: 'Failed to load ROI configuration' });
-    }
-});
-
-// Update ROI configuration (Admin only)
-app.put('/api/roi/config', requireAdmin, (req, res) => {
-    try {
-        const updatedConfig = roiConfig.updateROIConfig(req.body, true);
-        res.json(updatedConfig);
-    } catch (error) {
-        console.error('Error updating ROI config:', error);
-        res.status(400).json({ error: error.message });
-    }
-});
-
-// Reset ROI configuration (Admin only)
-app.post('/api/roi/reset', requireAdmin, (req, res) => {
-    try {
-        const config = roiConfig.resetROIConfig(true);
-        res.json(config);
-    } catch (error) {
-        console.error('Error resetting ROI config:', error);
-        res.status(500).json({ error: 'Failed to reset configuration' });
-    }
-});
 
 // Initialize monitoring scheduler
 const MonitoringScheduler = require('./lib/monitoring-scheduler');

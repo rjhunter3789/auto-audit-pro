@@ -1,0 +1,5 @@
+{
+  "defaultCheckFrequency": 59,
+  "allowedFrequencies": [15, 30, 59, 60, 120],
+  "description": "Monitoring configuration settings"
+}
