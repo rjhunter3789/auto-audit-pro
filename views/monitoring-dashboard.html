@@ -893,12 +893,21 @@
             modal.show();
         }
 
+        let isAddingProfile = false;
+        
         async function addProfile() {
+            if (isAddingProfile) {
+                console.log('Already adding profile, ignoring duplicate request');
+                return;
+            }
+            
             const form = document.getElementById('addProfileForm');
             if (!form.checkValidity()) {
                 form.reportValidity();
                 return;
             }
+            
+            isAddingProfile = true;
             
             const data = {
                 dealer_id: Date.now().toString(), // Generate unique ID
@@ -931,7 +940,19 @@
                 
             } catch (error) {
                 console.error('Error adding profile:', error);
-                alert('Failed to add website. Please try again.');
+                if (error.response) {
+                    console.error('Response status:', error.response.status);
+                    console.error('Response data:', error.response.data);
+                    if (error.response.status === 403) {
+                        alert('Access denied. Please make sure you are logged in as admin.');
+                    } else {
+                        alert(`Failed to add website: ${error.response.data.error || 'Unknown error'}`);
+                    }
+                } else {
+                    alert('Failed to add website. Please try again.');
+                }
+            } finally {
+                isAddingProfile = false;
             }
         }
 
