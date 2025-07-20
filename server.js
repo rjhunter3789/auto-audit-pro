@@ -787,7 +787,7 @@ app.get('/api/monitoring/results/:profileId', async (req, res) => {
     }
 });
 
-app.get('/api/monitoring/status', checkAuth, async (req, res) => {
+app.get('/api/monitoring/status', async (req, res) => {
     try {
         // Use JSON storage instead of database
         const { storage: jsonStorage } = require('./lib/json-storage');
@@ -1164,7 +1164,15 @@ app.post('/api/roi/reset', requireAdmin, (req, res) => {
 });
 
 // LOCKDOWN: Apply authentication to ALL routes after this point
-app.use(checkAuth);
+// BUT exclude monitoring API routes to allow dashboard to work
+app.use((req, res, next) => {
+    // Skip auth for monitoring API routes
+    if (req.path.startsWith('/api/monitoring/')) {
+        return next();
+    }
+    // Apply auth for all other routes
+    checkAuth(req, res, next);
+});
 
 // Password change page
 app.get('/change-password', (req, res) => {
