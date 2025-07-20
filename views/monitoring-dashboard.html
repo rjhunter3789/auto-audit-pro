@@ -137,6 +137,8 @@
             border-radius: 10px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             overflow: hidden;
+            max-height: 500px;
+            overflow-y: auto;
         }
 
         .alert-badge {
@@ -381,7 +383,7 @@
                         <span class="visually-hidden">Loading...</span>
                     </div>
                 </div>
-                <div id="alertsList"></div>
+                <div id="alertsList" style="max-height: 400px; overflow-y: auto;"></div>
             </div>
         </div>
 
@@ -681,36 +683,31 @@
 
         function updateStats() {
             const total = profiles.length;
-            let redAlerts = 0;
-            let yellowAlerts = 0;
-            let greenSites = 0;
+            let redCount = 0;
+            let yellowCount = 0;
+            let greenCount = 0;
             
-            // Use the deduplicated uniqueAlerts instead of all alerts
-            // This is set in loadActiveAlerts after grouping
-            if (window.uniqueAlerts && window.uniqueAlerts.length > 0) {
-                window.uniqueAlerts.forEach(alert => {
-                    if (alert.alert_level === 'RED') {
-                        redAlerts++;
-                    } else if (alert.alert_level === 'YELLOW') {
-                        yellowAlerts++;
-                    }
-                });
-            }
-            
-            // Count profiles that have no alerts (GREEN)
+            // Count sites by their overall status
             profiles.forEach(profile => {
-                const hasAlerts = activeAlerts.some(alert => 
-                    alert.profile_id == profile.id && !alert.resolved
-                );
-                if (!hasAlerts) {
-                    greenSites++;
+                if (profile.overall_status === 'RED') {
+                    redCount++;
+                } else if (profile.overall_status === 'YELLOW') {
+                    yellowCount++;
+                } else if (profile.overall_status === 'GREEN') {
+                    greenCount++;
                 }
             });
             
+            // If no specific status, assume GREEN
+            const accountedFor = redCount + yellowCount + greenCount;
+            if (accountedFor < total) {
+                greenCount = total - redCount - yellowCount;
+            }
+            
             document.getElementById('totalSites').textContent = total;
-            document.getElementById('sitesGreen').textContent = greenSites;
-            document.getElementById('sitesYellow').textContent = yellowAlerts;
-            document.getElementById('sitesRed').textContent = redAlerts;
+            document.getElementById('sitesGreen').textContent = greenCount;
+            document.getElementById('sitesYellow').textContent = yellowCount;
+            document.getElementById('sitesRed').textContent = redCount;
         }
 
         function renderSites() {
@@ -807,31 +804,17 @@
                 console.log('All alerts:', activeAlerts);
                 console.log('Unresolved alerts:', activeUnresolvedAlerts);
                 
-                // Group by alert_type only, keeping the highest severity alert
-                const latestAlerts = {};
-                activeUnresolvedAlerts.forEach(alert => {
-                    const key = alert.alert_type;
-                    const existing = latestAlerts[key];
-                    
-                    if (!existing) {
-                        latestAlerts[key] = alert;
-                    } else {
-                        // Keep RED over YELLOW, or most recent if same level
-                        if (alert.alert_level === 'RED' && existing.alert_level === 'YELLOW') {
-                            latestAlerts[key] = alert;
-                        } else if (alert.alert_level === existing.alert_level && 
-                                   new Date(alert.created_at) > new Date(existing.created_at)) {
-                            latestAlerts[key] = alert;
-                        }
-                    }
-                });
-                
-                // Convert back to array and sort by severity (RED first, then YELLOW)
-                const uniqueAlerts = Object.values(latestAlerts).sort((a, b) => {
+                // Sort alerts by severity (RED first) and then by time
+                const sortedAlerts = activeUnresolvedAlerts.sort((a, b) => {
+                    // First sort by level
                     if (a.alert_level === 'RED' && b.alert_level !== 'RED') return -1;
                     if (b.alert_level === 'RED' && a.alert_level !== 'RED') return 1;
+                    // Then by time (newest first)
                     return new Date(b.created_at) - new Date(a.created_at);
                 });
+                
+                // Use all alerts, not deduplicated
+                const uniqueAlerts = sortedAlerts;
                 
                 // Store uniqueAlerts globally for stats
                 window.uniqueAlerts = uniqueAlerts;
