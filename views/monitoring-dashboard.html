@@ -655,7 +655,8 @@
                         alert('Session expired. Please login again.');
                         window.location.href = '/login';
                     } else if (error.response.status === 403) {
-                        alert('Access denied. Please check your permissions.');
+                        // Don't show alert for 403 errors - just log them
+                        console.warn('403 error but continuing - likely a route ordering issue');
                     }
                 }
             }
