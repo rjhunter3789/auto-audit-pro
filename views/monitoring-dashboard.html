@@ -318,19 +318,19 @@
             <div class="col-md-3 mb-3">
                 <div class="stat-box">
                     <div class="stat-number text-success" id="sitesGreen">0</div>
-                    <div class="stat-label">All Good</div>
+                    <div class="stat-label">Sites OK</div>
                 </div>
             </div>
             <div class="col-md-3 mb-3">
                 <div class="stat-box">
                     <div class="stat-number text-warning" id="sitesYellow">0</div>
-                    <div class="stat-label">Warnings</div>
+                    <div class="stat-label">Sites w/ Warnings</div>
                 </div>
             </div>
             <div class="col-md-3 mb-3">
                 <div class="stat-box">
                     <div class="stat-number text-danger" id="sitesRed">0</div>
-                    <div class="stat-label">Critical</div>
+                    <div class="stat-label">Sites w/ Critical</div>
                 </div>
             </div>
         </div>
@@ -852,14 +852,18 @@
                             ${uniqueAlerts.map(alert => {
                                 const profile = profiles.find(p => p.id === alert.profile_id);
                                 const level = alert.alert_level.toLowerCase();
-                                const time = new Date(alert.created_at).toLocaleString();
+                                const firstSeen = new Date(alert.created_at).toLocaleString();
+                                const lastSeen = alert.last_seen ? new Date(alert.last_seen).toLocaleString() : null;
                                 
                                 return `
                                     <tr>
                                         <td>${profile ? profile.dealer_name : 'Unknown'}</td>
                                         <td>${alert.alert_message}</td>
                                         <td><span class="alert-badge ${level}">${alert.alert_level}</span></td>
-                                        <td><small>${time}</small></td>
+                                        <td>
+                                            <small>First: ${firstSeen}</small>
+                                            ${lastSeen ? `<br><small>Last: ${lastSeen}</small>` : ''}
+                                        </td>
                                         <td>
                                             ${!alert.acknowledged ? 
                                                 `<button class="btn btn-sm btn-outline-primary" onclick="acknowledgeAlert(${alert.id})">
