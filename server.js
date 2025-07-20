@@ -78,6 +78,20 @@ app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 // Allow access to views for admin pages
 app.use('/views', express.static(path.join(__dirname, 'views')));
 
+// DIRECT ADMIN SETTINGS ACCESS - NO AUTH CHECKS
+// This is placed BEFORE any auth middleware to ensure it always works
+app.get('/admin-settings-direct', (req, res) => {
+    const filePath = path.join(__dirname, 'views', 'admin-settings.html');
+    res.sendFile(filePath);
+});
+
+// Also serve the static admin-settings.html file directly
+app.get('/admin-settings.html', (req, res) => {
+    const filePath = path.join(__dirname, 'views', 'admin-settings.html');
+    res.sendFile(filePath);
+});
+
+
 // Authentication middleware
 const { checkAuth, ADMIN_USERNAME, ADMIN_PASSWORD } = require('./middleware/auth');
 
