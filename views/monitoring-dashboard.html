@@ -311,26 +311,26 @@
         <div class="row mb-4">
             <div class="col-md-3 mb-3">
                 <div class="stat-box">
-                    <div class="stat-number text-primary" id="totalSites">0</div>
-                    <div class="stat-label">Total Sites</div>
+                    <div class="stat-number text-primary" id="totalAlerts">0</div>
+                    <div class="stat-label">Active Alerts</div>
                 </div>
             </div>
             <div class="col-md-3 mb-3">
                 <div class="stat-box">
-                    <div class="stat-number text-success" id="sitesGreen">0</div>
-                    <div class="stat-label">Sites OK</div>
+                    <div class="stat-number text-success" id="resolvedAlerts">0</div>
+                    <div class="stat-label">Resolved</div>
                 </div>
             </div>
             <div class="col-md-3 mb-3">
                 <div class="stat-box">
-                    <div class="stat-number text-warning" id="sitesYellow">0</div>
-                    <div class="stat-label">Sites w/ Warnings</div>
+                    <div class="stat-number text-warning" id="yellowAlerts">0</div>
+                    <div class="stat-label">Warnings</div>
                 </div>
             </div>
             <div class="col-md-3 mb-3">
                 <div class="stat-box">
-                    <div class="stat-number text-danger" id="sitesRed">0</div>
-                    <div class="stat-label">Sites w/ Critical</div>
+                    <div class="stat-number text-danger" id="redAlerts">0</div>
+                    <div class="stat-label">Critical</div>
                 </div>
             </div>
         </div>
@@ -682,32 +682,32 @@
         }
 
         function updateStats() {
-            const total = profiles.length;
+            let totalActive = 0;
             let redCount = 0;
             let yellowCount = 0;
-            let greenCount = 0;
+            let resolvedCount = 0;
             
-            // Count sites by their overall status
-            profiles.forEach(profile => {
-                if (profile.overall_status === 'RED') {
-                    redCount++;
-                } else if (profile.overall_status === 'YELLOW') {
-                    yellowCount++;
-                } else if (profile.overall_status === 'GREEN') {
-                    greenCount++;
-                }
-            });
-            
-            // If no specific status, assume GREEN
-            const accountedFor = redCount + yellowCount + greenCount;
-            if (accountedFor < total) {
-                greenCount = total - redCount - yellowCount;
+            // Count alerts from the uniqueAlerts array that's populated in loadActiveAlerts
+            if (window.uniqueAlerts && Array.isArray(window.uniqueAlerts)) {
+                window.uniqueAlerts.forEach(alert => {
+                    if (!alert.resolved) {
+                        totalActive++;
+                        if (alert.alert_level === 'RED') {
+                            redCount++;
+                        } else if (alert.alert_level === 'YELLOW') {
+                            yellowCount++;
+                        }
+                    }
+                });
             }
             
-            document.getElementById('totalSites').textContent = total;
-            document.getElementById('sitesGreen').textContent = greenCount;
-            document.getElementById('sitesYellow').textContent = yellowCount;
-            document.getElementById('sitesRed').textContent = redCount;
+            // Note: We don't have resolved alerts in the current view, so it stays 0
+            // If you want to track resolved alerts, we'd need to fetch them separately
+            
+            document.getElementById('totalAlerts').textContent = totalActive;
+            document.getElementById('resolvedAlerts').textContent = resolvedCount;
+            document.getElementById('yellowAlerts').textContent = yellowCount;
+            document.getElementById('redAlerts').textContent = redCount;
         }
 
         function renderSites() {
