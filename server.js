@@ -614,13 +614,26 @@ app.post('/api/monitoring/profiles', async (req, res) => {
     try {
         const { dealer_id, dealer_name, website_url, contact_email, alert_email, alert_phone, alert_preferences, check_frequency } = req.body;
         
+        console.log('[PROFILE CREATE] Request body:', req.body);
+        
+        // Validate required fields
+        if (!dealer_name || !website_url || !contact_email) {
+            return res.status(400).json({ error: 'Missing required fields: dealer_name, website_url, contact_email' });
+        }
+        
+        // Ensure URL has protocol
+        let validatedUrl = website_url;
+        if (!validatedUrl.startsWith('http://') && !validatedUrl.startsWith('https://')) {
+            validatedUrl = 'https://' + validatedUrl;
+        }
+        
         // Use JSON storage instead of database
         const { storage: jsonStorage } = require('./lib/json-storage');
         
         const profileData = {
             dealer_id: dealer_id || null,
             dealer_name,
-            website_url,
+            website_url: validatedUrl,
             contact_email,
             alert_email: alert_email || contact_email,
             alert_phone: alert_phone || null,
@@ -632,10 +645,15 @@ app.post('/api/monitoring/profiles', async (req, res) => {
         
         // Save to JSON storage - createProfile will add id and timestamps
         const newProfile = await jsonStorage.createProfile(profileData);
+        console.log('[PROFILE CREATE] Created profile:', newProfile.id);
         
-        // Schedule initial check after 1 minute
+        // Send response immediately
+        res.json({ success: true, profile: newProfile });
+        
+        // Schedule initial check after 10 seconds (reduced from 1 minute for testing)
         setTimeout(async () => {
             try {
+                console.log('[PROFILE CREATE] Running initial check for profile:', newProfile.id);
                 const MonitoringEngine = require('./lib/monitoring-engine');
                 const engine = new MonitoringEngine();
                 const results = await engine.runFullCheck(newProfile);
@@ -666,12 +684,20 @@ app.post('/api/monitoring/profiles', async (req, res) => {
             } catch (error) {
                 console.error(`[Initial Check] Failed for ${newProfile.dealer_name}:`, error);
             }
-        }, 60000); // 1 minute delay
+        }, 10000); // 10 seconds delay for faster initial check
         
-        res.json(newProfile);
     } catch (error) {
         console.error('Error creating monitoring profile:', error);
-        res.status(500).json({ error: 'Failed to create monitoring profile' });
+        console.error('Error details:', error.stack);
+        
+        // More specific error messages
+        if (error.code === 'ENOENT') {
+            res.status(500).json({ error: 'Storage directory not found. Please ensure data/monitoring directory exists.' });
+        } else if (error.message.includes('JSON')) {
+            res.status(500).json({ error: 'Data storage error. Please check data files.' });
+        } else {
+            res.status(500).json({ error: error.message || 'Failed to create monitoring profile' });
+        }
     }
 });
 
