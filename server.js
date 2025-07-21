@@ -668,17 +668,11 @@ app.post('/api/monitoring/profiles', async (req, res) => {
                     await scheduler.processAlerts(newProfile, results, alerts);
                 }
                 
-                // Update profile status
-                const profiles = await jsonStorage.getProfiles();
-                const profileIndex = profiles.findIndex(p => p.id === newProfile.id);
-                if (profileIndex !== -1) {
-                    profiles[profileIndex].overall_status = results.overall_status;
-                    profiles[profileIndex].last_check = new Date().toISOString();
-                    const fs = require('fs').promises;
-                    const path = require('path');
-                    const profilesFile = path.join(__dirname, 'data', 'monitoring', 'profiles.json');
-                    await fs.writeFile(profilesFile, JSON.stringify(profiles, null, 2));
-                }
+                // Update profile status using safe JSON storage
+                await jsonStorage.updateProfile(newProfile.id, {
+                    overall_status: results.overall_status,
+                    last_check: new Date().toISOString()
+                });
                 
                 console.log(`[Initial Check] Completed for ${newProfile.dealer_name}: ${results.overall_status}`);
             } catch (error) {
@@ -732,35 +726,11 @@ app.delete('/api/monitoring/profiles/:id', requireAdmin, async (req, res) => {
             username: req.session.username
         });
         
-        // Use JSON storage instead of database
+        // Use JSON storage with safe write methods
         const { storage: jsonStorage } = require('./lib/json-storage');
         
-        // Get all profiles
-        const profiles = await jsonStorage.getProfiles();
-        console.log(`[DELETE PROFILE] Found ${profiles.length} profiles`);
-        
-        // Filter out the profile to delete
-        const updatedProfiles = profiles.filter(p => p.id != id);
-        console.log(`[DELETE PROFILE] After filter: ${updatedProfiles.length} profiles`);
-        
-        // Save updated profiles by writing directly to the file
-        const fs = require('fs').promises;
-        const path = require('path');
-        const profilesFile = path.join(__dirname, 'data', 'monitoring', 'profiles.json');
-        await fs.writeFile(profilesFile, JSON.stringify(updatedProfiles, null, 2));
-        
-        // Also delete associated alerts and results
-        const alerts = await jsonStorage.getAlerts();
-        const results = await jsonStorage.getResults();
-        
-        const updatedAlerts = alerts.filter(a => a.profile_id != id);
-        const updatedResults = results.filter(r => r.profile_id != id);
-        
-        // Save updated alerts and results
-        const alertsFile = path.join(__dirname, 'data', 'monitoring', 'alerts.json');
-        const resultsFile = path.join(__dirname, 'data', 'monitoring', 'results.json');
-        await fs.writeFile(alertsFile, JSON.stringify(updatedAlerts, null, 2));
-        await fs.writeFile(resultsFile, JSON.stringify(updatedResults, null, 2));
+        // Delete profile and all associated data using safe method
+        await jsonStorage.deleteProfile(id);
         
         console.log(`[DELETE PROFILE] Successfully deleted profile ${id} and associated data`);
         
@@ -978,16 +948,11 @@ app.post('/api/monitoring/check/:profileId', async (req, res) => {
             await scheduler.processAlerts(profile, results, alerts);
         }
         
-        // Update profile status
-        const profileIndex = profiles.findIndex(p => p.id == profileId);
-        if (profileIndex !== -1) {
-            profiles[profileIndex].overall_status = results.overall_status;
-            profiles[profileIndex].last_check = new Date().toISOString();
-            const fs = require('fs').promises;
-            const path = require('path');
-            const profilesFile = path.join(__dirname, 'data', 'monitoring', 'profiles.json');
-            await fs.writeFile(profilesFile, JSON.stringify(profiles, null, 2));
-        }
+        // Update profile status using safe JSON storage
+        await jsonStorage.updateProfile(parseInt(profileId), {
+            overall_status: results.overall_status,
+            last_check: new Date().toISOString()
+        });
         
         res.json(results);
     } catch (error) {

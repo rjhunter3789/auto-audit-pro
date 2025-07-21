@@ -1,1 +1,53 @@
-[]
+[
+  {
+    "id": 1753052736903,
+    "dealer_id": "1753052736903",
+    "dealer_name": "Evergreen Ford",
+    "website_url": "https://www.evergreenford.com/",
+    "contact_email": "nakapaahu@gmail.com",
+    "alert_email": "nakapaahu@gmail.com",
+    "alert_phone": null,
+    "alert_preferences": {
+      "email": true,
+      "sms": false
+    },
+    "check_frequency": 59,
+    "monitoring_enabled": true,
+    "created_at": "2025-07-20T03:00:00.000Z",
+    "updated_at": "2025-07-20T22:00:21.000Z"
+  },
+  {
+    "id": 1753052736904,
+    "dealer_id": "1753052736904",
+    "dealer_name": "Fugate Ford",
+    "website_url": "https://www.fugateford.net/",
+    "contact_email": "nakapaahu@gmail.com",
+    "alert_email": "nakapaahu@gmail.com",
+    "alert_phone": null,
+    "alert_preferences": {
+      "email": true,
+      "sms": false
+    },
+    "check_frequency": 59,
+    "monitoring_enabled": true,
+    "created_at": "2025-07-20T03:00:00.000Z",
+    "updated_at": "2025-07-20T22:00:00.000Z"
+  },
+  {
+    "id": 1753052736905,
+    "dealer_id": "1753052736905",
+    "dealer_name": "Pierre Ford of Prosser",
+    "website_url": "https://www.pierrefordofprosser.com/",
+    "contact_email": "nakapaahu@gmail.com",
+    "alert_email": "nakapaahu@gmail.com",
+    "alert_phone": null,
+    "alert_preferences": {
+      "email": true,
+      "sms": false
+    },
+    "check_frequency": 59,
+    "monitoring_enabled": true,
+    "created_at": "2025-07-20T03:00:00.000Z",
+    "updated_at": "2025-07-20T22:45:58.000Z"
+  }
+]
