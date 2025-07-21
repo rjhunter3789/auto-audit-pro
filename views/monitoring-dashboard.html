@@ -633,6 +633,25 @@
                 const statusResponse = await axios.get('/api/monitoring/status');
                 profiles = statusResponse.data;
                 
+                // Debug logging
+                console.log('Received profiles from API:', profiles.length, profiles.map(p => ({ id: p.id, name: p.dealer_name })));
+                
+                // Remove any duplicates based on ID
+                const uniqueProfiles = [];
+                const seenIds = new Set();
+                
+                profiles.forEach(profile => {
+                    if (!seenIds.has(profile.id)) {
+                        seenIds.add(profile.id);
+                        uniqueProfiles.push(profile);
+                    } else {
+                        console.warn('Duplicate profile detected:', profile.id, profile.dealer_name);
+                    }
+                });
+                
+                profiles = uniqueProfiles;
+                console.log('After deduplication:', profiles.length, 'profiles');
+                
                 // Don't update stats here - wait until alerts are loaded
                 renderSites();
                 

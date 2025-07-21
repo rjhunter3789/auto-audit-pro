@@ -781,6 +781,9 @@ app.get('/api/monitoring/status', async (req, res) => {
         // Sort by dealer name
         profilesWithStatus.sort((a, b) => (a.dealer_name || '').localeCompare(b.dealer_name || ''));
         
+        console.log(`[MONITORING STATUS] Returning ${profilesWithStatus.length} profiles:`, 
+            profilesWithStatus.map(p => ({ id: p.id, name: p.dealer_name })));
+        
         res.json(profilesWithStatus);
     } catch (error) {
         console.error('Error fetching monitoring status:', error);
