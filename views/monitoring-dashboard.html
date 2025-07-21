@@ -833,8 +833,22 @@
                     return new Date(b.created_at) - new Date(a.created_at);
                 });
                 
-                // Use all alerts, not deduplicated
-                const uniqueAlerts = sortedAlerts;
+                // Deduplicate alerts based on profile_id, alert_type, and alert_level
+                const alertMap = new Map();
+                sortedAlerts.forEach(alert => {
+                    const key = `${alert.profile_id}_${alert.alert_type}_${alert.alert_level}`;
+                    if (!alertMap.has(key)) {
+                        alertMap.set(key, alert);
+                    } else {
+                        // Keep the most recent alert
+                        const existing = alertMap.get(key);
+                        if (new Date(alert.created_at) > new Date(existing.created_at)) {
+                            alertMap.set(key, alert);
+                        }
+                    }
+                });
+                
+                const uniqueAlerts = Array.from(alertMap.values());
                 
                 // Store uniqueAlerts globally for stats
                 window.uniqueAlerts = uniqueAlerts;
