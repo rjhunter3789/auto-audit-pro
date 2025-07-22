@@ -245,5 +245,141 @@
     "metrics": {},
     "scraping_method": "axios",
     "check_timestamp": "2025-07-22T16:01:20.749Z"
+  },
+  {
+    "id": 1753200097567,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": true,
+    "response_time_ms": 8667,
+    "http_status_code": 200,
+    "ssl_valid": true,
+    "ssl_expiry_days": 90,
+    "forms_working": true,
+    "phone_numbers_valid": true,
+    "inventory_count": 100,
+    "page_size_kb": 434,
+    "load_time_seconds": 10.363210899999947,
+    "mobile_score": 75,
+    "desktop_score": 85,
+    "issues_found": [
+      {
+        "type": "slow_load_time",
+        "severity": "RED",
+        "message": "Page load time is 10.4 seconds"
+      }
+    ],
+    "metrics": {},
+    "scraping_method": "axios",
+    "check_timestamp": "2025-07-22T16:01:37.567Z"
+  },
+  {
+    "id": 1753203620031,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": true,
+    "response_time_ms": 9488,
+    "http_status_code": 200,
+    "ssl_valid": true,
+    "ssl_expiry_days": 90,
+    "forms_working": true,
+    "phone_numbers_valid": true,
+    "inventory_count": 100,
+    "page_size_kb": 434,
+    "load_time_seconds": 10.505396600000008,
+    "mobile_score": 75,
+    "desktop_score": 85,
+    "issues_found": [
+      {
+        "type": "slow_load_time",
+        "severity": "RED",
+        "message": "Page load time is 10.5 seconds"
+      }
+    ],
+    "metrics": {},
+    "scraping_method": "axios",
+    "check_timestamp": "2025-07-22T17:00:20.032Z"
+  },
+  {
+    "id": 1753203620823,
+    "profile_id": 1753052736905,
+    "overall_status": "RED",
+    "is_reachable": true,
+    "response_time_ms": 301,
+    "http_status_code": 403,
+    "issues_found": [],
+    "metrics": {},
+    "error_details": "Request failed with status code 403",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-22T17:00:20.824Z"
+  },
+  {
+    "id": 1753203620917,
+    "profile_id": 1753052736904,
+    "overall_status": "GREEN",
+    "is_reachable": true,
+    "response_time_ms": 165,
+    "http_status_code": 200,
+    "ssl_valid": true,
+    "ssl_expiry_days": 40,
+    "forms_working": true,
+    "phone_numbers_valid": true,
+    "inventory_count": 100,
+    "page_size_kb": 211,
+    "load_time_seconds": 0.1132056000000157,
+    "mobile_score": 75,
+    "desktop_score": 85,
+    "issues_found": [],
+    "metrics": {},
+    "scraping_method": "axios",
+    "check_timestamp": "2025-07-22T17:00:20.917Z"
+  },
+  {
+    "id": 1753203639011,
+    "profile_id": 1753052736904,
+    "overall_status": "RED",
+    "is_reachable": true,
+    "response_time_ms": 152,
+    "http_status_code": 200,
+    "ssl_valid": false,
+    "ssl_expiry_days": null,
+    "forms_working": true,
+    "phone_numbers_valid": true,
+    "inventory_count": 100,
+    "page_size_kb": 211,
+    "load_time_seconds": 0.06456919999999809,
+    "mobile_score": 75,
+    "desktop_score": 85,
+    "issues_found": [],
+    "metrics": {},
+    "scraping_method": "scrapingdog",
+    "check_timestamp": "2025-07-22T17:00:39.015Z"
+  },
+  {
+    "id": 1753203639321,
+    "profile_id": 1753052736903,
+    "overall_status": "YELLOW",
+    "is_reachable": true,
+    "response_time_ms": 10559,
+    "http_status_code": 200,
+    "ssl_valid": true,
+    "ssl_expiry_days": 90,
+    "forms_working": true,
+    "phone_numbers_valid": true,
+    "inventory_count": 100,
+    "page_size_kb": 434,
+    "load_time_seconds": 9.574279800000019,
+    "mobile_score": 75,
+    "desktop_score": 85,
+    "issues_found": [
+      {
+        "type": "slow_load_time",
+        "severity": "YELLOW",
+        "message": "Page load time is 9.6 seconds"
+      }
+    ],
+    "metrics": {},
+    "scraping_method": "axios",
+    "check_timestamp": "2025-07-22T17:00:39.322Z"
   }
 ]
