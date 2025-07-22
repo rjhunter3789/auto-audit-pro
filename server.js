@@ -85,6 +85,9 @@ app.use('/css', express.static(path.join(__dirname, 'public/css')));
 app.use('/images', express.static(path.join(__dirname, 'public/images')));
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
+// Serve the public directory root to allow access to roi-config-static.json
+app.use('/', express.static(path.join(__dirname, 'public')));
+
 // Allow access to views for admin pages
 app.use('/views', express.static(path.join(__dirname, 'views')));
 
