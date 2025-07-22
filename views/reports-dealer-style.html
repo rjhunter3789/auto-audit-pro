@@ -351,8 +351,10 @@
                 <div class="category-name"><%= category.name %></div>
                 <div class="category-score"><%= category.score %>/5</div>
                 <div class="category-weight">Weight: <%= (category.weight * 100).toFixed(0) %>%</div>
-                <% if (category.testsCompleted) { %>
-                <div class="category-weight"><%= category.testsCompleted %> tests completed</div>
+                <% if (category.testsCompleted && category.maxTests) { %>
+                <div class="category-weight"><%= category.testsCompleted %>/<%= category.maxTests %></div>
+                <% } else if (category.score !== undefined) { %>
+                <div class="category-weight"><%= category.score %>/5</div>
                 <% } %>
             </div>
             <% }); %>
