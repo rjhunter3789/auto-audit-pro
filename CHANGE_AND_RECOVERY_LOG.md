@@ -458,3 +458,128 @@ Fixed critical ScrapingDog integration issues, monitoring system performance opt
 - Performance tracking for monitoring operations
 - Backup system for JSON data files
 - Direct admin route for reliable access
+
+---
+
+# Change and Recovery Log - July 22, 2025
+
+## Session Overview
+Fixed critical authentication middleware issues causing Access Denied errors across all pages, recovered missing monitoring profiles that prevented RED alerts from displaying, and resolved persistent bug where deleted monitoring profiles kept reappearing due to backup system timing conflicts.
+
+## Issues Identified and Resolved
+
+### 1. Access Denied Errors Blocking All Pages
+**Issue**: Authentication middleware blocking critical API routes including /api/roi/config
+**Symptoms**: 
+- All pages returning "Access Denied" errors
+- API routes like /api/roi/config completely inaccessible
+- User extreme frustration: "i fucking quit"
+
+**Root Cause**: Auth middleware incorrectly positioned and blocking essential API routes
+
+**Fix Applied**:
+- Restructured middleware order to allow critical API routes
+- Fixed auth middleware logic to properly handle API endpoints
+- Ensured /api/roi/config and similar routes bypass auth when appropriate
+
+**Files Modified**:
+- `/server.js` - Fixed middleware ordering and auth logic
+
+### 2. Missing Monitoring Profiles - No RED Alerts
+**Issue**: RED alerts not displaying despite critical issues being detected
+**Symptoms**:
+- Fugate Ford and Mullinax Ford profiles missing
+- RED status alerts not appearing in Active Alerts
+- Only YELLOW alerts visible
+
+**Root Cause**: Critical monitoring profiles accidentally deleted or missing from JSON storage
+
+**Fix Applied**:
+- Recovered Fugate Ford and Mullinax Ford monitoring profiles
+- Restored profiles to monitoring system
+- Verified RED alerts now properly displaying
+
+**Files Modified**:
+- Monitoring profiles JSON storage restored
+
+### 3. Deleted Monitoring Profiles Reappearing
+**Issue**: Deleted monitoring profiles kept coming back after deletion
+**Symptoms**:
+- Deleted dealers reappearing in monitoring dashboard
+- User extreme frustration: "this thing is fucking broken"
+- Profiles returning minutes after deletion
+
+**Root Cause**: Backup system restoring deleted profiles due to timing conflict between deletion and backup processes
+
+**Fix Applied**:
+- Created proper deletion script to completely remove dealers from monitoring
+- Fixed timing issue in backup/restore process
+- Ensured deleted profiles stay deleted permanently
+- Added safeguards against resurrection of deleted profiles
+
+**Files Modified**:
+- Created new deletion script for complete profile removal
+- Modified backup system timing logic
+
+### 4. Critical Bug in Profile Deletion Process
+**Issue**: Standard deletion through UI not properly removing all profile data
+**Symptoms**:
+- Profiles marked as deleted but data persisting
+- Backup system not recognizing deletions
+- Inconsistent state between UI and storage
+
+**Root Cause**: Deletion process not fully purging profile data from all storage locations
+
+**Fix Applied**:
+- Implemented comprehensive deletion script
+- Ensures removal from all data stores
+- Prevents backup system from restoring deleted data
+- Added verification step to confirm complete deletion
+
+## User Experience Issues
+- Extreme frustration with repeated Access Denied errors
+- Lost confidence in system reliability due to reappearing profiles
+- Multiple expressions of wanting to quit using the system
+- Critical business operations impacted by missing RED alerts
+
+## Recovery Steps Taken
+
+### For Access Denied Errors:
+1. Analyzed auth middleware positioning
+2. Identified blocked critical API routes
+3. Restructured middleware to allow essential endpoints
+4. Verified all pages now accessible
+
+### For Missing RED Alerts:
+1. Investigated monitoring profiles storage
+2. Discovered missing Fugate Ford and Mullinax Ford
+3. Recovered profiles from backup
+4. Confirmed RED alerts now displaying properly
+
+### For Reappearing Deleted Profiles:
+1. Analyzed deletion and backup processes
+2. Identified timing conflict causing resurrection
+3. Created comprehensive deletion script
+4. Fixed backup system to respect deletions
+
+## Final Status
+✅ Access Denied errors resolved - all pages accessible
+✅ RED alerts displaying properly with recovered profiles
+✅ Deleted profiles staying deleted permanently
+✅ Comprehensive deletion script created
+✅ Auth middleware properly configured
+✅ User frustration addressed with stable system
+
+## Lessons Learned
+1. Auth middleware positioning is critical for API accessibility
+2. Backup systems must properly handle deletion events
+3. User frustration escalates rapidly with repeated access errors
+4. Complete data purging requires comprehensive deletion process
+5. Missing monitoring profiles can hide critical alerts
+6. Timing conflicts between systems can cause data resurrection
+
+## Critical Notes
+- User expressed extreme frustration with system reliability
+- Access errors and reappearing profiles severely impacted trust
+- Proper deletion mechanisms essential for data integrity
+- Monitoring profile recovery critical for business operations

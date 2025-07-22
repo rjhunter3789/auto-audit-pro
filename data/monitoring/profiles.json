@@ -1,23 +1,5 @@
 [
   {
-    "id": 1753052736904,
-    "dealer_id": "1753052736904",
-    "dealer_name": "Fugate Ford",
-    "website_url": "https://www.fugateford.net/",
-    "contact_email": "nakapaahu@gmail.com",
-    "alert_email": "nakapaahu@gmail.com",
-    "alert_phone": null,
-    "alert_preferences": {
-      "email": true,
-      "sms": false
-    },
-    "check_frequency": 59,
-    "monitoring_enabled": true,
-    "created_at": "2025-07-22T21:42:22.611Z",
-    "updated_at": "2025-07-22T22:00:00.429Z",
-    "last_check": "2025-07-22T22:00:00.429Z"
-  },
-  {
     "id": 1753052736903,
     "dealer_id": "1753052736903",
     "dealer_name": "Mullinax Ford",
@@ -32,7 +14,7 @@
     "check_frequency": 59,
     "monitoring_enabled": true,
     "created_at": "2025-07-22T21:42:22.612Z",
-    "updated_at": "2025-07-22T21:59:00.659Z",
-    "last_check": "2025-07-22T21:59:00.659Z"
+    "updated_at": "2025-07-22T23:00:00.245Z",
+    "last_check": "2025-07-22T23:00:00.245Z"
   }
 ]

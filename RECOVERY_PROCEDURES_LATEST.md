@@ -310,3 +310,97 @@ app.use(checkAuth); // Line ~347
 ```
 
 Any routes after this line require authentication!
+
+---
+
+## July 22, 2025 - Critical Production Fixes
+
+### 1. Access Denied Errors - FIXED
+**Issue**: All app pages returning "Access Denied" (Admin Settings, Monitoring, Lead Analysis)
+**Root Cause**: 
+- Auth middleware incorrectly blocking critical API routes
+- Session info endpoint being blocked before session could be checked
+- ROI config endpoint blocked preventing app initialization
+
+**Solution**:
+- Added exclusions for `/api/roi/config` GET requests
+- Added exclusion for `/api/session-info` endpoint
+- Created emergency session fix endpoint `/api/emergency-fix-session`
+- Moved critical endpoints before auth middleware
+
+**Files Changed**:
+- `server.js` - Auth middleware exclusions added
+- Created emergency session repair route
+
+### 2. Missing Monitoring Profiles - FIXED
+**Issue**: RED alerts not displaying, monitoring profiles missing from dashboard
+**User Impact**: "Where are my critical alerts?!"
+**Root Cause**: 
+- Profiles existed in alerts.json but not in profiles.json
+- Dashboard only reads from profiles.json
+- Orphaned data from incomplete deletion/sync issues
+
+**Solution**:
+- Created `recover-profiles.js` recovery script
+- Recovered Fugate Ford and Mullinax Ford profiles from orphaned alerts
+- Script matches alerts to profiles and rebuilds missing data
+- Fixed dashboard to properly display all critical alerts
+
+**Files Changed**:
+- Created `recover-profiles.js` - Profile recovery utility
+- `data/profiles.json` - Recovered missing profiles
+
+### 3. Deleted Profiles Reappearing - FIXED
+**Issue**: Deleted dealer profiles kept coming back
+**User Frustration**: "This thing is fucking broken" - exact quote
+**Root Cause**: 
+- Backup system creating backups BEFORE writes
+- If write failed, old backup would be restored
+- Created endless loop of restoration
+
+**Solution**:
+- Fixed backup timing in `json-storage.js`
+- Now creates backups AFTER successful writes only
+- Backup only on successful operation completion
+- No more zombie profiles
+
+**Files Changed**:
+- `lib/json-storage.js` - Fixed backup timing logic
+- Backup now happens post-write, not pre-write
+
+### 4. Complete Profile Deletion - FIXED
+**Issue**: Delete button not removing all associated data
+**Expected**: Delete should remove profiles, alerts, and monitoring results
+**Root Cause**: 
+- `deleteProfile` method was correct
+- Backup system was restoring deleted data
+- Issue was backup timing, not deletion logic
+
+**Solution**:
+- Created `remove-dealer-completely.js` for thorough deletion
+- Script removes from profiles.json, alerts.json, and results.json
+- Provides clean removal without restoration issues
+- Confirmed original deleteProfile method works correctly
+
+**Files Changed**:
+- Created `remove-dealer-completely.js` - Complete removal utility
+- Verified `lib/json-storage.js` - deleteProfile method correct
+
+### Emergency Recovery Tools Created
+1. **Session Recovery**: `/api/emergency-fix-session`
+   - Repairs broken admin sessions
+   - Bypasses auth for emergency access
+
+2. **Profile Recovery**: `node recover-profiles.js`
+   - Recovers orphaned profiles from alerts
+   - Rebuilds missing monitoring data
+
+3. **Complete Removal**: `node remove-dealer-completely.js [dealerName]`
+   - Thoroughly removes all dealer data
+   - Prevents restoration from backups
+
+### Critical Lessons Learned
+- **Backup Timing Matters**: Always backup AFTER successful operations
+- **Auth Middleware Order**: Critical endpoints must be excluded or placed before auth
+- **User Frustration**: When users say "fucking broken," it's a backup/restore issue
+- **Data Consistency**: Profiles and alerts must stay synchronized
