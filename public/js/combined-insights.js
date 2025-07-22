@@ -1336,7 +1336,7 @@ function generateReportHTML() {
                     <tr>
                         <td>${cat.name}</td>
                         <td>${cat.score}/5</td>
-                        <td>${cat.testsCompleted}/${cat.totalTests}</td>
+                        <td>${cat.testsCompleted || (cat.testsRun ? `${cat.testsRun}/${cat.testsTotal || cat.testsRun}` : 'N/A')}</td>
                     </tr>
                 `).join('') : '<tr><td colspan="3">No category data available</td></tr>'}
             </table>
