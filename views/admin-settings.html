@@ -186,12 +186,16 @@
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <h5>API Usage</h5>
+                    <h5>API Usage <button class="btn btn-sm btn-secondary float-end" onclick="loadApiStats()">Refresh</button></h5>
                     <div class="alert alert-info">
                         <strong>ScrapingDog API Status:</strong><br>
                         API Key: <span id="apiKeyStatus">Checking...</span><br>
                         Total Requests: <span id="totalRequests">0</span><br>
-                        Success Rate: <span id="successRate">0%</span>
+                        Successful: <span id="successfulRequests">0</span><br>
+                        Failed: <span id="failedRequests">0</span><br>
+                        Success Rate: <span id="successRate">0%</span><br>
+                        Avg Cost/Request: <span id="avgCost">$0</span><br>
+                        Last Updated: <span id="lastUpdated">Never</span>
                     </div>
                 </div>
             </div>
@@ -300,13 +304,43 @@
                 const response = await axios.get('/api/monitoring/stats');
                 const stats = response.data;
                 
+                console.log('Loaded monitoring stats:', stats);
+                
+                // Check if ScrapingDog API key is configured
                 document.getElementById('apiKeyStatus').textContent = stats.scrapingDogStats ? 'Configured' : 'Not configured';
+                
                 if (stats.scrapingDogStats) {
-                    document.getElementById('totalRequests').textContent = stats.scrapingDogStats.totalRequests;
-                    document.getElementById('successRate').textContent = stats.scrapingDogStats.successRate;
+                    document.getElementById('totalRequests').textContent = stats.scrapingDogStats.totalRequests || 0;
+                    document.getElementById('successfulRequests').textContent = stats.scrapingDogStats.successfulRequests || 0;
+                    document.getElementById('failedRequests').textContent = stats.scrapingDogStats.failedRequests || 0;
+                    document.getElementById('successRate').textContent = stats.scrapingDogStats.successRate || '0%';
+                    document.getElementById('avgCost').textContent = stats.scrapingDogStats.averageCost || '$0';
+                    
+                    // Format last updated time
+                    if (stats.scrapingDogStats.lastUpdated) {
+                        const lastUpdated = new Date(stats.scrapingDogStats.lastUpdated);
+                        document.getElementById('lastUpdated').textContent = lastUpdated.toLocaleString();
+                    } else {
+                        document.getElementById('lastUpdated').textContent = 'Never';
+                    }
+                } else {
+                    // Reset all values if no stats
+                    document.getElementById('totalRequests').textContent = '0';
+                    document.getElementById('successfulRequests').textContent = '0';
+                    document.getElementById('failedRequests').textContent = '0';
+                    document.getElementById('successRate').textContent = '0%';
+                    document.getElementById('avgCost').textContent = '$0';
+                    document.getElementById('lastUpdated').textContent = 'Never';
+                }
+                
+                // Also show general monitoring stats if available
+                if (stats.seleniumRequests !== undefined) {
+                    console.log('Selenium requests:', stats.seleniumRequests);
+                    console.log('ScrapingDog usage rate:', stats.scrapingDogUsageRate);
                 }
             } catch (error) {
                 console.error('Error loading API stats:', error);
+                document.getElementById('apiKeyStatus').textContent = 'Error loading stats';
             }
         }
 
@@ -384,7 +418,11 @@
         }
 
         // Initialize on load
-        document.addEventListener('DOMContentLoaded', loadConfig);
+        document.addEventListener('DOMContentLoaded', () => {
+            loadConfig();
+            // Auto-refresh API stats every 30 seconds
+            setInterval(loadApiStats, 30000);
+        });
     </script>
 </body>
 </html>
