@@ -14,8 +14,8 @@
     "check_frequency": 59,
     "monitoring_enabled": true,
     "created_at": "2025-07-22T21:42:22.611Z",
-    "updated_at": "2025-07-22T21:42:22.612Z",
-    "last_check": "2025-07-22T21:00:00.282Z"
+    "updated_at": "2025-07-22T22:00:00.429Z",
+    "last_check": "2025-07-22T22:00:00.429Z"
   },
   {
     "id": 1753052736903,
@@ -32,7 +32,7 @@
     "check_frequency": 59,
     "monitoring_enabled": true,
     "created_at": "2025-07-22T21:42:22.612Z",
-    "updated_at": "2025-07-22T21:42:22.612Z",
-    "last_check": "2025-07-22T21:00:25.490Z"
+    "updated_at": "2025-07-22T21:59:00.659Z",
+    "last_check": "2025-07-22T21:59:00.659Z"
   }
 ]
