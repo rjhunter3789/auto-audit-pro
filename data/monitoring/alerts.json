@@ -1,1 +1,15 @@
-[]
+[
+  {
+    "id": 1753199353921,
+    "profile_id": 1753052736903,
+    "result_id": 1753199353908,
+    "rule_id": 8,
+    "alert_level": "YELLOW",
+    "alert_type": "response_time_ms",
+    "alert_message": "WARNING: Website response time over 3 seconds",
+    "notification_sent": false,
+    "acknowledged": false,
+    "resolved": false,
+    "created_at": "2025-07-22T15:49:13.922Z"
+  }
+]
