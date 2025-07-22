@@ -1,1 +1,55 @@
-[]
+[
+  {
+    "id": 1753121012343,
+    "profile_id": 1753052736905,
+    "overall_status": "RED",
+    "is_reachable": true,
+    "response_time_ms": 364,
+    "http_status_code": 403,
+    "issues_found": [],
+    "metrics": {},
+    "error_details": "Request failed with status code 403",
+    "check_timestamp": "2025-07-21T18:03:32.349Z"
+  },
+  {
+    "id": 1753198638940,
+    "profile_id": 999,
+    "overall_status": "RED",
+    "is_reachable": true,
+    "response_time_ms": 553,
+    "http_status_code": 200,
+    "ssl_valid": true,
+    "ssl_expiry_days": 78,
+    "forms_working": true,
+    "phone_numbers_valid": true,
+    "inventory_count": 0,
+    "page_size_kb": 399,
+    "load_time_seconds": 0.6807263299999995,
+    "mobile_score": 75,
+    "desktop_score": 85,
+    "issues_found": [],
+    "metrics": {},
+    "check_timestamp": "2025-07-22T15:37:18.950Z"
+  },
+  {
+    "id": 1753199212372,
+    "profile_id": "test-1",
+    "overall_status": "RED",
+    "is_reachable": true,
+    "response_time_ms": 567,
+    "http_status_code": 200,
+    "ssl_valid": true,
+    "ssl_expiry_days": 78,
+    "forms_working": true,
+    "phone_numbers_valid": true,
+    "inventory_count": 0,
+    "page_size_kb": 399,
+    "load_time_seconds": 0.612850480000001,
+    "mobile_score": 75,
+    "desktop_score": 85,
+    "issues_found": [],
+    "metrics": {},
+    "scraping_method": "scrapingdog",
+    "check_timestamp": "2025-07-22T15:46:52.379Z"
+  }
+]

@@ -49,6 +49,16 @@ const { pool } = require('./lib/json-storage');
 const app = express();
 const PORT = process.env.PORT || 3002;
 
+// Global monitoring engine instance to maintain stats
+let globalMonitoringEngine = null;
+function getMonitoringEngine() {
+    if (!globalMonitoringEngine) {
+        const MonitoringEngine = require('./lib/monitoring-engine');
+        globalMonitoringEngine = new MonitoringEngine();
+    }
+    return globalMonitoringEngine;
+}
+
 // Session setup for authentication - MUST BE FIRST
 app.use(session({
     secret: process.env.SESSION_SECRET || 'AutoAuditPro-Secret-Key-2025',
@@ -655,7 +665,7 @@ app.post('/api/monitoring/profiles', async (req, res) => {
             try {
                 console.log('[PROFILE CREATE] Running initial check for profile:', newProfile.id);
                 const MonitoringEngine = require('./lib/monitoring-engine');
-                const engine = new MonitoringEngine();
+                const engine = getMonitoringEngine();
                 const results = await engine.runFullCheck(newProfile);
                 
                 // Check for alerts
@@ -794,8 +804,7 @@ app.get('/api/monitoring/status', async (req, res) => {
 app.get('/api/monitoring/stats', async (req, res) => {
     try {
         // Get monitoring engine instance
-        const MonitoringEngine = require('./lib/monitoring-engine');
-        const monitoringEngine = new MonitoringEngine();
+        const monitoringEngine = getMonitoringEngine();
         
         // Get stats from monitoring engine
         const stats = monitoringEngine.getMonitoringStats();
@@ -937,8 +946,7 @@ app.post('/api/monitoring/check/:profileId', async (req, res) => {
         }
         
         // Run monitoring check
-        const MonitoringEngine = require('./lib/monitoring-engine');
-        const engine = new MonitoringEngine();
+        const engine = getMonitoringEngine();
         const results = await engine.runFullCheck(profile);
         
         // Check for alerts
@@ -3758,7 +3766,7 @@ app.put('/api/admin/monitoring-config', requireAdmin, (req, res) => {
 
 // Initialize monitoring scheduler
 const MonitoringScheduler = require('./lib/monitoring-scheduler');
-const monitoringScheduler = new MonitoringScheduler();
+const monitoringScheduler = new MonitoringScheduler(getMonitoringEngine());
 
 // Catch direct access to view files and render them properly
 app.use((req, res, next) => {

@@ -277,3 +277,184 @@ app.get('/views/*', (req, res) => {
 - `/lib/monitoring-scheduler.js` - checkRecentAlert and updateLastCheck methods
 - `/views/monitoring-dashboard.html` - updateStats function, admin button href
 - `/views/admin-settings.html` - populateForm error handling
+
+---
+
+# Change and Recovery Log - July 20-22, 2025
+
+## Session Overview
+Fixed critical ScrapingDog integration issues, monitoring system performance optimization, duplicate alert handling, and audit report display bugs. Improved SSL certificate detection for CDN-protected sites.
+
+## Issues Identified and Resolved
+
+### 1. ScrapingDog Integration Broken Since July 17
+**Issue**: ScrapingDog was never being used for monitoring checks since July 17
+**Symptoms**: 
+- All monitoring attempts hitting 403 errors on protected sites
+- `SCRAPINGDOG_API_KEY` environment variable not loading properly
+- Wrapper always thinking API key was missing
+
+**Root Cause**: 
+- Environment variables loading after scrapingdog-wrapper initialization
+- Lazy loading of dotenv not working properly
+- ScrapingDog disabled by default in monitoring engine
+
+**Fix Applied**:
+- Forced environment variable loading in scrapingdog-wrapper.js
+- Enabled ScrapingDog by default for monitoring checks
+- Added lazy loading for API key on first use
+- Added debugging to track ScrapingDog usage
+
+**Files Modified**:
+- `/lib/scrapingdog-wrapper.js` - Force load environment variables
+- `/lib/monitoring-engine.js` - Enable ScrapingDog by default
+- `/server.js` - Fix environment loading order
+
+### 2. Audit Reports Showing "undefined" 
+**Issue**: Website audit reports displaying "undefined" instead of actual data
+**Symptoms**:
+- Report shows "undefined" for domain, score, and all metrics
+- Console errors about missing results object
+- Template rendering receiving null data
+
+**Root Cause**: Results object not properly passed to EJS template
+
+**Fix Applied**:
+- Added comprehensive debugging throughout audit flow
+- Fixed results object structure in audit endpoint
+- Ensured all required properties exist before rendering
+- Added fallback values for missing data
+
+**Files Modified**:
+- `/server.js` - Fixed audit results handling
+- `/views/reports-dealer-style.html` - Added defensive checks
+
+### 3. Duplicate SSL Certificate Alerts
+**Issue**: SSL alerts creating duplicates every 15 minutes
+**Symptoms**:
+- Same SSL warning appearing multiple times
+- Alert count growing exponentially
+- Stats showing inflated numbers
+
+**Root Cause**: Alert deduplication not working for SSL checks
+
+**Fix Applied**:
+- Implemented proper alert deduplication by type and severity
+- Added cleanup for old alerts with mismatched profile IDs
+- Fixed alert grouping to show one per type with highest severity
+
+**Files Modified**:
+- `/views/monitoring-dashboard.html` - Fixed deduplication logic
+- `/server.js` - Added alert cleanup endpoint
+
+### 4. SSL Certificate False Positives for CDN Sites
+**Issue**: Monitoring flagging SSL issues for properly secured CDN sites
+**Symptoms**:
+- Sites with valid SSL showing as "SSL Certificate Invalid"
+- CDN/proxy services causing false SSL warnings
+
+**Root Cause**: Direct IP checks failing for CDN-protected sites
+
+**Fix Applied**:
+- Enhanced SSL detection to handle CDN scenarios
+- Check actual page protocol (https://)
+- Look for security indicators in HTML
+- Changed to WARNING level for CDN-detected issues
+
+**Files Modified**:
+- `/lib/monitoring-engine.js` - Improved SSL detection logic
+
+### 5. Monitoring Performance Issues
+**Issue**: Monitoring dashboard slow to load with many profiles
+**Symptoms**:
+- Dashboard taking 5-10 seconds to load
+- API endpoints timing out
+- Browser becoming unresponsive
+
+**Root Cause**: 
+- Loading full monitoring history unnecessarily
+- No pagination or limits on data
+- Inefficient alert deduplication
+
+**Fix Applied**:
+- Limited monitoring results to last 50 checks
+- Optimized alert deduplication algorithm
+- Added response time tracking
+- Implemented efficient data structures
+
+**Files Modified**:
+- `/server.js` - Added result limits and optimization
+- `/views/monitoring-dashboard.html` - Optimized client-side processing
+
+### 6. Admin Settings Access Issues
+**Issue**: Admin settings still occasionally showing 403/404
+**Symptoms**:
+- Intermittent access denied errors
+- Routes working then failing
+
+**Root Cause**: Multiple conflicting routes and middleware
+
+**Fix Applied**:
+- Created direct `/admin` route serving HTML directly
+- Removed file-based access attempts
+- Simplified routing structure
+
+**Files Modified**:
+- `/server.js` - Added direct admin route
+
+### 7. Contact Form Detection Too Strict
+**Issue**: Modern websites with JavaScript forms marked as having no forms
+**Symptoms**:
+- Sites with working forms showing "No contact forms found"
+- HubSpot, Marketo forms not detected
+
+**Root Cause**: Only looking for traditional HTML form tags
+
+**Fix Applied**:
+- Detect form system indicators (scripts, iframes)
+- Recognize third-party form services
+- More lenient detection patterns
+
+**Files Modified**:
+- `/lib/monitoring-engine.js` - Enhanced form detection
+
+### 8. Atomic File Writes
+**Issue**: Potential data loss during file writes
+**Symptoms**:
+- Occasional empty JSON files
+- Data corruption risks
+
+**Fix Applied**:
+- Implemented atomic writes with temp files
+- Added backup before overwriting
+- Proper error handling for file operations
+
+**Files Modified**:
+- `/lib/json-storage.js` - Added atomic write operations
+
+## Deployment History
+1. **July 20**: Fixed monitoring optimizations and SSL detection
+2. **July 21**: Fixed ScrapingDog integration and alert deduplication
+3. **July 22**: Fixed audit report display issues
+
+## Final Status
+✅ ScrapingDog integration fully functional
+✅ Monitoring performance optimized
+✅ SSL detection accurate for CDN sites
+✅ Alert deduplication working properly
+✅ Audit reports displaying correctly
+✅ Admin settings accessible
+✅ Contact form detection improved
+
+## Lessons Learned
+1. Environment variables must load before module initialization
+2. CDN/proxy services require special SSL detection logic
+3. Performance optimization crucial for monitoring dashboards
+4. Atomic file operations prevent data loss
+5. Form detection must account for modern JavaScript frameworks
+
+## New Features Added
+- Alert cleanup tools for maintenance
+- Performance tracking for monitoring operations
+- Backup system for JSON data files
+- Direct admin route for reliable access
