@@ -1,15 +1,1 @@
-[
-  {
-    "id": 1752551890324,
-    "dealer_id": "1752551889636",
-    "dealer_name": "Price Ford",
-    "website_url": "https://www.priceford.com/",
-    "contact_email": "rjhunter3789@gmail.com",
-    "alert_email": "rjhunter3789@gmail.com",
-    "alert_phone": "4257505752",
-    "alert_preferences": "{\"email\":true,\"sms\":false}",
-    "check_frequency": 15,
-    "created_at": "2025-07-15T03:58:10.324Z",
-    "updated_at": "2025-07-18T14:30:00.427Z"
-  }
-]
+[]
