@@ -782,5 +782,31 @@
     "error_details": "Request failed with status code 403",
     "scraping_method": "unknown",
     "check_timestamp": "2025-07-23T01:00:09.571Z"
+  },
+  {
+    "id": 1753235991555,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": true,
+    "response_time_ms": 48221,
+    "http_status_code": 200,
+    "issues_found": [],
+    "metrics": {},
+    "error_details": "Request failed with status code 403",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-23T01:59:51.556Z"
+  },
+  {
+    "id": 1753236008853,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": true,
+    "response_time_ms": 5682,
+    "http_status_code": 200,
+    "issues_found": [],
+    "metrics": {},
+    "error_details": "Request failed with status code 403",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-23T02:00:08.857Z"
   }
 ]
