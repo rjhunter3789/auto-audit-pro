@@ -61,17 +61,17 @@ function getMonitoringEngine() {
 
 // Session setup for authentication - MUST BE FIRST
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'AutoAuditPro-Secret-Key-2025',
-    resave: false,
-    saveUninitialized: false,
-    name: 'autoaudit.sid', // Custom session name
+    secret: process.env.SESSION_SECRET || 'your-secret-key-change-this',
+    resave: true,  // Changed from false to true - forces session to be saved even if unmodified
+    saveUninitialized: true,  // Changed from false to true - saves new sessions
+    rolling: true,  // Reset expiry on activity
     cookie: { 
-        secure: false, // Set to false for better compatibility
+        maxAge: 7 * 24 * 60 * 60 * 1000,  // Extended to 7 days instead of 24 hours
         httpOnly: true,
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days (extended for admin convenience)
-        sameSite: 'lax' // Changed from 'strict' to 'lax' for better compatibility
-        // Removed domain restriction for better compatibility
-    }
+        secure: false,  // Set to true in production with HTTPS
+        sameSite: 'lax'
+    },
+    name: 'autoaudit.sid'  // Custom session name
 }));
 
 // Middleware
@@ -276,11 +276,82 @@ app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'login.html'));
 });
 
-app.post('/api/login', (req, res) => {
+app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
-    const ip = req.ip || req.connection.remoteAddress;
     
-    console.log('[Login Debug] Attempting login:', { username, passwordLength: password?.length });
+    console.log('[Login Debug] Attempting login:', { username, passwordLength: password ? password.length : 0 });
+    
+    // PRIORITY 1: Check environment admin FIRST
+    const { ADMIN_USERNAME, ADMIN_PASSWORD } = require('./middleware/auth');
+    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+        console.log('[Login] Authenticated as environment admin');
+        req.session.authenticated = true;
+        req.session.username = username;
+        req.session.role = 'admin';
+        req.session.isAdmin = true;
+        req.session.dealership = 'Admin';
+        
+        req.session.save((err) => {
+            if (err) {
+                console.error('[Login] Session save error:', err);
+                return res.status(500).json({ error: 'Session error' });
+            }
+            console.log('[Login] Admin session saved successfully');
+            res.redirect('/');
+        });
+        return;
+    }
+    
+    // PRIORITY 2: Check users.json if exists (for future dealer accounts)
+    const usersFile = path.join(__dirname, 'data', 'users.json');
+    if (fs.existsSync(usersFile)) {
+        try {
+            const users = JSON.parse(fs.readFileSync(usersFile, 'utf8'));
+            const user = users.find(u => 
+                (u.username === username || u.email === username) && 
+                u.password === password
+            );
+            
+            if (user) {
+                console.log('[Login] Authenticated from users.json:', user.username);
+                req.session.authenticated = true;
+                req.session.username = user.username;
+                req.session.role = user.role || 'dealer';
+                req.session.isAdmin = user.isAdmin || false;
+                req.session.dealership = user.dealership || user.username;
+                
+                req.session.save((err) => {
+                    if (err) {
+                        console.error('[Login] Session save error:', err);
+                        return res.status(500).json({ error: 'Session error' });
+                    }
+                    console.log('[Login] User session saved successfully');
+                    res.redirect('/');
+                });
+                return;
+            }
+        } catch (error) {
+            console.error('[Login] Error reading users.json:', error);
+        }
+    }
+    
+    // No valid login found
+    console.log('[Login] Authentication failed for:', username);
+    res.status(401).send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Login Failed</title>
+            <meta http-equiv="refresh" content="2;url=/login">
+        </head>
+        <body style="font-family: Arial; text-align: center; padding: 50px;">
+            <h2 style="color: #dc3545;">Login Failed</h2>
+            <p>Invalid username or password</p>
+            <p>Redirecting to login page...</p>
+        </body>
+        </html>
+    `);
+});
     console.log('[Login Debug] Expected username:', ADMIN_USERNAME);
     console.log('[Login Debug] Expected password length:', ADMIN_PASSWORD.length);
     console.log('[Login Debug] Password match:', password === ADMIN_PASSWORD);
