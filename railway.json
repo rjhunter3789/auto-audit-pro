@@ -9,6 +9,12 @@
     "healthcheckPath": "/api/health",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",
-    "restartPolicyMaxRetries": 5
+    "restartPolicyMaxRetries": 5,
+    "envVars": {
+      "DISABLE_CSP": {
+        "description": "Set to 'true' to disable Content Security Policy",
+        "default": "false"
+      }
+    }
   }
 }

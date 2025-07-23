@@ -36,6 +36,41 @@ app.use(session({
 app.use(express.static('public'));
 app.use('/views', express.static('views'));
 
+// Add proper CSP headers for production
+app.use((req, res, next) => {
+    // Check if we should disable CSP (for debugging)
+    if (process.env.DISABLE_CSP === 'true') {
+        console.log('CSP disabled via environment variable');
+        return next();
+    }
+    
+    // Use permissive CSP in production to avoid blocking issues
+    const cspHeader = process.env.NODE_ENV === 'production' 
+        ? "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; " +
+          "script-src * 'unsafe-inline' 'unsafe-eval'; " +
+          "connect-src *; " +
+          "img-src * data: blob:; " +
+          "frame-src *; " +
+          "style-src * 'unsafe-inline';"
+        : "default-src 'self'; " +
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
+          "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
+          "img-src 'self' data: https: http:; " +
+          "font-src 'self' data: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
+          "connect-src 'self' https: http:; " +
+          "frame-src 'none'; " +
+          "object-src 'none'";
+    
+    res.setHeader('Content-Security-Policy', cspHeader);
+    
+    // Also set other security headers that don't break functionality
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    
+    next();
+});
+
 // CRITICAL: Health check MUST be before auth
 app.get('/api/health', (req, res) => {
     res.json({ 
