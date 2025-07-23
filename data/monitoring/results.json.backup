@@ -1137,5 +1137,85 @@
     "error_details": "403 Forbidden - Access denied by server",
     "scraping_method": "unknown",
     "check_timestamp": "2025-07-23T20:34:25.513Z"
+  },
+  {
+    "id": 1753304340364,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": false,
+    "response_time_ms": null,
+    "http_status_code": 403,
+    "issues_found": [
+      {
+        "type": "website_down",
+        "severity": "RED",
+        "message": "Website is unreachable",
+        "details": "403 Forbidden - Access denied by server"
+      }
+    ],
+    "metrics": {},
+    "error_details": "403 Forbidden - Access denied by server",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-23T20:59:00.365Z"
+  },
+  {
+    "id": 1753304340160,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": false,
+    "response_time_ms": null,
+    "http_status_code": 403,
+    "issues_found": [
+      {
+        "type": "website_down",
+        "severity": "RED",
+        "message": "Website is unreachable",
+        "details": "403 Forbidden - Access denied by server"
+      }
+    ],
+    "metrics": {},
+    "error_details": "403 Forbidden - Access denied by server",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-23T20:59:00.168Z"
+  },
+  {
+    "id": 1753304400100,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": false,
+    "response_time_ms": null,
+    "http_status_code": 403,
+    "issues_found": [
+      {
+        "type": "website_down",
+        "severity": "RED",
+        "message": "Website is unreachable",
+        "details": "403 Forbidden - Access denied by server"
+      }
+    ],
+    "metrics": {},
+    "error_details": "403 Forbidden - Access denied by server",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-23T21:00:00.100Z"
+  },
+  {
+    "id": 1753304400292,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": false,
+    "response_time_ms": null,
+    "http_status_code": 403,
+    "issues_found": [
+      {
+        "type": "website_down",
+        "severity": "RED",
+        "message": "Website is unreachable",
+        "details": "403 Forbidden - Access denied by server"
+      }
+    ],
+    "metrics": {},
+    "error_details": "403 Forbidden - Access denied by server",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-23T21:00:00.296Z"
   }
 ]
