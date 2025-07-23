@@ -1,8 +1,8 @@
 {
-  "totalRequests": 5,
-  "successfulRequests": 4,
-  "failedRequests": 1,
-  "totalCost": 0.005,
+  "totalRequests": 37,
+  "successfulRequests": 17,
+  "failedRequests": 20,
+  "totalCost": 0.023000000000000007,
   "savedBySelenium": 0,
-  "lastUpdated": "2025-07-23T02:00:08.764Z"
+  "lastUpdated": "2025-07-23T12:00:00.679Z"
 }

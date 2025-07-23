@@ -808,5 +808,314 @@
     "error_details": "Request failed with status code 403",
     "scraping_method": "unknown",
     "check_timestamp": "2025-07-23T02:00:08.857Z"
+  },
+  {
+    "id": 1753239615417,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": true,
+    "response_time_ms": 71865,
+    "http_status_code": 200,
+    "issues_found": [],
+    "metrics": {},
+    "error_details": "Request failed with status code 403",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-23T03:00:15.419Z"
+  },
+  {
+    "id": 1753239630524,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": true,
+    "response_time_ms": 27221,
+    "http_status_code": 200,
+    "issues_found": [],
+    "metrics": {},
+    "error_details": "Request failed with status code 403",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-23T03:00:30.525Z"
+  },
+  {
+    "id": 1753243221124,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": false,
+    "response_time_ms": null,
+    "http_status_code": null,
+    "issues_found": [
+      {
+        "type": "website_down",
+        "severity": "RED",
+        "message": "Website is unreachable",
+        "details": "ScrapingDog returned status 410: [object Object]"
+      }
+    ],
+    "metrics": {},
+    "error_details": "ScrapingDog returned status 410: [object Object]",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-23T04:00:21.128Z"
+  },
+  {
+    "id": 1753243280701,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": false,
+    "response_time_ms": null,
+    "http_status_code": null,
+    "issues_found": [
+      {
+        "type": "website_down",
+        "severity": "RED",
+        "message": "Website is unreachable",
+        "details": "ScrapingDog returned status 410: [object Object]"
+      }
+    ],
+    "metrics": {},
+    "error_details": "ScrapingDog returned status 410: [object Object]",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-23T04:01:20.702Z"
+  },
+  {
+    "id": 1753246791399,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": true,
+    "response_time_ms": 47994,
+    "http_status_code": 200,
+    "issues_found": [],
+    "metrics": {},
+    "error_details": "Request failed with status code 403",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-23T04:59:51.402Z"
+  },
+  {
+    "id": 1753246816550,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": true,
+    "response_time_ms": 13330,
+    "http_status_code": 200,
+    "issues_found": [],
+    "metrics": {},
+    "error_details": "Request failed with status code 403",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-23T05:00:16.551Z"
+  },
+  {
+    "id": 1753250416848,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": true,
+    "response_time_ms": 9413,
+    "http_status_code": 200,
+    "issues_found": [],
+    "metrics": {},
+    "error_details": "Request failed with status code 403",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-23T06:00:16.852Z"
+  },
+  {
+    "id": 1753250421200,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": false,
+    "response_time_ms": null,
+    "http_status_code": null,
+    "issues_found": [
+      {
+        "type": "website_down",
+        "severity": "RED",
+        "message": "Website is unreachable",
+        "details": "ScrapingDog returned status 410: [object Object]"
+      }
+    ],
+    "metrics": {},
+    "error_details": "ScrapingDog returned status 410: [object Object]",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-23T06:00:21.201Z"
+  },
+  {
+    "id": 1753253960422,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": true,
+    "response_time_ms": 16995,
+    "http_status_code": 200,
+    "issues_found": [],
+    "metrics": {},
+    "error_details": "Request failed with status code 403",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-23T06:59:20.424Z"
+  },
+  {
+    "id": 1753254027247,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": true,
+    "response_time_ms": 24054,
+    "http_status_code": 200,
+    "issues_found": [],
+    "metrics": {},
+    "error_details": "Request failed with status code 403",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-23T07:00:27.248Z"
+  },
+  {
+    "id": 1753257620754,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": false,
+    "response_time_ms": null,
+    "http_status_code": null,
+    "issues_found": [
+      {
+        "type": "website_down",
+        "severity": "RED",
+        "message": "Website is unreachable",
+        "details": "ScrapingDog returned status 410: [object Object]"
+      }
+    ],
+    "metrics": {},
+    "error_details": "ScrapingDog returned status 410: [object Object]",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-23T08:00:20.758Z"
+  },
+  {
+    "id": 1753257654098,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": true,
+    "response_time_ms": 50565,
+    "http_status_code": 200,
+    "issues_found": [],
+    "metrics": {},
+    "error_details": "Request failed with status code 403",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-23T08:00:54.099Z"
+  },
+  {
+    "id": 1753261166930,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": true,
+    "response_time_ms": 23619,
+    "http_status_code": 200,
+    "issues_found": [],
+    "metrics": {},
+    "error_details": "Request failed with status code 403",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-23T08:59:26.933Z"
+  },
+  {
+    "id": 1753261214940,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": true,
+    "response_time_ms": 11751,
+    "http_status_code": 200,
+    "issues_found": [],
+    "metrics": {},
+    "error_details": "Request failed with status code 403",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-23T09:00:14.942Z"
+  },
+  {
+    "id": 1753264815069,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": true,
+    "response_time_ms": 71711,
+    "http_status_code": 200,
+    "issues_found": [],
+    "metrics": {},
+    "error_details": "Request failed with status code 403",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-23T10:00:15.072Z"
+  },
+  {
+    "id": 1753264830935,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": true,
+    "response_time_ms": 27740,
+    "http_status_code": 200,
+    "issues_found": [],
+    "metrics": {},
+    "error_details": "Request failed with status code 403",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-23T10:00:30.936Z"
+  },
+  {
+    "id": 1753268393126,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": true,
+    "response_time_ms": 49800,
+    "http_status_code": 200,
+    "issues_found": [],
+    "metrics": {},
+    "error_details": "Request failed with status code 403",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-23T10:59:53.129Z"
+  },
+  {
+    "id": 1753268400420,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": false,
+    "response_time_ms": null,
+    "http_status_code": null,
+    "issues_found": [
+      {
+        "type": "website_down",
+        "severity": "RED",
+        "message": "Website is unreachable",
+        "details": "ScrapingDog returned status 403: [object Object]"
+      }
+    ],
+    "metrics": {},
+    "error_details": "ScrapingDog returned status 403: [object Object]",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-23T11:00:00.421Z"
+  },
+  {
+    "id": 1753271940906,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": false,
+    "response_time_ms": null,
+    "http_status_code": null,
+    "issues_found": [
+      {
+        "type": "website_down",
+        "severity": "RED",
+        "message": "Website is unreachable",
+        "details": "ScrapingDog returned status 403: [object Object]"
+      }
+    ],
+    "metrics": {},
+    "error_details": "ScrapingDog returned status 403: [object Object]",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-23T11:59:00.916Z"
+  },
+  {
+    "id": 1753272000686,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": false,
+    "response_time_ms": null,
+    "http_status_code": null,
+    "issues_found": [
+      {
+        "type": "website_down",
+        "severity": "RED",
+        "message": "Website is unreachable",
+        "details": "ScrapingDog returned status 403: [object Object]"
+      }
+    ],
+    "metrics": {},
+    "error_details": "ScrapingDog returned status 403: [object Object]",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-23T12:00:00.687Z"
   }
 ]
