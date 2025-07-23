@@ -82,6 +82,16 @@ app.get('/api/health', (req, res) => {
     });
 });
 
+// CSP diagnostic endpoint
+app.get('/api/csp-check', (req, res) => {
+    res.json({
+        headers: req.headers,
+        csp_disabled: process.env.DISABLE_CSP === 'true',
+        node_env: process.env.NODE_ENV,
+        response_headers: res.getHeaders()
+    });
+});
+
 // Basic auth middleware
 const { checkAuth } = require('./middleware/auth');
 

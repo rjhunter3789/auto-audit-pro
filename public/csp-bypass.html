@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CSP Bypass Loader</title>
+    <meta charset="UTF-8">
+    <script>
+        // Remove any CSP meta tags that might be injected
+        function removeCSP() {
+            const cspMetas = document.querySelectorAll('meta[http-equiv="Content-Security-Policy"]');
+            cspMetas.forEach(meta => {
+                console.log('Removing CSP meta tag:', meta.content);
+                meta.remove();
+            });
+        }
+        
+        // Monitor for CSP injection
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'childList') {
+                    mutation.addedNodes.forEach((node) => {
+                        if (node.tagName === 'META' && 
+                            node.getAttribute && 
+                            node.getAttribute('http-equiv') === 'Content-Security-Policy') {
+                            console.log('CSP injection detected and removed:', node.content);
+                            node.remove();
+                        }
+                    });
+                }
+            });
+        });
+        
+        // Start observing
+        observer.observe(document.documentElement, { 
+            childList: true, 
+            subtree: true 
+        });
+        
+        // Clean on load
+        document.addEventListener('DOMContentLoaded', removeCSP);
+        
+        // Redirect to main app after cleanup
+        setTimeout(() => {
+            window.location.href = '/';
+        }, 1000);
+    </script>
+</head>
+<body>
+    <h2>Loading application...</h2>
+    <p>Bypassing restrictive CSP policies...</p>
+</body>
+</html>

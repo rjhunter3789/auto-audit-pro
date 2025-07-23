@@ -1297,5 +1297,45 @@
     "error_details": "403 Forbidden - Access denied by server",
     "scraping_method": "unknown",
     "check_timestamp": "2025-07-23T22:00:01.869Z"
+  },
+  {
+    "id": 1753311540276,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": false,
+    "response_time_ms": null,
+    "http_status_code": 403,
+    "issues_found": [
+      {
+        "type": "website_down",
+        "severity": "RED",
+        "message": "Website is unreachable",
+        "details": "403 Forbidden - Access denied by server"
+      }
+    ],
+    "metrics": {},
+    "error_details": "403 Forbidden - Access denied by server",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-23T22:59:00.277Z"
+  },
+  {
+    "id": 1753311600086,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": false,
+    "response_time_ms": null,
+    "http_status_code": 403,
+    "issues_found": [
+      {
+        "type": "website_down",
+        "severity": "RED",
+        "message": "Website is unreachable",
+        "details": "403 Forbidden - Access denied by server"
+      }
+    ],
+    "metrics": {},
+    "error_details": "403 Forbidden - Access denied by server",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-23T23:00:00.087Z"
   }
 ]
