@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "start:simple": "node server-simple.js",
-    "start:prod": "bash start.sh",
+    "start:prod": "node server-simple.js",
     "dev": "nodemon server.js",
     "test": "jest",
     "setup": "node setup.js"
