@@ -2,10 +2,10 @@
 nixPkgs = ["...", "nodejs"]
 
 [phases.build]
-cmds = ["npm install --production"]
+cmds = ["npm install"]
 
 [start]
-cmd = "node server-minimal.js"
+cmd = "node server-simple.js"
 
 [variables]
 NODE_ENV = "production"
