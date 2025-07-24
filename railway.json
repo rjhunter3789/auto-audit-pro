@@ -7,12 +7,6 @@
     "numReplicas": 1,
     "startCommand": "node server.js",
     "healthcheckPath": "/api/health",
-    "healthcheckTimeout": 300,
-    "envVars": {
-      "SKIP_MONITORING": {
-        "description": "Skip monitoring scheduler to prevent deployment issues",
-        "default": "true"
-      }
-    }
+    "healthcheckTimeout": 300
   }
 }

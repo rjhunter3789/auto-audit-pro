@@ -18,6 +18,12 @@ console.log('[Dotenv Debug] Load result:', dotenvResult.error ? 'ERROR: ' + dote
 console.log('[Dotenv Debug] Working directory:', process.cwd());
 console.log('[Dotenv Debug] .env path attempted:', require('path').resolve(process.cwd(), '.env'));
 
+// Force skip monitoring in production to prevent deployment issues
+if (process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT) {
+    process.env.SKIP_MONITORING = 'true';
+    console.log('[Production] Monitoring scheduler disabled for stability');
+}
+
 const express = require('express');
 const session = require('express-session');
 const cors = require('cors');
