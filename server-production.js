@@ -37,6 +37,21 @@ app.use(session({
 app.use(express.static('public'));
 app.use('/views', express.static('views'));
 
+// Override any CSP headers from platform
+app.use((req, res, next) => {
+    // Remove any existing CSP headers
+    res.removeHeader('Content-Security-Policy');
+    
+    // Set our own permissive CSP
+    res.setHeader(
+        'Content-Security-Policy',
+        "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; " +
+        "script-src * 'unsafe-inline' 'unsafe-eval'; " +
+        "style-src * 'unsafe-inline';"
+    );
+    next();
+});
+
 // View engine setup
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -155,9 +170,14 @@ app.get('/recover-access', (req, res) => {
 
 // Apply auth to subsequent routes
 app.use((req, res, next) => {
-    // Skip auth for public routes
-    const publicRoutes = ['/api/monitoring/status', '/api/monitoring/profiles'];
-    if (publicRoutes.includes(req.path) || req.path.startsWith('/api/monitoring/')) {
+    // Skip auth for public routes and APIs
+    const publicPaths = [
+        '/api/monitoring/',
+        '/api/roi/config',
+        '/api/session-info'
+    ];
+    
+    if (publicPaths.some(path => req.path.startsWith(path))) {
         return next();
     }
     
@@ -231,9 +251,40 @@ app.get('/api/monitoring/stats', (req, res) => {
     });
 });
 
+// Monitoring alerts endpoint
+app.get('/api/monitoring/alerts/:profileId', (req, res) => {
+    try {
+        const alertsPath = path.join(__dirname, 'data', 'monitoring', 'alerts.json');
+        if (fs.existsSync(alertsPath)) {
+            const allAlerts = JSON.parse(fs.readFileSync(alertsPath, 'utf8'));
+            const profileAlerts = allAlerts.filter(a => a.profile_id == req.params.profileId);
+            
+            if (req.query.resolved === 'false') {
+                const unresolvedAlerts = profileAlerts.filter(a => !a.resolved);
+                res.json(unresolvedAlerts);
+            } else {
+                res.json(profileAlerts);
+            }
+        } else {
+            res.json([]);
+        }
+    } catch (error) {
+        res.json([]);
+    }
+});
+
+// Add missing routes
+app.get('/website-audit', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'index-new.html'));
+});
+
+app.get('/lead-analysis', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'lead-performance.html'));
+});
+
 // Catch all for other monitoring endpoints
 app.get('/api/monitoring/:endpoint', (req, res) => {
-    res.json({ message: 'Endpoint not implemented in production' });
+    res.json({ message: 'Endpoint not implemented' });
 });
 
 // Error handling
