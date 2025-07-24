@@ -313,6 +313,57 @@ Any routes after this line require authentication!
 
 ---
 
+## July 24, 2025 - Production Deployment & Access Denied Resolution
+
+### 1. ScrapingDog Disabled
+**Request**: User requested complete removal of ScrapingDog monitoring
+**Changes Made**:
+- Modified `lib/monitoring-engine.js` to disable all ScrapingDog functionality
+- Set `this.scrapingDog = null` in constructor
+- Removed all fallback logic for 403 errors
+- Sites with Cloudflare/anti-bot now show as unreachable (expected behavior)
+
+### 2. Persistent "Access Denied" Issue Investigation
+**Problem**: Every navigation from Admin Settings resulted in "Access Denied" screen
+**Root Causes Identified**:
+1. Security middleware blocking `/admin` paths
+2. User confusion between env admin and users.json admin
+3. Session persistence issues
+4. Authentication middleware ordering
+
+**Fixes Applied**:
+- Removed `/admin` from suspicious paths in security middleware
+- Updated session configuration for better persistence (7 days, rolling sessions)
+- Changed "Back to Main" button to "Back to Monitoring"
+- Added `/recover-access` emergency endpoint
+
+### 3. User System Confusion Fix
+**Issue**: Two "admin" users with same credentials causing conflicts
+**Solution**: 
+- Temporarily cleared users.json to use only env admin
+- Modified login to prioritize environment admin
+- Later restored original multi-user setup per user request
+
+### 4. Production Deployment Issues
+**Problems**: 
+- Health check failures ("service unavailable")
+- CSP blocking JavaScript execution
+- Missing API endpoints in production
+
+**Solutions Created**:
+- Created `server-prod.js` with simplified dependencies
+- Created `server-minimal.js` for guaranteed deployment
+- Added flexible CSP configuration
+- Created diagnostic pages for CSP issues
+
+### 5. Final Resolution
+**User Decision**: Return to original setup with security intact
+**Current State**:
+- Multi-user system restored (admin + dealer accounts)
+- Authentication required for all access
+- Dealer can test without admin privileges
+- Deployment configured to use `server-simple.js`
+
 ## July 22, 2025 - Critical Production Fixes
 
 ### 1. Access Denied Errors - FIXED

@@ -1,5 +1,43 @@
 # Auto Audit Pro Suite - Changelog & Feature Documentation
 
+## Version 2.6.8 - July 24, 2025 (Production Deployment & Security Fixes)
+
+### 🚀 Deployment Improvements
+- Created production-ready servers (`server-prod.js`, `server-minimal.js`)
+- Fixed health check endpoint accessibility
+- Resolved Railway deployment "service unavailable" errors
+- Added flexible CSP configuration for production environments
+
+### 🔒 Security & Authentication Fixes
+- Fixed persistent "Access Denied" navigation issues
+- Removed `/admin` path from security middleware suspicious paths
+- Enhanced session persistence (7-day timeout, rolling sessions)
+- Added emergency recovery endpoint at `/recover-access`
+- Resolved user system confusion between env and JSON admin accounts
+
+### 🐛 Bug Fixes
+- Disabled ScrapingDog integration per user request
+- Fixed CSP blocking JavaScript in production
+- Fixed missing API endpoints in deployed version
+- Corrected authentication middleware ordering issues
+- Fixed syntax errors in server.js from duplicate code
+
+### 📁 Files Added/Modified
+- Created `server-prod.js` - Production server with minimal dependencies
+- Created `server-minimal.js` - Ultra-minimal server for deployment testing
+- Created `fix-*.js` scripts for various fixes
+- Created CSP diagnostic pages (`csp-test.html`, `csp-bypass.html`)
+- Modified `middleware/security-monitor.js` - Removed admin path blocking
+- Updated deployment configs (`nixpacks.toml`, `railway.json`)
+
+### 🔄 System State
+- Restored to original multi-user configuration
+- Admin account: `admin` / `AutoAudit2025!`
+- Dealer account: `dealer` / `dealer123`
+- Deployment uses `server-simple.js` for production
+
+---
+
 ## Version 2.6.7 - July 22, 2025 (Critical Bug Fixes & Performance)
 
 ### 🐛 Critical Bug Fixes

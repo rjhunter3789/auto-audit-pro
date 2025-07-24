@@ -4,7 +4,7 @@
   "description": "Auto Audit Pro - Professional Dealership Website Analysis Platform with Security",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node server-simple.js",
     "start:simple": "node server-simple.js",
     "start:prod": "node server-simple.js",
     "dev": "nodemon server.js",
