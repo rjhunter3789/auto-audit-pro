@@ -80,22 +80,29 @@ app.use(session({
     }
 }));
 
-// CSP Headers to fix Railway's restrictive policy
+// CSP Headers - MUST override Railway's restrictive policy
 app.use((req, res, next) => {
-    // Set permissive CSP headers to override Railway's restrictive ones
+    // Remove any existing CSP headers first
+    res.removeHeader('Content-Security-Policy');
+    res.removeHeader('content-security-policy');
+    
+    // Set our permissive CSP headers
     res.setHeader('Content-Security-Policy', 
-        "default-src 'self'; " +
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
-        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
-        "img-src 'self' data: https: http:; " +
-        "font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
-        "connect-src 'self' https: http:; " +
-        "frame-src 'self'; " +
+        "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https: http:; " +
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https: http:; " +
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https: http:; " +
+        "img-src 'self' data: blob: https: http:; " +
+        "font-src 'self' data: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https: http:; " +
+        "connect-src 'self' https: http: ws: wss:; " +
+        "frame-src 'self' https: http:; " +
         "object-src 'none'; " +
         "base-uri 'self'; " +
-        "form-action 'self'; " +
-        "upgrade-insecure-requests"
+        "form-action 'self' https: http:;"
     );
+    
+    // Also set X-Content-Security-Policy for older browsers
+    res.setHeader('X-Content-Security-Policy', "default-src *; script-src 'self' 'unsafe-inline' 'unsafe-eval'");
+    
     next();
 });
 
@@ -3830,6 +3837,40 @@ app.use((req, res, next) => {
         
         return res.status(403).send('Direct access to view files is not allowed');
     }
+    next();
+});
+
+// Override CSP headers one more time before sending response
+app.use((req, res, next) => {
+    const originalSend = res.send;
+    const originalJson = res.json;
+    const originalRender = res.render;
+    
+    const overrideCSP = () => {
+        res.removeHeader('Content-Security-Policy');
+        res.removeHeader('content-security-policy');
+        res.setHeader('Content-Security-Policy', 
+            "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; " +
+            "script-src * 'unsafe-inline' 'unsafe-eval'; " +
+            "style-src * 'unsafe-inline';"
+        );
+    };
+    
+    res.send = function(...args) {
+        overrideCSP();
+        return originalSend.apply(res, args);
+    };
+    
+    res.json = function(...args) {
+        overrideCSP();
+        return originalJson.apply(res, args);
+    };
+    
+    res.render = function(...args) {
+        overrideCSP();
+        return originalRender.apply(res, args);
+    };
+    
     next();
 });
 
