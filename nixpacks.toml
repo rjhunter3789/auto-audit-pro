@@ -5,7 +5,7 @@ nixPkgs = ["...", "nodejs"]
 cmds = ["npm install"]
 
 [start]
-cmd = "node server-simple.js"
+cmd = "node server-production.js"
 
 [variables]
 NODE_ENV = "production"
