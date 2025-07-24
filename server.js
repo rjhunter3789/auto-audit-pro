@@ -3105,6 +3105,12 @@ app.get('/audit', (req, res) => {
 });
 
 app.post('/audit', async (req, res) => {
+    console.log('[AUDIT POST] Request received:', {
+        body: req.body,
+        headers: req.headers,
+        session: req.session
+    });
+    
     let siteUrl = req.body.url;
     const auditType = req.body.auditType || 'comprehensive';
     const customPages = req.body.customPages || [];
