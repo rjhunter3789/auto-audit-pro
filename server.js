@@ -61,17 +61,17 @@ function getMonitoringEngine() {
 
 // Session setup for authentication - MUST BE FIRST
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'your-secret-key-change-this',
-    resave: true,  // Changed from false to true - forces session to be saved even if unmodified
-    saveUninitialized: true,  // Changed from false to true - saves new sessions
-    rolling: true,  // Reset expiry on activity
+    secret: process.env.SESSION_SECRET || 'AutoAuditPro-Secret-Key-2025',
+    resave: false,
+    saveUninitialized: false,
+    name: 'autoaudit.sid', // Custom session name
     cookie: { 
-        maxAge: 7 * 24 * 60 * 60 * 1000,  // Extended to 7 days instead of 24 hours
+        secure: false, // Set to false for better compatibility
         httpOnly: true,
-        secure: false,  // Set to true in production with HTTPS
-        sameSite: 'lax'
-    },
-    name: 'autoaudit.sid'  // Custom session name
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days (extended for admin convenience)
+        sameSite: 'lax' // Changed from 'strict' to 'lax' for better compatibility
+        // Removed domain restriction for better compatibility
+    }
 }));
 
 // Middleware
@@ -84,9 +84,6 @@ app.use('/js', express.static(path.join(__dirname, 'public/js')));
 app.use('/css', express.static(path.join(__dirname, 'public/css')));
 app.use('/images', express.static(path.join(__dirname, 'public/images')));
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
-
-// Serve the public directory root to allow access to roi-config-static.json
-app.use('/', express.static(path.join(__dirname, 'public')));
 
 // Allow access to views for admin pages
 app.use('/views', express.static(path.join(__dirname, 'views')));
@@ -219,139 +216,16 @@ app.get('/api/fix-admin-session', (req, res) => {
     }
 });
 
-// Emergency session fix - allows fixing session even without auth
-app.get('/api/emergency-fix-session', (req, res) => {
-    // Check if user has a session at all
-    if (!req.session) {
-        return res.json({ error: 'No session exists' });
-    }
-    
-    // If user is already authenticated, just fix admin status
-    if (req.session.authenticated) {
-        req.session.isAdmin = true;
-        req.session.role = 'admin';
-        req.session.save((err) => {
-            if (err) {
-                res.json({ error: 'Failed to save session' });
-            } else {
-                res.json({ 
-                    success: true, 
-                    message: 'Admin session fixed for authenticated user',
-                    session: {
-                        username: req.session.username,
-                        role: req.session.role,
-                        isAdmin: req.session.isAdmin,
-                        authenticated: req.session.authenticated
-                    }
-                });
-            }
-        });
-    } else {
-        // Create a new admin session
-        req.session.authenticated = true;
-        req.session.username = 'admin';
-        req.session.isAdmin = true;
-        req.session.role = 'admin';
-        req.session.save((err) => {
-            if (err) {
-                res.json({ error: 'Failed to create session' });
-            } else {
-                res.json({ 
-                    success: true, 
-                    message: 'New admin session created',
-                    session: {
-                        username: req.session.username,
-                        role: req.session.role,
-                        isAdmin: req.session.isAdmin,
-                        authenticated: req.session.authenticated
-                    }
-                });
-            }
-        });
-    }
-});
-
 // Login routes (no auth required)
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'login.html'));
 });
 
-app.post('/api/login', async (req, res) => {
+app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
+    const ip = req.ip || req.connection.remoteAddress;
     
-    console.log('[Login Debug] Attempting login:', { username, passwordLength: password ? password.length : 0 });
-    
-    // PRIORITY 1: Check environment admin FIRST
-    const { ADMIN_USERNAME, ADMIN_PASSWORD } = require('./middleware/auth');
-    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-        console.log('[Login] Authenticated as environment admin');
-        req.session.authenticated = true;
-        req.session.username = username;
-        req.session.role = 'admin';
-        req.session.isAdmin = true;
-        req.session.dealership = 'Admin';
-        
-        req.session.save((err) => {
-            if (err) {
-                console.error('[Login] Session save error:', err);
-                return res.status(500).json({ error: 'Session error' });
-            }
-            console.log('[Login] Admin session saved successfully');
-            res.redirect('/');
-        });
-        return;
-    }
-    
-    // PRIORITY 2: Check users.json if exists (for future dealer accounts)
-    const usersFile = path.join(__dirname, 'data', 'users.json');
-    if (fs.existsSync(usersFile)) {
-        try {
-            const users = JSON.parse(fs.readFileSync(usersFile, 'utf8'));
-            const user = users.find(u => 
-                (u.username === username || u.email === username) && 
-                u.password === password
-            );
-            
-            if (user) {
-                console.log('[Login] Authenticated from users.json:', user.username);
-                req.session.authenticated = true;
-                req.session.username = user.username;
-                req.session.role = user.role || 'dealer';
-                req.session.isAdmin = user.isAdmin || false;
-                req.session.dealership = user.dealership || user.username;
-                
-                req.session.save((err) => {
-                    if (err) {
-                        console.error('[Login] Session save error:', err);
-                        return res.status(500).json({ error: 'Session error' });
-                    }
-                    console.log('[Login] User session saved successfully');
-                    res.redirect('/');
-                });
-                return;
-            }
-        } catch (error) {
-            console.error('[Login] Error reading users.json:', error);
-        }
-    }
-    
-    // No valid login found
-    console.log('[Login] Authentication failed for:', username);
-    res.status(401).send(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Login Failed</title>
-            <meta http-equiv="refresh" content="2;url=/login">
-        </head>
-        <body style="font-family: Arial; text-align: center; padding: 50px;">
-            <h2 style="color: #dc3545;">Login Failed</h2>
-            <p>Invalid username or password</p>
-            <p>Redirecting to login page...</p>
-        </body>
-        </html>
-    `);
-});
+    console.log('[Login Debug] Attempting login:', { username, passwordLength: password?.length });
     console.log('[Login Debug] Expected username:', ADMIN_USERNAME);
     console.log('[Login Debug] Expected password length:', ADMIN_PASSWORD.length);
     console.log('[Login Debug] Password match:', password === ADMIN_PASSWORD);
@@ -1265,59 +1139,11 @@ app.post('/api/roi/reset', requireAdmin, (req, res) => {
     }
 });
 
-
-// Emergency Access Recovery Route
-app.get('/recover-access', (req, res) => {
-    // Force create an admin session
-    req.session.authenticated = true;
-    req.session.username = 'admin';
-    req.session.role = 'admin';
-    req.session.isAdmin = true;
-    req.session.dealership = 'Admin';
-    
-    req.session.save((err) => {
-        if (err) {
-            return res.status(500).send('Failed to create session');
-        }
-        res.send(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Access Recovered</title>
-                <style>
-                    body { font-family: Arial, sans-serif; padding: 50px; text-align: center; }
-                    .success { color: green; }
-                    .links { margin-top: 30px; }
-                    a { margin: 0 10px; }
-                </style>
-            </head>
-            <body>
-                <h1 class="success">✓ Access Recovered!</h1>
-                <p>Your admin session has been restored.</p>
-                <div class="links">
-                    <a href="/">Go to Home</a> |
-                    <a href="/monitoring">Go to Monitoring</a> |
-                    <a href="/views/admin-settings.html">Go to Admin Settings</a>
-                </div>
-            </body>
-            </html>
-        `);
-    });
-});
-
 // LOCKDOWN: Apply authentication to ALL routes after this point
-// BUT exclude monitoring API routes and certain public routes to allow dashboard to work
+// BUT exclude monitoring API routes to allow dashboard to work
 app.use((req, res, next) => {
     // Skip auth for monitoring API routes
     if (req.path.startsWith('/api/monitoring/')) {
-        return next();
-    }
-    // Skip auth for ROI config GET (needed for admin settings page)
-    if (req.path === '/api/roi/config' && req.method === 'GET') {
-        return next();
-    }
-    // Skip auth for session info endpoint
-    if (req.path === '/api/session-info') {
         return next();
     }
     // Apply auth for all other routes
