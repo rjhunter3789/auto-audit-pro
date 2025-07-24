@@ -1390,5 +1390,18 @@
     "error_details": "Request failed with status code 403",
     "scraping_method": "unknown",
     "check_timestamp": "2025-07-24T01:28:45.111Z"
+  },
+  {
+    "id": 1753336058663,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": true,
+    "response_time_ms": 350,
+    "http_status_code": 403,
+    "issues_found": [],
+    "metrics": {},
+    "error_details": "Request failed with status code 403",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-24T05:47:38.664Z"
   }
 ]
