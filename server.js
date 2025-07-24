@@ -3789,9 +3789,15 @@ app.put('/api/admin/monitoring-config', requireAdmin, (req, res) => {
 
 
 
-// Initialize monitoring scheduler
-const MonitoringScheduler = require('./lib/monitoring-scheduler');
-const monitoringScheduler = new MonitoringScheduler(getMonitoringEngine());
+// Initialize monitoring scheduler with error handling
+let monitoringScheduler;
+try {
+    const MonitoringScheduler = require('./lib/monitoring-scheduler');
+    monitoringScheduler = new MonitoringScheduler(getMonitoringEngine());
+} catch (error) {
+    console.error('Failed to initialize monitoring scheduler:', error);
+    monitoringScheduler = null;
+}
 
 // Catch direct access to view files and render them properly
 app.use((req, res, next) => {
