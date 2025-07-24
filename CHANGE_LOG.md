@@ -1,5 +1,13 @@
 # Auto Audit Pro - Change Log
 
+## Version 2.6.8 - July 23, 2025 (APPROVAL WORKFLOW)
+
+### New Feature: Monitoring Request Approval System
+- Dealers submit monitoring requests (pending status)
+- Admin reviews and approves/denies in Admin Settings
+- Proper oversight with dealer self-service capabilities
+- Clear audit trail with requested_by and approved_by fields
+
 ## Version 2.6.7 - July 23, 2025 (RESTORED & PATCHED)
 
 ### Critical Restoration
@@ -63,6 +71,19 @@
 - **package.json**: Restored start script to use server.js
 - **monitoring-dashboard.html**: Added admin-only visibility for settings
 
+### New Features Added (Post-Recovery)
+
+#### 7. Monitoring Request Approval Workflow
+- **Change**: Dealers must request monitoring approval from admin
+- **Implementation**: 
+  - Added approval status tracking (pending/approved/denied)
+  - New admin interface for managing requests
+  - Role-based visibility of monitoring sites
+- **Benefits**:
+  - Admin maintains control over monitored resources
+  - Prevents abuse while allowing self-service
+  - Clear audit trail of who requested what
+
 ### Current System Status
 - **Deployment**: ✅ Working on Railway
 - **Authentication**: ✅ Both admin and dealer logins functional
@@ -70,6 +91,7 @@
 - **Monitoring**: ✅ Working without ScrapingDog
 - **CSP Headers**: ✅ Properly configured for unsafe-eval
 - **Role-Based Access**: ✅ Admin features hidden from dealers
+- **Approval Workflow**: ✅ Monitoring requests require admin approval
 
 ### Version History
 - **2.6.7** (July 23, 2025) - Restored and patched version

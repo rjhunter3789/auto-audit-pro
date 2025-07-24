@@ -181,6 +181,69 @@ These files are in their working state and should not be changed:
 - nixpacks.toml (basic Node.js setup)
 - package.json (correct start script)
 
+### NEW: Monitoring Request Approval Workflow (Added July 23, 2025)
+
+#### Overview
+Implemented a middle-ground approval system where dealers can request website monitoring, but admin approval is required before monitoring begins.
+
+#### Key Changes
+
+1. **Database Schema Updates** (/lib/json-storage.js):
+   - Added `status` field: 'pending', 'approved', 'denied'
+   - Added `requested_by`: tracks who made the request
+   - Added `approved_by`: tracks admin who approved
+   - Added `approval_date`: timestamp of approval/denial
+   - Added `denial_reason`: optional reason for denial
+
+2. **New API Endpoints** (server.js):
+   - `GET /api/monitoring/profiles/pending` - Get all pending requests (admin only)
+   - `POST /api/monitoring/profiles/:id/approve` - Approve request (admin only)
+   - `POST /api/monitoring/profiles/:id/deny` - Deny request with reason (admin only)
+
+3. **UI Changes**:
+   - **Dealer View** (monitoring-dashboard.html):
+     - "Add Website" → "Request Monitoring"
+     - Modal title changes for dealers
+     - Submit button: "Add Website" → "Submit Request"
+     - Pending requests show with yellow indicator
+   - **Admin View** (admin-settings.html):
+     - New "Pending Monitoring Requests" section
+     - Table with approve/deny buttons
+     - Auto-refreshes every 30 seconds
+
+4. **Role-Based Access**:
+   - Dealers: Can only see approved sites
+   - Admins: Can see all sites (approved, pending, denied)
+   - Admin Settings button hidden for dealers
+
+#### Implementation Details
+
+**Front-end changes in monitoring-dashboard.html:**
+```javascript
+// Line 604-620: UI updates for dealers
+if (!currentUser.isAdmin) {
+    // Hide Admin Settings button
+    // Change button text to "Request Monitoring"
+    // Update modal title and submit button
+}
+
+// Line 976-977: Add status field to requests
+status: currentUser.isAdmin ? 'approved' : 'pending',
+requested_by: currentUser.username || currentUser.email
+```
+
+**Back-end approval logic in server.js:**
+```javascript
+// Lines 1144-1184: Approval endpoint
+// - Updates status to 'approved'
+// - Records approver and timestamp
+// - Schedules initial monitoring check
+
+// Lines 1187-1212: Denial endpoint
+// - Updates status to 'denied'
+// - Records reason and timestamp
+```
+
 ### Emergency Contacts
 - Developer: JL Robinson
 - Email: nakapaahu@gmail.com
