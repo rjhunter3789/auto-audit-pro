@@ -595,6 +595,12 @@
             
             // Hide admin controls for non-admin users
             if (!currentUser.isAdmin) {
+                // Hide Admin Settings button
+                const adminSettingsBtn = document.getElementById('adminSettingsBtn');
+                if (adminSettingsBtn) {
+                    adminSettingsBtn.style.display = 'none';
+                }
+                
                 // Hide frequency selector in add modal
                 // Check frequency is now admin-controlled only
                 if (frequencyDiv) {
