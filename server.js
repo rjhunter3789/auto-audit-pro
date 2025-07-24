@@ -3833,7 +3833,7 @@ app.use((req, res, next) => {
 
 // Start server
 app.listen(PORT, async () => {
-    console.log(`Auto Audit Pro Server v2.6.3 running on port ${PORT}`);
+    console.log(`Auto Audit Pro Server v2.6.7 running on port ${PORT}`);
     console.log(`Features:`);
     console.log(`   - 8-Category Testing System`);
     console.log(`   - Real Google PageSpeed API Integration`);
