@@ -74,6 +74,25 @@ app.use(session({
     }
 }));
 
+// CSP Headers to fix Railway's restrictive policy
+app.use((req, res, next) => {
+    // Set permissive CSP headers to override Railway's restrictive ones
+    res.setHeader('Content-Security-Policy', 
+        "default-src 'self'; " +
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
+        "img-src 'self' data: https: http:; " +
+        "font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
+        "connect-src 'self' https: http:; " +
+        "frame-src 'self'; " +
+        "object-src 'none'; " +
+        "base-uri 'self'; " +
+        "form-action 'self'; " +
+        "upgrade-insecure-requests"
+    );
+    next();
+});
+
 // Middleware
 app.use(cors());
 app.use(express.json());
