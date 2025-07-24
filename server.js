@@ -804,8 +804,15 @@ app.get('/api/monitoring/status', async (req, res) => {
         // Use JSON storage instead of database
         const { storage: jsonStorage } = require('./lib/json-storage');
         
-        // Get all profiles
-        const profiles = await jsonStorage.getProfiles();
+        // Get profiles based on user role
+        let profiles;
+        if (req.session && req.session.isAdmin) {
+            // Admins see all profiles including pending
+            profiles = await jsonStorage.getProfiles();
+        } else {
+            // Dealers only see approved profiles
+            profiles = await jsonStorage.getApprovedProfiles();
+        }
         
         // Get latest result for each profile
         const profilesWithStatus = await Promise.all(profiles.map(async (profile) => {
@@ -1125,6 +1132,89 @@ app.post('/api/monitoring/test-alert/:profileId', async (req, res) => {
             error: 'Failed to send test notifications',
             details: error.message 
         });
+    }
+});
+
+// Get pending monitoring requests (admin only)
+app.get('/api/monitoring/profiles/pending', requireAdmin, async (req, res) => {
+    try {
+        const { storage: jsonStorage } = require('./lib/json-storage');
+        const pendingProfiles = await jsonStorage.getPendingProfiles();
+        res.json(pendingProfiles);
+    } catch (error) {
+        console.error('Error fetching pending profiles:', error);
+        res.status(500).json({ error: 'Failed to fetch pending profiles' });
+    }
+});
+
+// Approve monitoring request (admin only)
+app.post('/api/monitoring/profiles/:id/approve', requireAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { storage: jsonStorage } = require('./lib/json-storage');
+        
+        const updates = {
+            status: 'approved',
+            approved_by: req.session.username || 'admin',
+            approval_date: new Date().toISOString(),
+            monitoring_enabled: true
+        };
+        
+        const updatedProfile = await jsonStorage.updateProfile(parseInt(id), updates);
+        
+        if (!updatedProfile) {
+            return res.status(404).json({ error: 'Profile not found' });
+        }
+        
+        // Schedule initial check for newly approved profile
+        setTimeout(async () => {
+            try {
+                console.log(`[Approval] Running initial check for newly approved profile: ${updatedProfile.id}`);
+                const engine = getMonitoringEngine();
+                const results = await engine.runFullCheck(updatedProfile);
+                
+                // Update profile status
+                await jsonStorage.updateProfile(updatedProfile.id, {
+                    overall_status: results.overall_status,
+                    last_check: new Date().toISOString()
+                });
+            } catch (error) {
+                console.error(`[Approval] Initial check failed for ${updatedProfile.dealer_name}:`, error);
+            }
+        }, 5000); // 5 seconds delay
+        
+        res.json({ success: true, profile: updatedProfile });
+    } catch (error) {
+        console.error('Error approving profile:', error);
+        res.status(500).json({ error: 'Failed to approve profile' });
+    }
+});
+
+// Deny monitoring request (admin only)
+app.post('/api/monitoring/profiles/:id/deny', requireAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { reason } = req.body;
+        const { storage: jsonStorage } = require('./lib/json-storage');
+        
+        const updates = {
+            status: 'denied',
+            approved_by: req.session.username || 'admin',
+            approval_date: new Date().toISOString(),
+            denial_reason: reason || 'No reason provided',
+            monitoring_enabled: false
+        };
+        
+        const updatedProfile = await jsonStorage.updateProfile(parseInt(id), updates);
+        
+        if (!updatedProfile) {
+            return res.status(404).json({ error: 'Profile not found' });
+        }
+        
+        res.json({ success: true, profile: updatedProfile });
+    } catch (error) {
+        console.error('Error denying profile:', error);
+        res.status(500).json({ error: 'Failed to deny profile' });
     }
 });
 

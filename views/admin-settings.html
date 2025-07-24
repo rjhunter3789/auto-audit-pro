@@ -200,6 +200,16 @@
                 </div>
             </div>
         </div>
+
+        <!-- Pending Monitoring Requests -->
+        <div class="settings-card">
+            <h3 class="section-title">Pending Monitoring Requests</h3>
+            <div id="pendingRequestsContainer">
+                <div class="text-center text-muted py-3">
+                    <i class="bi bi-hourglass-split"></i> Loading pending requests...
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Success Alert -->
@@ -417,11 +427,113 @@
             }, 5000);
         }
 
+        // Load pending monitoring requests
+        async function loadPendingRequests() {
+            try {
+                const response = await axios.get('/api/monitoring/profiles/pending');
+                const pendingRequests = response.data;
+                
+                const container = document.getElementById('pendingRequestsContainer');
+                
+                if (pendingRequests.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-check-circle" style="font-size: 2rem;"></i>
+                            <p class="mt-2">No pending requests</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = `
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Dealer Name</th>
+                                    <th>Website URL</th>
+                                    <th>Requested By</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                pendingRequests.forEach(request => {
+                    const requestDate = new Date(request.created_at).toLocaleDateString();
+                    html += `
+                        <tr>
+                            <td>${request.dealer_name}</td>
+                            <td><a href="${request.website_url}" target="_blank">${request.website_url}</a></td>
+                            <td>${request.requested_by || 'Unknown'}</td>
+                            <td>${requestDate}</td>
+                            <td>
+                                <button class="btn btn-sm btn-success me-1" onclick="approveRequest('${request.id}')">
+                                    <i class="bi bi-check"></i> Approve
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="denyRequest('${request.id}')">
+                                    <i class="bi bi-x"></i> Deny
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading pending requests:', error);
+                document.getElementById('pendingRequestsContainer').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i> Error loading pending requests
+                    </div>
+                `;
+            }
+        }
+
+        // Approve monitoring request
+        async function approveRequest(profileId) {
+            if (!confirm('Approve this monitoring request?')) return;
+            
+            try {
+                await axios.post(`/api/monitoring/profiles/${profileId}/approve`);
+                showSuccess('Monitoring request approved');
+                loadPendingRequests();
+            } catch (error) {
+                console.error('Error approving request:', error);
+                showError('Failed to approve request');
+            }
+        }
+
+        // Deny monitoring request
+        async function denyRequest(profileId) {
+            const reason = prompt('Reason for denial (optional):');
+            if (reason === null) return; // User cancelled
+            
+            try {
+                await axios.post(`/api/monitoring/profiles/${profileId}/deny`, { reason });
+                showSuccess('Monitoring request denied');
+                loadPendingRequests();
+            } catch (error) {
+                console.error('Error denying request:', error);
+                showError('Failed to deny request');
+            }
+        }
+
         // Initialize on load
         document.addEventListener('DOMContentLoaded', () => {
             loadConfig();
+            loadPendingRequests();
             // Auto-refresh API stats every 30 seconds
             setInterval(loadApiStats, 30000);
+            // Auto-refresh pending requests every 30 seconds
+            setInterval(loadPendingRequests, 30000);
         });
     </script>
 </body>
