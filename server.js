@@ -3663,20 +3663,6 @@ app.get('/api/user/current', (req, res) => {
         res.status(401).json({ error: 'Not authenticated' });
     }
 });
-    } else {
-        // Return default admin user for monitoring access
-        res.json({
-            username: 'admin',
-            role: 'admin',
-            isAdmin: true,
-            dealership: null
-        });
-    }
-});
-    } else {
-        res.status(401).json({ error: 'Not authenticated' });
-    }
-});
 
 
 // Get monitoring profiles
@@ -4040,8 +4026,8 @@ app.use((req, res, next) => {
     res.status(404).send(`Cannot ${req.method} ${req.path}`);
 });
 
-// Start server
-app.listen(PORT, async () => {
+// Start server - bind to 0.0.0.0 for Railway
+app.listen(PORT, '0.0.0.0', async () => {
     console.log(`Auto Audit Pro Server v2.6.7 running on port ${PORT}`);
     console.log(`Features:`);
     console.log(`   - 8-Category Testing System`);
