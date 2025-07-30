@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fix Admin Access - Auto Audit Pro</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .btn {
+            background: #4a90e2;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .btn:hover {
+            background: #357abd;
+        }
+        .success {
+            color: green;
+            padding: 10px;
+            background: #e8f5e9;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .error {
+            color: red;
+            padding: 10px;
+            background: #ffebee;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .status {
+            padding: 10px;
+            background: #e3f2fd;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Fix Admin Access</h1>
+        <p>This page will fix the persistent 403 error when accessing monitoring as admin.</p>
+        
+        <div id="status" class="status">
+            Checking session status...
+        </div>
+        
+        <button class="btn" onclick="checkSession()">Check Session</button>
+        <button class="btn" onclick="fixSession()">Fix Admin Access</button>
+        <button class="btn" onclick="goToMonitoring()">Go to Monitoring</button>
+        
+        <div id="result"></div>
+        
+        <h3>Instructions:</h3>
+        <ol>
+            <li>Make sure you're logged in as admin</li>
+            <li>Click "Check Session" to see current status</li>
+            <li>Click "Fix Admin Access" to repair the session</li>
+            <li>Click "Go to Monitoring" to test access</li>
+        </ol>
+    </div>
+    
+    <script>
+        async function checkSession() {
+            try {
+                const response = await fetch('/api/session-info');
+                const data = await response.json();
+                
+                document.getElementById('status').innerHTML = `
+                    <strong>Current Session:</strong><br>
+                    Authenticated: ${data.authenticated ? 'Yes' : 'No'}<br>
+                    Username: ${data.username || 'None'}<br>
+                    Role: ${data.role || 'None'}<br>
+                    Is Admin: ${data.isAdmin ? 'Yes' : 'No'}
+                `;
+                
+                if (!data.authenticated) {
+                    document.getElementById('result').innerHTML = 
+                        '<div class="error">Not logged in! Please <a href="/login">login</a> first.</div>';
+                } else if (!data.isAdmin) {
+                    document.getElementById('result').innerHTML = 
+                        '<div class="error">Admin flag not set. Click "Fix Admin Access" to repair.</div>';
+                } else {
+                    document.getElementById('result').innerHTML = 
+                        '<div class="success">Session is valid! You should be able to access monitoring.</div>';
+                }
+            } catch (error) {
+                document.getElementById('result').innerHTML = 
+                    '<div class="error">Error checking session: ' + error.message + '</div>';
+            }
+        }
+        
+        async function fixSession() {
+            try {
+                const response = await fetch('/api/fix-admin-session');
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('result').innerHTML = 
+                        '<div class="success">Admin access fixed! You can now access monitoring.</div>';
+                    setTimeout(checkSession, 500);
+                } else {
+                    document.getElementById('result').innerHTML = 
+                        '<div class="error">Failed to fix: ' + (data.error || 'Unknown error') + '</div>';
+                }
+            } catch (error) {
+                document.getElementById('result').innerHTML = 
+                    '<div class="error">Error fixing session: ' + error.message + '</div>';
+            }
+        }
+        
+        function goToMonitoring() {
+            window.location.href = '/monitoring';
+        }
+        
+        // Check session on load
+        window.onload = checkSession;
+    </script>
+</body>
+</html>

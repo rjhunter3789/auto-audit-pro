@@ -221,6 +221,51 @@ app.get('/api/session-info', (req, res) => {
         userObject: req.user || null,
         sessionExists: !!req.session
     });
+
+// Admin session fix endpoint - ensures admin access works
+app.get('/api/fix-admin-session', (req, res) => {
+    console.log('[FIX-ADMIN] Current session:', req.session);
+    
+    if (req.session.authenticated && req.session.username === 'admin') {
+        req.session.isAdmin = true;
+        req.session.role = 'admin';
+        req.session.save((err) => {
+            if (err) {
+                console.error('[FIX-ADMIN] Session save error:', err);
+                res.json({ error: 'Failed to save session' });
+            } else {
+                console.log('[FIX-ADMIN] Session fixed successfully');
+                res.json({ 
+                    success: true, 
+                    message: 'Admin session fixed! You can now access monitoring.',
+                    session: {
+                        username: req.session.username,
+                        role: req.session.role,
+                        isAdmin: req.session.isAdmin,
+                        authenticated: req.session.authenticated
+                    }
+                });
+            }
+        });
+    } else {
+        res.status(401).json({ 
+            error: 'Not authenticated as admin',
+            hint: 'Please login as admin first'
+        });
+    }
+});
+
+// Auto-fix admin session on login
+app.post('/api/ensure-admin', (req, res) => {
+    if (req.session.authenticated && req.session.username === 'admin') {
+        req.session.isAdmin = true;
+        req.session.role = 'admin';
+        req.session.save();
+        res.json({ success: true });
+    } else {
+        res.json({ success: false });
+    }
+});
 });
 
 // Temporary admin session fix endpoint
@@ -1219,6 +1264,13 @@ app.post('/api/monitoring/profiles/:id/deny', requireAdmin, async (req, res) => 
 });
 
 // ===== END MONITORING API ROUTES =====
+
+
+// Admin fix page route
+app.get('/admin-fix', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'admin-fix.html'));
+});
+
 
 // Get monitoring dashboard - NO AUTH CHECK for easier access
 app.get('/monitoring', checkAuth, requireAdmin, (req, res) => {
