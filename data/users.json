@@ -3,10 +3,10 @@
     "id": "1",
     "username": "admin",
     "email": "admin@autoauditpro.com",
-    "password": "AutoAudit2025!",
+    "password": "Admin123!",
     "role": "admin",
     "isAdmin": true,
-    "created_at": "2025-07-17T22:20:40.362Z"
+    "created_at": "2025-07-30T14:54:16.597Z"
   },
   {
     "id": "2",
