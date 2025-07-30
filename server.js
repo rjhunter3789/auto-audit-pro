@@ -622,7 +622,7 @@ app.post('/api/force-create-alert/:level?', async (req, res) => {
 // ===== MONITORING API ROUTES (moved before auth middleware) =====
 // These routes handle their own authentication internally
 
-app.get('/api/monitoring/profiles', async (req, res) => {
+app.get('/api/monitoring/profiles', checkAuth, async (req, res) => {
     try {
         // Use JSON storage instead of database
         const { storage: jsonStorage } = require('./lib/json-storage');
@@ -783,7 +783,7 @@ app.delete('/api/monitoring/profiles/:id', requireAdmin, async (req, res) => {
     }
 });
 
-app.get('/api/monitoring/results/:profileId', async (req, res) => {
+app.get('/api/monitoring/results/:profileId', checkAuth, async (req, res) => {
     try {
         const { profileId } = req.params;
         const { limit = 100 } = req.query;
@@ -799,7 +799,7 @@ app.get('/api/monitoring/results/:profileId', async (req, res) => {
     }
 });
 
-app.get('/api/monitoring/status', async (req, res) => {
+app.get('/api/monitoring/status', checkAuth, async (req, res) => {
     try {
         // Use JSON storage instead of database
         const { storage: jsonStorage } = require('./lib/json-storage');
@@ -840,7 +840,7 @@ app.get('/api/monitoring/status', async (req, res) => {
     }
 });
 
-app.get('/api/monitoring/stats', async (req, res) => {
+app.get('/api/monitoring/stats', checkAuth, async (req, res) => {
     try {
         // Get monitoring engine instance
         const monitoringEngine = getMonitoringEngine();
@@ -878,7 +878,7 @@ app.get('/api/monitoring/stats', async (req, res) => {
     }
 });
 
-app.get('/api/monitoring/alerts/:profileId', async (req, res) => {
+app.get('/api/monitoring/alerts/:profileId', checkAuth, async (req, res) => {
     try {
         const { profileId } = req.params;
         const resolvedParam = req.query.resolved;
@@ -1221,7 +1221,7 @@ app.post('/api/monitoring/profiles/:id/deny', requireAdmin, async (req, res) => 
 // ===== END MONITORING API ROUTES =====
 
 // Get monitoring dashboard - NO AUTH CHECK for easier access
-app.get('/monitoring', (req, res) => {
+app.get('/monitoring', checkAuth, requireAdmin, (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'monitoring-dashboard.html'));
 });
 
@@ -3607,6 +3607,10 @@ app.get('/api/user/current', (req, res) => {
             isAdmin: req.session.isAdmin || false,
             dealership: req.session.dealership || null
         });
+    } else {
+        res.status(401).json({ error: 'Not authenticated' });
+    }
+});
     } else {
         // Return default admin user for monitoring access
         res.json({
