@@ -1429,5 +1429,70 @@
     "error_details": "Request failed with status code 403",
     "scraping_method": "unknown",
     "check_timestamp": "2025-07-24T06:00:00.606Z"
+  },
+  {
+    "id": 1753887301620,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": true,
+    "response_time_ms": 248,
+    "http_status_code": 403,
+    "issues_found": [],
+    "metrics": {},
+    "error_details": "Request failed with status code 403",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-30T14:55:01.625Z"
+  },
+  {
+    "id": 1753911059997,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": true,
+    "response_time_ms": 555,
+    "http_status_code": 403,
+    "issues_found": [],
+    "metrics": {},
+    "error_details": "Request failed with status code 403",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-30T21:31:00.003Z"
+  },
+  {
+    "id": 1753912740745,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": true,
+    "response_time_ms": 194,
+    "http_status_code": 403,
+    "issues_found": [],
+    "metrics": {},
+    "error_details": "Request failed with status code 403",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-30T21:59:00.746Z"
+  },
+  {
+    "id": 1753912800523,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": true,
+    "response_time_ms": 143,
+    "http_status_code": 403,
+    "issues_found": [],
+    "metrics": {},
+    "error_details": "Request failed with status code 403",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-30T22:00:00.524Z"
+  },
+  {
+    "id": 1753916340734,
+    "profile_id": 1753052736903,
+    "overall_status": "RED",
+    "is_reachable": true,
+    "response_time_ms": 196,
+    "http_status_code": 403,
+    "issues_found": [],
+    "metrics": {},
+    "error_details": "Request failed with status code 403",
+    "scraping_method": "unknown",
+    "check_timestamp": "2025-07-30T22:59:00.736Z"
   }
 ]
