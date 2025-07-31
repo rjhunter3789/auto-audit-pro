@@ -117,6 +117,9 @@ app.use('/css', express.static(path.join(__dirname, 'public/css')));
 app.use('/images', express.static(path.join(__dirname, 'public/images')));
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
+// SERVE ALL STATIC FILES FROM PUBLIC - NO AUTH
+app.use(express.static(path.join(__dirname, 'public')));
+
 // Allow access to views for admin pages
 app.use('/views', express.static(path.join(__dirname, 'views')));
 
