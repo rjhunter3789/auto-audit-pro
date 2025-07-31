@@ -1271,6 +1271,19 @@ app.get('/monitoring-direct', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'monitoring-dashboard.html'));
 });
 
+// ULTRA SIMPLE TEST PAGE - NO AUTH, NO DEPENDENCIES
+app.get('/test-monitoring', (req, res) => {
+    console.log('[TEST-MONITORING] Ultra simple test page accessed');
+    res.sendFile(path.join(__dirname, 'views', 'monitoring-test.html'));
+});
+
+// PURE TEXT RESPONSE - NO FILES
+app.get('/test-text', (req, res) => {
+    console.log('[TEST-TEXT] Pure text response');
+    res.type('text/plain');
+    res.send('SUCCESS! Server is responding. No authentication required. Time: ' + new Date().toISOString());
+});
+
 // ROI Configuration API Routes (moved before auth)
 const roiConfig = require('./lib/roi-config');
 
