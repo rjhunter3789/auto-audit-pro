@@ -140,8 +140,9 @@ app.get('/test-access', (req, res) => {
     res.sendFile(path.join(__dirname, 'test-access.html'));
 });
 
-// PERMISSION TEST PAGE
+// PERMISSION TEST PAGE - NO AUTH REQUIRED
 app.get('/test-permissions', (req, res) => {
+    console.log('[TEST-PERMISSIONS] Direct access - NO AUTH');
     res.sendFile(path.join(__dirname, 'views', 'test-permissions.html'));
 });
 
