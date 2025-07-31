@@ -1,0 +1,72 @@
+
+// Test page to verify permissions are working
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Permission Test</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Permission Test Page</h1>
+        <div id="results" class="mt-4">
+            <h3>Testing your permissions...</h3>
+        </div>
+    </div>
+    
+    <script>
+        async function testPermissions() {
+            const results = document.getElementById('results');
+            let html = '<h3>Your Current Permissions:</h3>';
+            
+            // Test 1: Check session
+            try {
+                const session = await fetch('/api/session-info');
+                const data = await session.json();
+                html += '<div class="alert alert-info">';
+                html += '<strong>Session Info:</strong><br>';
+                html += 'Username: ' + (data.username || 'Not logged in') + '<br>';
+                html += 'Role: ' + (data.role || 'None') + '<br>';
+                html += 'Is Admin: ' + (data.isAdmin ? 'Yes' : 'No') + '<br>';
+                html += '</div>';
+            } catch (e) {
+                html += '<div class="alert alert-danger">Could not check session</div>';
+            }
+            
+            // Test 2: Check monitoring access
+            try {
+                const monitoring = await fetch('/api/monitoring/status');
+                if (monitoring.ok) {
+                    html += '<div class="alert alert-success">✓ Can access monitoring</div>';
+                } else {
+                    html += '<div class="alert alert-warning">✗ Cannot access monitoring (Status: ' + monitoring.status + ')</div>';
+                }
+            } catch (e) {
+                html += '<div class="alert alert-danger">✗ Monitoring API error</div>';
+            }
+            
+            // Test 3: Check admin access
+            try {
+                const admin = await fetch('/api/roi/config');
+                if (admin.ok) {
+                    html += '<div class="alert alert-success">✓ Can access admin features</div>';
+                } else {
+                    html += '<div class="alert alert-warning">✗ Cannot access admin features (Status: ' + admin.status + ')</div>';
+                }
+            } catch (e) {
+                html += '<div class="alert alert-danger">✗ Admin API error</div>';
+            }
+            
+            html += '<hr><h4>What you should be able to access:</h4>';
+            html += '<a href="/monitoring" class="btn btn-primary">Monitoring Dashboard</a> ';
+            html += '<a href="/admin-settings" class="btn btn-secondary">Admin Settings</a> ';
+            html += '<a href="/login" class="btn btn-warning">Re-login</a>';
+            
+            results.innerHTML = html;
+        }
+        
+        // Run test on load
+        testPermissions();
+    </script>
+</body>
+</html>

@@ -129,8 +129,20 @@ app.get('/admin-settings-direct', (req, res) => {
 
 // DIRECT MONITORING ACCESS - NO AUTH FOR TESTING
 app.get('/monitoring-direct', (req, res) => {
+    console.log('[MONITORING-DIRECT] Request received - NO AUTH CHECK');
     const filePath = path.join(__dirname, 'views', 'monitoring-simple.html');
     res.sendFile(filePath);
+});
+
+// TEST ROUTE - ABSOLUTELY NO AUTH
+app.get('/test-access', (req, res) => {
+    console.log('[TEST-ACCESS] Request received - NO AUTH CHECK');
+    res.sendFile(path.join(__dirname, 'test-access.html'));
+});
+
+// PERMISSION TEST PAGE
+app.get('/test-permissions', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'test-permissions.html'));
 });
 
 // Also serve the static admin-settings.html file directly
@@ -1278,14 +1290,11 @@ app.get('/admin-fix', (req, res) => {
 });
 
 
-// Get monitoring dashboard - Requires admin access
+// Get monitoring dashboard - Available to all logged in users
 app.get('/monitoring', checkAuth, (req, res) => {
-    // Check if user is admin
-    if (!req.session.isAdmin && req.session.role !== 'admin') {
-        return res.status(403).send('Access Denied - Admin access required');
-    }
-    // Temporarily use simple monitoring page to bypass JavaScript issues
-    res.sendFile(path.join(__dirname, 'views', 'monitoring-simple.html'));
+    // All authenticated users can view monitoring
+    console.log('[MONITORING] User accessing monitoring:', req.session.username, 'Role:', req.session.role);
+    res.sendFile(path.join(__dirname, 'views', 'monitoring-dashboard.html'));
 });
 
 // ROI Configuration API Routes (moved before auth)
