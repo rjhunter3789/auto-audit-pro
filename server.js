@@ -240,6 +240,7 @@ app.get('/api/session-info', (req, res) => {
         userObject: req.user || null,
         sessionExists: !!req.session
     });
+});
 
 // Admin session fix endpoint - ensures admin access works
 app.get('/api/fix-admin-session', (req, res) => {
@@ -284,7 +285,6 @@ app.post('/api/ensure-admin', (req, res) => {
     } else {
         res.json({ success: false });
     }
-});
 });
 
 // Temporary admin session fix endpoint
