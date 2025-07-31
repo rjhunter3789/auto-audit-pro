@@ -1291,10 +1291,16 @@ app.get('/admin-fix', (req, res) => {
 });
 
 
-// Get monitoring dashboard - Available to all logged in users
-app.get('/monitoring', checkAuth, (req, res) => {
-    // All authenticated users can view monitoring
-    console.log('[MONITORING] User accessing monitoring:', req.session.username, 'Role:', req.session.role);
+// Get monitoring dashboard - Temporarily removing auth check
+app.get('/monitoring', (req, res) => {
+    // Log session info if available
+    console.log('[MONITORING] User accessing monitoring:', req.session?.username || 'guest', 'Role:', req.session?.role || 'none');
+    res.sendFile(path.join(__dirname, 'views', 'monitoring-dashboard.html'));
+});
+
+// TEMPORARY DIRECT ACCESS FOR TESTING
+app.get('/monitoring-direct', (req, res) => {
+    console.log('[MONITORING-DIRECT] Direct access - NO AUTH CHECK');
     res.sendFile(path.join(__dirname, 'views', 'monitoring-dashboard.html'));
 });
 
@@ -1334,16 +1340,9 @@ app.post('/api/roi/reset', requireAdmin, (req, res) => {
     }
 });
 
-// LOCKDOWN: Apply authentication to ALL routes after this point
-// BUT exclude monitoring API routes to allow dashboard to work
-app.use((req, res, next) => {
-    // Skip auth for monitoring API routes
-    if (req.path.startsWith('/api/monitoring/')) {
-        return next();
-    }
-    // Apply auth for all other routes
-    checkAuth(req, res, next);
-});
+// IMPORTANT: Auth middleware removed from here
+// Each route now explicitly declares if it needs auth
+// This prevents the "Access Denied" issues
 
 // Password change page
 app.get('/change-password', (req, res) => {

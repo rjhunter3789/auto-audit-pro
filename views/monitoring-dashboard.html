@@ -296,7 +296,7 @@
                         <a href="/" class="btn btn-outline-light btn-sm">
                             <i class="bi bi-house"></i> <span class="d-none d-sm-inline">Back to Audits</span>
                         </a>
-                        <a href="/admin-settings-direct" class="btn btn-outline-light btn-sm" id="adminSettingsBtn">
+                        <a href="/admin-settings-direct" class="btn btn-outline-light btn-sm" id="adminSettingsBtn" style="display: none;">
                             <i class="bi bi-gear"></i> <span class="d-none d-sm-inline">Admin Settings</span>
                         </a>
                         <button class="btn btn-light btn-sm" onclick="showAddProfileModal()" id="addWebsiteBtn">
@@ -595,12 +595,12 @@
                 // Update UI based on user role
                 updateUIForRole();
             } catch (error) {
-                console.log('Auth error, using default admin access');
-                // Use default admin user for monitoring
+                console.log('Auth error, defaulting to non-admin user');
+                // Default to non-admin user for security
                 currentUser = {
-                    username: 'admin',
-                    role: 'admin',
-                    isAdmin: true,
+                    username: 'guest',
+                    role: 'dealer',
+                    isAdmin: false,
                     dealership: null
                 };
                 updateUIForRole();
@@ -610,13 +610,20 @@
         function updateUIForRole() {
             if (!currentUser) return;
             
-            // Hide admin controls for non-admin users
-            if (!currentUser.isAdmin) {
-                // Hide Admin Settings button
-                const adminSettingsBtn = document.getElementById('adminSettingsBtn');
-                if (adminSettingsBtn) {
+            // Show/hide admin controls based on user role
+            const adminSettingsBtn = document.getElementById('adminSettingsBtn');
+            if (adminSettingsBtn) {
+                if (currentUser.isAdmin) {
+                    // Show admin button for admin users
+                    adminSettingsBtn.style.display = '';
+                } else {
+                    // Hide admin button for non-admin users
                     adminSettingsBtn.style.display = 'none';
                 }
+            }
+            
+            // Additional UI changes for non-admin users
+            if (!currentUser.isAdmin) {
                 
                 // Change "Add Website" to "Request Website Monitoring" for dealers
                 const addWebsiteText = document.getElementById('addWebsiteText');

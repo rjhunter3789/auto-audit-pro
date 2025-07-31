@@ -12,7 +12,7 @@
     "id": "2",
     "username": "dealer",
     "email": "dealer@priceford.com",
-    "password": "dealer123",
+    "password": "Dealer123!",
     "role": "dealer",
     "dealership": "Price Ford",
     "isAdmin": false,
