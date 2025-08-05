@@ -1371,6 +1371,14 @@ function showDataLoadedUI(info, daysUntilExpiry) {
         statusIcon = 'fa-exclamation-triangle';
     }
     
+    // Check if data was refreshed
+    let refreshInfo = '';
+    if (info.lastRefreshed) {
+        const refreshDate = new Date(info.lastRefreshed);
+        const refreshDaysAgo = Math.floor((new Date() - refreshDate) / (1000 * 60 * 60 * 24));
+        refreshInfo = `<p class="mb-1 text-info"><i class="fas fa-sync"></i> Last refreshed: ${refreshDate.toLocaleDateString()} (${refreshDaysAgo} days ago)</p>`;
+    }
+    
     uploadCard.innerHTML = `
         <div class="d-flex justify-content-between align-items-start">
             <div>
@@ -1378,6 +1386,7 @@ function showDataLoadedUI(info, daysUntilExpiry) {
                 <h3 class="mt-2">Data Loaded from Storage</h3>
                 <p class="mb-1"><strong>${info.dealerCount} dealers</strong> (${info.sizeInMB}MB)</p>
                 <p class="mb-1">Uploaded: ${uploadDate.toLocaleDateString()} (${daysAgo} days ago)</p>
+                ${refreshInfo}
                 <p class="${statusClass}">Expires in ${daysUntilExpiry} days</p>
             </div>
             <div class="d-flex flex-column gap-2">
@@ -1386,6 +1395,12 @@ function showDataLoadedUI(info, daysUntilExpiry) {
                 </button>
                 <button class="btn btn-outline-danger btn-sm" onclick="clearStoredData()" title="Remove all stored data">
                     <i class="fas fa-trash"></i> Clear All Data
+                </button>
+                <button class="btn btn-success btn-sm" onclick="exportData()" title="Export dealer data as JSON">
+                    <i class="fas fa-download"></i> Export Data
+                </button>
+                <button class="btn btn-info btn-sm" onclick="refreshDataTimer()" title="Extend data expiration by 30 days">
+                    <i class="fas fa-clock"></i> Refresh Timer
                 </button>
             </div>
         </div>
@@ -3038,5 +3053,105 @@ function loadSavedSettings() {
         } catch (e) {
             console.error('Error loading saved settings:', e);
         }
+    }
+}
+
+// Export Data function
+function exportData() {
+    try {
+        // First try to get from the global variable
+        let dataToExport = uploadedDealerData;
+        
+        // If not available, try to load from localStorage
+        if (!dataToExport) {
+            const storedData = localStorage.getItem('dealerDataComplete');
+            if (storedData) {
+                const dataPackage = JSON.parse(storedData);
+                dataToExport = dataPackage.data;
+            }
+        }
+        
+        if (!dataToExport || Object.keys(dataToExport).length === 0) {
+            alert('No data to export');
+            return;
+        }
+        
+        const exportPackage = {
+            exportDate: new Date().toISOString(),
+            dealerCount: Object.keys(dataToExport).length,
+            data: dataToExport
+        };
+        
+        const dataStr = JSON.stringify(exportPackage, null, 2);
+        const dataBlob = new Blob([dataStr], {type: 'application/json'});
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `dealer_data_export_${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    } catch (e) {
+        console.error('Error exporting data:', e);
+        alert('Error exporting data. Please try again.');
+    }
+}
+
+// Refresh Timer function  
+function refreshDataTimer() {
+    try {
+        const dataInfo = localStorage.getItem('dataUploadInfo');
+        const dataComplete = localStorage.getItem('dealerDataComplete');
+        
+        if (!dataInfo || !dataComplete) {
+            alert('No data found to refresh');
+            return;
+        }
+        
+        const info = JSON.parse(dataInfo);
+        const dataPackage = JSON.parse(dataComplete);
+        
+        // Check refresh count (default to 0 if not present)
+        let refreshCount = dataPackage.refreshCount || 0;
+        
+        if (refreshCount >= 3) {
+            alert('Maximum refresh limit (3) reached. Please upload new data.');
+            return;
+        }
+        
+        // Update expiry date to 30 days from now
+        const newExpiryDate = new Date();
+        newExpiryDate.setDate(newExpiryDate.getDate() + 30);
+        
+        // Update both storage items
+        info.expiryDate = newExpiryDate.toISOString();
+        info.lastRefreshed = new Date().toISOString();
+        dataPackage.expiryDate = newExpiryDate.toISOString();
+        dataPackage.refreshCount = refreshCount + 1;
+        dataPackage.lastRefreshed = new Date().toISOString();
+        
+        localStorage.setItem('dataUploadInfo', JSON.stringify(info));
+        localStorage.setItem('dealerDataComplete', JSON.stringify(dataPackage));
+        
+        // Log the update for debugging
+        const oldExpiry = new Date(info.expiryDate);
+        console.log('Timer refresh completed:', {
+            oldExpiryDate: oldExpiry.toLocaleDateString(),
+            newExpiryDate: newExpiryDate.toLocaleDateString(),
+            daysExtended: Math.ceil((newExpiryDate - oldExpiry) / (1000 * 60 * 60 * 24)),
+            refreshCount: dataPackage.refreshCount
+        });
+        
+        const remainingRefreshes = 3 - dataPackage.refreshCount;
+        alert(`Data expiration extended by 30 days. You have ${remainingRefreshes} refresh${remainingRefreshes !== 1 ? 'es' : ''} remaining.`);
+        
+        // Add a small delay before reload to ensure localStorage write completes
+        setTimeout(() => {
+            location.reload();
+        }, 100);
+    } catch (e) {
+        console.error('Error refreshing timer:', e);
+        alert('Error refreshing timer. Please try again.');
     }
 }
