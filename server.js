@@ -47,6 +47,7 @@ const { Builder, By, until } = seleniumWrapper.seleniumAvailable ? require('sele
 // Load custom modules
 const groupAnalysis = require('./lib/group-analysis');
 const DealerSearcher = require('./lib/dealer-search');
+const PredictiveHeatmapGenerator = require('./lib/predictive-heatmap');
 
 // Load JSON storage for monitoring system
 const { pool } = require('./lib/json-storage');
@@ -119,6 +120,11 @@ app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 // SERVE ALL STATIC FILES FROM PUBLIC - NO AUTH
 app.use(express.static(path.join(__dirname, 'public')));
+
+// EXPLICIT FAVICON HANDLING - NO 403s
+app.get('/favicon.ico', (req, res) => {
+    res.status(204).end(); // No content
+});
 
 // Allow access to views for admin pages
 app.use('/views', express.static(path.join(__dirname, 'views')));
@@ -3546,6 +3552,27 @@ app.post('/audit', async (req, res) => {
             score: auditResults.overallScore,
             timestamp: new Date().toISOString()
         };
+        
+        // Generate predictive heatmap for homepage
+        try {
+            console.log('[AUDIT] Generating predictive heatmap...');
+            const heatmapGenerator = new PredictiveHeatmapGenerator();
+            auditResults.heatmap = await heatmapGenerator.generateHeatmap(siteUrl, brand);
+            
+            if (auditResults.heatmap.success) {
+                console.log('[AUDIT] Heatmap generated successfully');
+                // Add heatmap insights to the audit
+                auditResults.heatmapInsights = auditResults.heatmap.insights;
+            } else {
+                console.log('[AUDIT] Heatmap generation failed:', auditResults.heatmap.error);
+            }
+        } catch (heatmapError) {
+            console.error('[AUDIT] Error generating heatmap:', heatmapError);
+            auditResults.heatmap = {
+                success: false,
+                error: heatmapError.message
+            };
+        }
         
         // If contact page found, check it for business hours and contact info
         if (discoveredPages.contact) {
