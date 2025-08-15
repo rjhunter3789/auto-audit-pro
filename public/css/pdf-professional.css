@@ -1,0 +1,268 @@
+/* Professional PDF Report Styles for Auto Audit Pro */
+
+@media print {
+    /* Page Setup */
+    @page {
+        size: letter;
+        margin: 0.75in;
+        
+        @bottom-right {
+            content: "Page " counter(page) " of " counter(pages);
+            font-size: 10pt;
+            color: #666;
+        }
+        
+        @bottom-left {
+            content: "© 2025 Auto Audit Pro - Confidential";
+            font-size: 10pt;
+            color: #666;
+        }
+    }
+    
+    @page :first {
+        margin-top: 0;
+    }
+    
+    /* Global Print Resets */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
+    
+    body {
+        font-size: 11pt;
+        line-height: 1.5;
+        color: #000;
+        background: white;
+        margin: 0;
+        padding: 0;
+    }
+    
+    /* Hide Non-Print Elements */
+    .no-print,
+    .nav,
+    .navigation,
+    .btn-action,
+    .action-buttons,
+    button,
+    .back-to-suite,
+    footer {
+        display: none !important;
+    }
+    
+    /* Page Break Controls */
+    h1 {
+        page-break-after: avoid;
+        margin-top: 0;
+    }
+    
+    h2 {
+        page-break-before: auto;
+        page-break-after: avoid;
+        margin-top: 24pt;
+        padding-top: 12pt;
+    }
+    
+    h3, h4, h5, h6 {
+        page-break-after: avoid;
+        page-break-inside: avoid;
+        margin-top: 18pt;
+    }
+    
+    p {
+        orphans: 3;
+        widows: 3;
+    }
+    
+    /* Keep elements together */
+    .category-item,
+    .issue-item,
+    .recommendation-item,
+    .insight-card,
+    .stat-card,
+    .performance-metric {
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+    
+    /* Performance Overview Grid */
+    .category-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 15pt !important;
+        page-break-inside: avoid;
+    }
+    
+    .category-item {
+        border: 1pt solid #e5e7eb;
+        padding: 12pt;
+        margin-bottom: 0;
+        page-break-inside: avoid;
+    }
+    
+    /* Issues & Recommendations */
+    .issues-section {
+        page-break-before: always;
+    }
+    
+    .issue-group {
+        page-break-inside: avoid;
+        margin-bottom: 18pt;
+    }
+    
+    .issue-item {
+        border: 1pt solid #e5e7eb;
+        padding: 10pt;
+        margin-bottom: 8pt;
+        page-break-inside: avoid;
+    }
+    
+    /* Heatmap Section */
+    .heatmap-section {
+        page-break-before: always;
+        page-break-inside: avoid;
+    }
+    
+    .heatmap-section img {
+        max-width: 100%;
+        max-height: 7in;
+        page-break-inside: avoid;
+        display: block;
+        margin: 12pt auto;
+    }
+    
+    /* Tables */
+    table {
+        page-break-inside: avoid;
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    th, td {
+        border: 1pt solid #e5e7eb;
+        padding: 6pt;
+    }
+    
+    thead {
+        display: table-header-group;
+    }
+    
+    tr {
+        page-break-inside: avoid;
+    }
+    
+    /* Report Header for Each Page */
+    .print-header {
+        display: block !important;
+        position: running(header);
+        text-align: center;
+        font-size: 10pt;
+        color: #666;
+        border-bottom: 1pt solid #e5e7eb;
+        padding-bottom: 6pt;
+        margin-bottom: 12pt;
+    }
+    
+    @page {
+        @top-center {
+            content: element(header);
+        }
+    }
+    
+    /* Cover Page */
+    .cover-page {
+        display: block !important;
+        page-break-after: always;
+        text-align: center;
+        padding-top: 2in;
+    }
+    
+    .cover-page h1 {
+        font-size: 28pt;
+        margin-bottom: 24pt;
+    }
+    
+    .cover-page .report-meta {
+        font-size: 14pt;
+        line-height: 2;
+    }
+    
+    /* Executive Summary */
+    .executive-summary {
+        page-break-after: always;
+        page-break-inside: avoid;
+    }
+    
+    /* Score Display */
+    .overall-score {
+        font-size: 48pt;
+        font-weight: bold;
+        text-align: center;
+        margin: 24pt 0;
+        page-break-inside: avoid;
+    }
+    
+    /* Color Adjustments for Print */
+    .text-success { color: #059669 !important; }
+    .text-warning { color: #D97706 !important; }
+    .text-danger { color: #DC2626 !important; }
+    .text-info { color: #2563EB !important; }
+    
+    .bg-success { background-color: #D1FAE5 !important; }
+    .bg-warning { background-color: #FEF3C7 !important; }
+    .bg-danger { background-color: #FEE2E2 !important; }
+    .bg-info { background-color: #DBEAFE !important; }
+    
+    /* Links */
+    a {
+        color: #2563EB !important;
+        text-decoration: underline;
+    }
+    
+    a[href]:after {
+        content: none !important; /* Remove URL display */
+    }
+    
+    /* Professional Spacing */
+    .section {
+        margin-bottom: 24pt;
+    }
+    
+    /* List Formatting */
+    ul, ol {
+        page-break-inside: avoid;
+    }
+    
+    li {
+        orphans: 2;
+        widows: 2;
+    }
+    
+    /* Ensure Readability */
+    .small-text {
+        font-size: 9pt !important;
+    }
+    
+    .report-container {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+    }
+}
+
+/* Special class to force page breaks */
+.page-break {
+    page-break-before: always;
+    break-before: always;
+    height: 0;
+    margin: 0;
+    padding: 0;
+}
+
+/* Keep related content together */
+.keep-together {
+    page-break-inside: avoid;
+    break-inside: avoid;
+}

@@ -30,6 +30,8 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
         }
 
         .main-container {
@@ -197,7 +199,7 @@
         .suite-nav {
             background: var(--dark-bg);
             padding: 1rem 0;
-            margin: -2rem -2rem 2rem -2rem;
+            margin: 0 0 2rem 0;
             position: relative;
             z-index: 100;
         }
@@ -279,6 +281,7 @@
             <div class="nav-links">
                 <a href="/website-audit" class="active">Website Analysis</a>
                 <a href="/lead-analysis">Lead Performance</a>
+                <a href="/monitoring">Monitoring</a>
                 <a href="/definitions">Definitions</a>
             </div>
         </div>
@@ -399,7 +402,7 @@
                         <div class="form-check mb-2">
                             <input class="form-check-input" type="radio" name="auditType" id="comprehensiveAudit" value="comprehensive" checked>
                             <label class="form-check-label" for="comprehensiveAudit">
-                                <strong>Comprehensive Audit</strong> (60-90 seconds)
+                                <strong>Comprehensive Audit</strong> (2-3 minutes)
                                 <br><small class="text-muted">Homepage + VDP + Service + Inventory - Complete digital presence review</small>
                             </label>
                         </div>
@@ -450,6 +453,23 @@
                                 </label>
                             </div>
                         </div>
+                    </div>
+                </div>
+                
+                <!-- OEM Incentive Check (Admin Only - Hidden for Regular Users) -->
+                <!-- TODO: Add server-side check to only render this section for admin users -->
+                <div class="form-section" style="display: none;" id="incentiveSection">
+                    <h4 class="section-title">
+                        <i class="fas fa-tags"></i> OEM Incentive Compliance
+                    </h4>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="includeIncentiveCheck" id="includeIncentiveCheck">
+                        <label class="form-check-label" for="includeIncentiveCheck">
+                            Check inventory for current OEM incentives
+                            <small class="text-muted d-block">
+                                <a href="/oem-incentives" target="_blank">Upload incentives first</a>
+                            </small>
+                        </label>
                     </div>
                 </div>
                 

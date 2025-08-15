@@ -1,4 +1,12 @@
 /**
+ * Auto Audit Pro
+ * © 2025 JL Robinson. All Rights Reserved.
+ * 
+ * This file contains proprietary code for the Auto Audit Pro platform.
+ * Unauthorized use, reproduction, or distribution is prohibited.
+ */
+
+/**
  * Fix deployment issues
  * Ensures the app can start in production without Selenium and other optional dependencies
  */

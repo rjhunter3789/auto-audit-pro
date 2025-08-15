@@ -1,3 +1,11 @@
+/**
+ * Auto Audit Pro
+ * © 2025 JL Robinson. All Rights Reserved.
+ * 
+ * This file contains proprietary code for the Auto Audit Pro platform.
+ * Unauthorized use, reproduction, or distribution is prohibited.
+ */
+
 // This script will fix the authentication issues once and for all
 
 const fs = require('fs');

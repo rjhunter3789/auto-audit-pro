@@ -20,6 +20,48 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
+        /* Navigation Bar */
+        .suite-nav {
+            background: var(--dark-bg);
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .suite-nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .suite-brand {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .suite-brand:hover {
+            color: #E5E7EB;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            margin: 0;
+        }
+
+        .nav-links a {
+            color: #9CA3AF;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: white;
+        }
+
         .main-container {
             max-width: 1200px;
             margin: 0 auto;
@@ -143,10 +185,20 @@
     </style>
 </head>
 <body>
+    <!-- Navigation Bar -->
+    <nav class="suite-nav">
+        <div class="container">
+            <a href="/" class="suite-brand">Auto Audit Pro Suite</a>
+            <div class="nav-links">
+                <a href="/website-audit">Website Analysis</a>
+                <a href="/lead-analysis">Lead Performance</a>
+                <a href="/monitoring">Monitoring</a>
+                <a href="/definitions" class="active">Definitions</a>
+            </div>
+        </div>
+    </nav>
+
     <div class="main-container">
-        <a href="/" class="back-link">
-            <i class="fas fa-arrow-left"></i> Back to Audit Tool
-        </a>
 
         <div class="definitions-header">
             <h1>Definitions & Glossary</h1>

@@ -1,4 +1,12 @@
 /**
+ * Auto Audit Pro
+ * © 2025 JL Robinson. All Rights Reserved.
+ * 
+ * This file contains proprietary code for the Auto Audit Pro platform.
+ * Unauthorized use, reproduction, or distribution is prohibited.
+ */
+
+/**
  * Script to clean up duplicate alerts in the monitoring system
  * This will keep only the first alert of each type per profile and mark it with last_seen
  */

@@ -27,6 +27,30 @@ let volumeChart = null;
 let responseChart = null;
 
 // Initialize the application
+
+// Automatic cleanup on tab/window close
+window.addEventListener('beforeunload', function(e) {
+    // Check if user wants to keep data
+    const keepData = localStorage.getItem('keepDataOnClose') === 'true';
+    if (!keepData && uploadedDealerData && Object.keys(uploadedDealerData).length > 0) {
+        // Show confirmation
+        e.preventDefault();
+        e.returnValue = 'Your lead data will be cleared when you close this tab. Continue?';
+    }
+});
+
+window.addEventListener('unload', function() {
+    const keepData = localStorage.getItem('keepDataOnClose') === 'true';
+    if (!keepData) {
+        // Clear all lead data
+        localStorage.removeItem('dealerDataComplete');
+        localStorage.removeItem('dataUploadInfo');
+        localStorage.removeItem('leadPerformanceData');
+        sessionStorage.clear();
+    }
+});
+
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Lead Performance app initializing...');
     
@@ -99,11 +123,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Setup drag and drop
 function setupDragAndDrop() {
+    console.log('Setting up drag and drop...');
     const uploadCard = document.querySelector('.upload-card');
     if (!uploadCard) {
         console.error('Upload card not found!');
         return;
     }
+    console.log('Upload card found:', uploadCard);
     
     // Test if file input exists
     const fileInput = document.getElementById('fileInput');
@@ -115,22 +141,29 @@ function setupDragAndDrop() {
     
     uploadCard.addEventListener('dragover', (e) => {
         e.preventDefault();
+        e.stopPropagation();
+        console.log('Drag over event');
         uploadCard.style.backgroundColor = '#F9FAFB';
         uploadCard.style.borderColor = '#6B46C1';
     });
     
     uploadCard.addEventListener('dragleave', (e) => {
         e.preventDefault();
+        e.stopPropagation();
+        console.log('Drag leave event');
         uploadCard.style.backgroundColor = '';
         uploadCard.style.borderColor = '';
     });
     
     uploadCard.addEventListener('drop', (e) => {
         e.preventDefault();
+        e.stopPropagation();
+        console.log('Drop event');
         uploadCard.style.backgroundColor = '';
         uploadCard.style.borderColor = '';
         
         const files = e.dataTransfer.files;
+        console.log('Files dropped:', files.length);
         if (files.length > 0) {
             const file = files[0];
             console.log('File dropped:', file.name);
@@ -167,14 +200,19 @@ function showSection(sectionId) {
 
 // File upload functionality
 function uploadFile() {
+    console.log('uploadFile() called');
     const fileInput = document.getElementById('fileInput');
+    console.log('File input element:', fileInput);
     if (fileInput) {
+        console.log('Triggering click on file input');
         fileInput.click();
     } else {
         console.error('File input element not found!');
         alert('Error: File upload element not found. Please refresh the page.');
     }
 }
+
+// Functions will be made available globally after they're defined
 
 function handleFileSelect(event) {
     console.log('File select triggered');
@@ -292,39 +330,56 @@ function processUploadedData(data, filename = '') {
     uploadedDealerData = {};
     
     // Debug: Log the first few rows to understand structure
-    console.log('First 15 rows of data:', data.slice(0, 15));
+    console.log('First 5 rows of data:', data.slice(0, 5));
     console.log('Filename:', filename);
     console.log('Total rows in file:', data.length);
     
-    // Log what's in key positions
-    if (data.length > 11) {
-        console.log('Row 11 (data start):', data[11]);
-        console.log('Row 12:', data[12]);
-        
-        // Show column headers if they exist
-        if (data.length > 10 && data[10]) {
-            console.log('Possible headers at row 11:', data[10]);
-        }
-    }
+    // STANDARDIZED FORMAT:
+    // A1 = Dealer ID (F08680 or L08680)
+    // C1 = "Lead Performance Report" 
+    // Row 2 = Headers
+    // Row 3+ = Data
     
-    // Find dealer name - Ford reports have dealer name in cell B2
     let dealerName = '';
+    let dealerBrand = '';
+    let startRow = 2; // Default to row 3 (index 2) for data start
     
-    // Primary location: Cell B2 (Row 2, Column B = index [1][1])
-    if (data.length > 1 && data[1] && data[1][1]) {
-        const cellB2 = String(data[1][1]).trim();
-        console.log('Cell B2 content:', cellB2);
+    // Check for new standardized format first
+    if (data.length > 0 && data[0] && data[0][0]) {
+        const cellA1 = String(data[0][0]).trim();
+        console.log('Cell A1 content:', cellA1);
         
-        // Check if this looks like a dealer name (not a header)
-        if (cellB2 && 
-            !cellB2.toLowerCase().includes('dealer') && 
-            !cellB2.toLowerCase().includes('report') &&
-            !cellB2.toLowerCase().includes('lead') &&
-            cellB2.length > 3) {
-            dealerName = cellB2;
-            console.log('Found dealer name in B2:', dealerName);
+        // Check if this matches dealer ID format (F##### or L#####)
+        const dealerIdMatch = cellA1.match(/^([FL])(\d{5})$/);
+        if (dealerIdMatch) {
+            dealerBrand = dealerIdMatch[1] === 'F' ? 'Ford' : 'Lincoln';
+            dealerName = `${dealerBrand} Dealer ${dealerIdMatch[2]}`;
+            console.log('Found standardized dealer ID:', cellA1, '- Using name:', dealerName);
+            
+            // With standardized format, data starts at row 3 (index 2)
+            startRow = 2;
         }
     }
+    
+    // Fallback to old format detection if not standardized
+    if (!dealerName) {
+        console.log('No standardized format found, checking legacy locations...');
+        startRow = 11; // Old format starts at row 12 (index 11)
+        
+        // Check B2 for legacy format
+        if (data.length > 1 && data[1] && data[1][1]) {
+            const cellB2 = String(data[1][1]).trim();
+            console.log('Cell B2 content:', cellB2);
+            
+            if (cellB2 && 
+                !cellB2.toLowerCase().includes('dealer') && 
+                !cellB2.toLowerCase().includes('report') &&
+                !cellB2.toLowerCase().includes('lead') &&
+                cellB2.length > 3) {
+                dealerName = cellB2;
+                console.log('Found dealer name in B2:', dealerName);
+            }
+        }
     
     // If not found in B2, check a few other common locations
     if (!dealerName) {
@@ -387,8 +442,6 @@ function processUploadedData(data, filename = '') {
     }
     
     // Check if this is a multi-dealer file (network report)
-    // IMPORTANT: Lead data starts at row 12 (index 11)
-    // Row 12 has "Lead Source" in column B
     const dealers = {};
     let isNetworkReport = false;
     let currentDealer = dealerName;
@@ -409,7 +462,7 @@ function processUploadedData(data, filename = '') {
     // First, check if this looks like a network report
     // Network reports typically have dealer names in column A with no data in columns B-I
     let possibleNetworkReport = false;
-    for (let i = 11; i < Math.min(data.length, 20); i++) {
+    for (let i = startRow; i < Math.min(data.length, startRow + 10); i++) {
         const row = data[i];
         if (row && row[0] && typeof row[0] === 'string' && row[0].trim().length > 3) {
             // Check if this row has a dealer name pattern (text in col A, empty cols B-I)
@@ -425,12 +478,41 @@ function processUploadedData(data, filename = '') {
         }
     }
     
-    // Start scanning from row 12 (index 11) where lead data begins
-    console.log(`Processing ${data.length - 11} potential lead rows starting from row 12`);
+    // For standardized format, check headers to determine column positions
+    let columnMap = {
+        leadSource: 1,      // Default Column B
+        leadType: 2,        // Default Column C
+        actionableDate: 5,  // Default Column F
+        responseDate: 6,    // Default Column G
+        elapsedTime: 7,     // Default Column H
+        saleDate: 9         // Default Column J
+    };
+    
+    // If using standardized format, read headers from row 2
+    if (startRow === 2 && data.length > 1 && data[1]) {
+        const headers = data[1];
+        console.log('Headers found:', headers);
+        
+        // Map headers to column indices
+        headers.forEach((header, index) => {
+            const h = String(header).toLowerCase().trim();
+            if (h.includes('lead source')) columnMap.leadSource = index;
+            else if (h.includes('lead type')) columnMap.leadType = index;
+            else if (h.includes('actionable')) columnMap.actionableDate = index;
+            else if (h.includes('response date')) columnMap.responseDate = index;
+            else if (h.includes('elapsed') || h.includes('response time')) columnMap.elapsedTime = index;
+            else if (h.includes('sale date')) columnMap.saleDate = index;
+        });
+        
+        console.log('Column mapping:', columnMap);
+    }
+    
+    // Start scanning from the determined start row
+    console.log(`Processing ${data.length - startRow} potential lead rows starting from row ${startRow + 1}`);
     let processedRows = 0;
     let skippedRows = 0;
     
-    for (let i = 11; i < data.length; i++) {
+    for (let i = startRow; i < data.length; i++) {
         const row = data[i];
         if (!row || !row[0] || !row[1]) {
             skippedRows++;
@@ -438,7 +520,7 @@ function processUploadedData(data, filename = '') {
         }
         
         const colA = row[0]; // Column A - might be dealer name in network reports
-        const colB = row[1]; // Column B - Lead Source or dealer name
+        const colB = row[columnMap.leadSource]; // Lead Source column
         
         // Check if this row is a dealer name (network report format)
         // In network reports: dealer name in col A, empty data cols
@@ -485,7 +567,7 @@ function processUploadedData(data, filename = '') {
         }
         
         // Process lead source data
-        const leadSource = colB;
+        const leadSource = row[columnMap.leadSource]; // Get lead source from mapped column
         if (!leadSource || leadSource === 'Grand Total' || leadSource.toLowerCase().includes('total')) {
             continue;
         }
@@ -497,20 +579,16 @@ function processUploadedData(data, filename = '') {
             continue;
         }
         
-        // Excel column mapping for Ford lead reports:
-        // Column A: Lead Request Date (when customer submitted)
-        // Column B: Lead Source
-        // Column C: Lead Type (Chat/Form) - ONLY counting Form leads
-        // Column F: Date/Time Actionable (when business hours start)
-        // Column G: Response Time (pre-calculated)
-        // Column H: Response Date (when dealer actually responded)
-        // Column J: Sale Date (if converted to sale)
-        // IMPORTANT: Response time measured from Column F, not Column A
-        
-        const leadType = row[2]; // Column C - Lead Type
+        // Get values using dynamic column mapping
+        const leadType = row[columnMap.leadType];
         if (!leadType || leadType !== 'Form') {
             skippedRows++;
             continue; // Skip non-Form leads
+        }
+        
+        // Lead source already defined above, just need to handle unknown case
+        if (!leadSource) {
+            continue; // Skip if no lead source
         }
         
         if (!currentDealerData.leadSources[leadSource]) {
@@ -527,10 +605,10 @@ function processUploadedData(data, filename = '') {
         currentDealerData.leadSources[leadSource].leads += 1;
         currentDealerData.leads += 1;
         
-        // Get relevant columns
-        const actionableDateTime = row[5]; // Column F - Date/Time Actionable
-        const responseDate = row[6]; // Column G - Response Date (actual response time)
-        const elapsedTime = row[7]; // Column H - Total Elapsed Time (e.g., "0h 5m", "51h 56m")
+        // Get relevant columns using column map
+        const actionableDateTime = row[columnMap.actionableDate];
+        const responseDate = row[columnMap.responseDate];
+        const elapsedTime = row[columnMap.elapsedTime];
         
         // Debug first few rows
         if (processedRows < 3) {
@@ -616,7 +694,7 @@ function processUploadedData(data, filename = '') {
         }
         
         // Check for sale (Column J)
-        const saleDate = row[9]; // Column J
+        const saleDate = row[columnMap.saleDate];
         if (saleDate && saleDate !== '' && saleDate !== 'N/A') {
             currentDealerData.leadSources[leadSource].sales += 1;
             currentDealerData.sales += 1;
@@ -1180,15 +1258,56 @@ function initializeCharts() {
 }
 
 function updateCharts() {
-    // Update volume chart with top 10 dealers
-    const sortedDealers = Object.values(uploadedDealerData)
-        .sort((a, b) => b.leads - a.leads)
-        .slice(0, 10);
+    const dealerCount = Object.keys(uploadedDealerData).length;
     
-    if (volumeChart) {
-        volumeChart.data.labels = sortedDealers.map(d => d.name);
-        volumeChart.data.datasets[0].data = sortedDealers.map(d => d.leads);
-        volumeChart.update();
+    // Check if this is a single dealer upload
+    if (dealerCount === 1) {
+        // Single dealer - show lead sources instead
+        const dealer = Object.values(uploadedDealerData)[0];
+        
+        // Update chart title
+        const titleElement = document.getElementById('volumeChartTitle');
+        if (titleElement) {
+            titleElement.textContent = 'Top 10 Lead Providers by Volume';
+        }
+        
+        // Get lead sources and sort by volume
+        const leadSources = [];
+        if (dealer.leadSources) {
+            Object.entries(dealer.leadSources).forEach(([source, data]) => {
+                leadSources.push({
+                    name: source,
+                    leads: data.leads || 0
+                });
+            });
+        }
+        
+        // Sort and get top 10
+        const sortedSources = leadSources
+            .sort((a, b) => b.leads - a.leads)
+            .slice(0, 10);
+        
+        if (volumeChart) {
+            volumeChart.data.labels = sortedSources.map(s => s.name);
+            volumeChart.data.datasets[0].data = sortedSources.map(s => s.leads);
+            volumeChart.update();
+        }
+    } else {
+        // Multiple dealers - show dealers
+        const titleElement = document.getElementById('volumeChartTitle');
+        if (titleElement) {
+            titleElement.textContent = 'Top 10 Dealers by Lead Volume';
+        }
+        
+        const sortedDealers = Object.values(uploadedDealerData)
+            .sort((a, b) => b.leads - a.leads)
+            .slice(0, 10);
+        
+        if (volumeChart) {
+            volumeChart.data.labels = sortedDealers.map(d => d.name);
+            volumeChart.data.datasets[0].data = sortedDealers.map(d => d.leads);
+            volumeChart.update();
+        }
     }
 }
 
@@ -1221,7 +1340,7 @@ function saveDataToStorage(dealerData) {
         const dataPackage = {
             data: dealerData,
             uploadDate: new Date().toISOString(),
-            expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
+            expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
             dataChecksum: generateChecksum(dealerData),
             version: '1.0'
         };
@@ -1659,7 +1778,7 @@ function processMultiWorksheetFile(workbook, filename) {
             }
             
             // Check for sale
-            const saleDate = row[9]; // Column J
+            const saleDate = row[columnMap.saleDate];
             if (saleDate && saleDate !== '' && saleDate !== 'N/A') {
                 dealerData.leadSources[leadSource].sales += 1;
                 dealerData.sales += 1;
@@ -2789,6 +2908,12 @@ window.generateNetworkReport = generateNetworkReport;
 window.generateDealerReport = generateDealerReport;
 window.generateResponseReport = generateResponseReport;
 window.generateROIReport = generateROIReport;
+window.calculateROI = calculateROI;
+window.calculateROIImprovement = calculateROIImprovement;
+window.calculateROIToTarget = calculateROIToTarget;
+window.calculateROICustom = calculateROICustom;
+window.updateDealerAnalysis = updateDealerAnalysis;
+window.handleFileSelectMain = handleFileSelect; // For the inline script
 
 // Debug function to test response time display
 function testResponseTimeDisplay() {

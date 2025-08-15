@@ -18,7 +18,8 @@
     "performance"
   ],
   "author": "JL Robinson <nakapaahu@gmail.com>",
-  "license": "UNLICENSED",
+  "copyright": "© 2025 JL Robinson. All Rights Reserved.",
+  "license": "UNLICENSED - Proprietary Software",
   "private": true,
   "dependencies": {
     "axios": "^1.6.0",
@@ -32,6 +33,7 @@
     "multer": "^2.0.1",
     "node-cron": "^4.2.1",
     "nodemailer": "^6.9.7",
+    "proper-lockfile": "^4.1.2",
     "puppeteer": "^21.0.0",
     "selenium-webdriver": "^4.15.0",
     "sharp": "^0.33.0",

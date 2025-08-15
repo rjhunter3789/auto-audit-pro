@@ -5,24 +5,30 @@
   
   Author: JL Robinson
   Contact: nakapaahu@gmail.com
-  Last Modified: July 18, 2025
+  Last Modified: August 13, 2025
 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Print Header for PDF -->
+    <div class="print-header" style="display: none;">
+        Auto Audit Pro - Website Analysis Report
+    </div>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= results.domain %> - Website Analysis Report</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="/css/pdf-professional.css?v=<%= Date.now() %>" rel="stylesheet">
     <style>
+        /* Cache-busted version: <%= Date.now() %> */
         body { 
             font-family: Arial, sans-serif; 
             line-height: 1.6; 
             color: #333; 
             max-width: 1000px; 
             margin: 0 auto; 
-            padding: 40px 20px; 
+            padding: 100px 20px 40px 20px !important; /* Further increased top padding for better spacing */
             background: #f8f9fa;
         }
         
@@ -31,6 +37,7 @@
             border-radius: 8px;
             padding: 40px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-top: 20px; /* Added top margin for extra spacing */
         }
         
         h1 { 
@@ -38,6 +45,19 @@
             font-size: 2.5rem;
             font-weight: 700;
             margin: 0;
+            /* 3D text effect for dramatic impact */
+            text-shadow: 0 1px 0 #ccc, 
+                        0 2px 0 #c9c9c9, 
+                        0 3px 0 #bbb, 
+                        0 4px 0 #b9b9b9, 
+                        0 5px 0 #aaa, 
+                        0 6px 1px rgba(0,0,0,.1), 
+                        0 0 5px rgba(0,0,0,.1), 
+                        0 1px 3px rgba(0,0,0,.3), 
+                        0 3px 5px rgba(0,0,0,.2), 
+                        0 5px 10px rgba(0,0,0,.25), 
+                        0 10px 10px rgba(0,0,0,.2), 
+                        0 20px 20px rgba(0,0,0,.15);
         }
         
         h2 { 
@@ -227,18 +247,8 @@
             background: #D1D5DB;
         }
         
+        /* Basic print overrides - main styles in pdf-professional.css */
         @media print {
-            body { 
-                padding: 20px; 
-                background: white;
-            }
-            .report-container {
-                box-shadow: none;
-                padding: 0;
-            }
-            .action-buttons { 
-                display: none; 
-            }
             .category-item:hover {
                 transform: none;
                 box-shadow: none;
@@ -255,6 +265,26 @@
             text-align: center;
         }
         
+        /* Responsive adjustments for smaller screens */
+        @media (max-width: 768px) {
+            body {
+                padding: 60px 15px 30px 15px; /* Slightly less top padding on mobile */
+            }
+            
+            .report-container {
+                padding: 20px;
+                margin-top: 10px;
+            }
+        }
+        
+        /* Extra spacing for potential fixed headers */
+        @media screen {
+            body {
+                min-height: 100vh;
+                padding-top: 100px; /* Extra padding to ensure content isn't hidden */
+            }
+        }
+        
         /* Print Styles */
         @media print {
             .no-print {
@@ -263,10 +293,12 @@
             body {
                 margin: 0;
                 padding: 20px;
+                padding-top: 20px !important; /* Reset top padding for print */
             }
             .report-container {
                 max-width: 100%;
                 box-shadow: none;
+                margin-top: 0; /* Remove top margin for print */
             }
             .btn {
                 display: none;
@@ -278,6 +310,32 @@
     </style>
 </head>
 <body>
+    <!-- Cover Page - Only visible in print -->
+    <div class="cover-page" style="display: none;">
+        <div style="text-align: center;">
+            <h1 style="font-size: 36pt; color: #6B46C1; margin-bottom: 40pt;">
+                Auto Audit Pro
+            </h1>
+            <h2 style="font-size: 24pt; margin-bottom: 60pt;">
+                Website Analysis Report
+            </h2>
+            <div class="report-meta" style="font-size: 16pt; line-height: 2;">
+                <p><strong>Prepared for:</strong> <%= results.domain %></p>
+                <p><strong>Brand:</strong> <%= results.brand %></p>
+                <p><strong>Date:</strong> <%= new Date(results.timestamp).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></p>
+                <p style="margin-top: 40pt; font-size: 14pt; color: #666;">
+                    Confidential and Proprietary<br>
+                    © <%= new Date().getFullYear() %> Auto Audit Pro - All Rights Reserved
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Header - Only visible in print -->
+    <div class="print-header" style="display: none;">
+        <%= results.domain %> - Website Analysis Report - <%= new Date(results.timestamp).toLocaleDateString() %>
+    </div>
+
     <div class="report-container">
         <% 
         let performanceTier = 'Challenge';
@@ -339,7 +397,7 @@
         </div>
         <% } %>
         
-        <h2>Performance Overview</h2>
+        <h2 class="section-break">Performance Overview</h2>
         
         <div class="category-grid">
             <% results.categories.forEach(function(category) { 
@@ -359,6 +417,7 @@
             </div>
             <% }); %>
         </div>
+        <% } %>
         
         <!-- Predictive Heatmap Section -->
         <% if (results.heatmap && results.heatmap.success) { %>
@@ -374,7 +433,9 @@
                     <div>
                         <h3 style="font-size: 1.2rem; color: #4B5563; margin-bottom: 15px;">Homepage Activity Prediction</h3>
                         <div style="position: relative; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
-                            <img src="<%= results.heatmap.heatmapPath %>" alt="Website Heatmap" style="width: 100%; height: auto; display: block;">
+                            <img src="<%= results.heatmap.heatmapPath %>" alt="Website Heatmap" 
+                                 style="width: 100%; height: auto; display: block;"
+                                 onerror="this.onerror=null; this.src='/images/heatmap-placeholder.png'; this.parentElement.style.backgroundColor='#f3f4f6'; this.style.opacity='0.5';">
                         </div>
                         <p style="font-size: 0.85rem; color: #6B7280; margin-top: 10px; text-align: center;">
                             <i class="fas fa-info-circle"></i> Red areas indicate predicted high user activity
@@ -439,19 +500,36 @@
                         This heatmap shows predicted behavior. Upgrade to Professional Tracking 
                         to see actual click patterns, session recordings, and detailed user insights.
                     </p>
-                    <a href="/contact" class="btn-action btn-primary-action" style="display: inline-block;">
+                    <a href="/website-audit" class="btn-action btn-primary-action" style="display: inline-block;">
                         Learn About Professional Tracking →
                     </a>
                 </div>
             </div>
         </div>
         <% } else if (results.heatmap && !results.heatmap.success) { %>
-        <!-- Heatmap Error Message -->
-        <div style="margin-top: 40px; padding: 20px; background: #FEE2E2; border-radius: 8px; border-left: 4px solid #EF4444;">
-            <p style="color: #991B1B; margin: 0;">
-                <i class="fas fa-exclamation-triangle"></i> 
-                Unable to generate heatmap: <%= results.heatmap.error || 'Unknown error' %>
-            </p>
+        <!-- Heatmap Error State -->
+        <div style="margin-top: 40px;">
+            <h2 style="color: #1F2937; font-size: 2.5rem; font-weight: 700; margin-bottom: 20px;">
+                <i class="fas fa-fire-alt" style="color: #EF4444; margin-right: 10px;"></i>
+                Predicted User Activity Heatmap
+            </h2>
+            
+            <div style="background: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07); margin-bottom: 30px;">
+                <div style="text-align: center; padding: 40px;">
+                    <img src="/images/heatmap-placeholder.png" alt="Heatmap placeholder" 
+                         style="max-width: 600px; width: 100%; height: auto; opacity: 0.3; margin-bottom: 20px;">
+                    <h3 style="color: #6B7280; margin-bottom: 10px;">Heatmap Generation Unavailable</h3>
+                    <p style="color: #9CA3AF; margin-bottom: 0;">
+                        Unable to generate the predictive heatmap for this website. 
+                        This may be due to site restrictions or technical limitations.
+                    </p>
+                    <% if (results.heatmap.error) { %>
+                        <p style="color: #DC2626; font-size: 0.9rem; margin-top: 10px;">
+                            <i class="fas fa-info-circle"></i> <%= results.heatmap.error %>
+                        </p>
+                    <% } %>
+                </div>
+            </div>
         </div>
         <% } %>
         
@@ -480,9 +558,9 @@
         </div>
         
         <% if (results.issues && results.issues.length > 0) { %>
-        <h2>Issues & Recommendations</h2>
+        <h2 class="issues-section section-break">Issues & Recommendations</h2>
         
-        <div class="issues-section">
+        <div class="issues-section keep-together">
             <h3>
                 <i class="fas fa-exclamation-triangle"></i> 
                 <%= results.issues.length %> Issues Found
@@ -507,7 +585,7 @@
             <% if (highPriorityIssues.length > 0) { %>
             <h4 style="color: #EF4444; margin-top: 20px;">High Priority Issues</h4>
             <% highPriorityIssues.forEach(function(issue) { %>
-            <div class="issue-item high">
+            <div class="issue-item high keep-together">
                 <span class="priority-badge priority-high">High</span>
                 <% if (issue.confidence) { %>
                 <span style="margin-left: 5px;"><%= getConfidenceIcon(issue.confidence) %></span>
@@ -526,7 +604,7 @@
             <% if (mediumPriorityIssues.length > 0) { %>
             <h4 style="color: #F59E0B; margin-top: 20px;">Medium Priority Issues</h4>
             <% mediumPriorityIssues.forEach(function(issue) { %>
-            <div class="issue-item medium">
+            <div class="issue-item medium keep-together">
                 <span class="priority-badge priority-medium">Medium</span>
                 <% if (issue.confidence) { %>
                 <span style="margin-left: 5px;"><%= getConfidenceIcon(issue.confidence) %></span>
@@ -545,7 +623,7 @@
             <% if (lowPriorityIssues.length > 0) { %>
             <h4 style="color: #3B82F6; margin-top: 20px;">Low Priority Issues</h4>
             <% lowPriorityIssues.forEach(function(issue) { %>
-            <div class="issue-item low">
+            <div class="issue-item low keep-together">
                 <span class="priority-badge priority-low">Low</span>
                 <% if (issue.confidence) { %>
                 <span style="margin-left: 5px;"><%= getConfidenceIcon(issue.confidence) %></span>
@@ -585,7 +663,7 @@
         </div>
         <% } %>
         
-        <h2>Recommendations</h2>
+        <h2 class="section-break">Recommendations</h2>
         
         <% if (performanceTier === 'Elite') { %>
         <div class="recommendation" style="background: #D1FAE5; border-color: #10B981;">
@@ -600,7 +678,7 @@
             </ul>
         </div>
         <% } else { %>
-        <div class="recommendation">
+        <div class="recommendation keep-together">
             <strong>Improvement Opportunities:</strong>
             <ul style="margin: 10px 0;">
                 <% if (results.overallScore < 75) { %>
@@ -654,7 +732,7 @@
         
         // Show up to 5 recommendations
         flatRecommendations.slice(0, 5).forEach(function(rec) { %>
-        <div class="recommendation">
+        <div class="recommendation keep-together">
             <strong><%= rec.title %></strong>
             <p style="margin: 10px 0;"><%= rec.description %></p>
             <% if (rec.implementation) { %>

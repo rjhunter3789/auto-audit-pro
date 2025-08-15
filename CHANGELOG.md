@@ -1,5 +1,148 @@
 # Auto Audit Pro Suite - Changelog & Feature Documentation
 
+## Version 2.6.12 - August 14, 2025 (Navigation Consistency Update)
+
+### 🎨 UI/UX Improvements
+- **Navigation Consistency**
+  - Added "Monitoring" link to all pages for uniform navigation
+  - Standardized navigation across: Website Analysis, Lead Performance, Monitoring, Definitions
+  - Converted definitions page from back-link to full navigation bar
+  - Fixed monitoring dashboard duplicate header issue
+
+### 🐛 Known Issues
+- **Navigation Display**: Top of navigation bar appears cut off on /website-audit page
+- **Security**: Localhost access now blocked by security middleware (prevents local debugging)
+
+### 📁 Files Modified
+- `/views/index-new.html` - Added Monitoring link, attempted nav fixes
+- `/views/lead-performance.html` - Added Monitoring link
+- `/views/definitions.html` - Converted to standard navigation
+- `/views/monitoring-dashboard.html` - Replaced custom header with standard nav
+
+---
+
+## Version 2.6.11 - August 14, 2025 (Lead Data Security Enhancements)
+
+### 🔒 Security & Privacy Improvements
+- **Enhanced Lead Analysis Privacy**
+  - Added prominent security notice banner explaining data never leaves user's computer
+  - Reduced data retention from 30 days to 7 days for improved security
+  - Implemented automatic data cleanup when browser tab closes
+  - Added opt-in checkbox to retain data between sessions
+  - Created comprehensive Data Privacy Statement page
+  - Enhanced data deletion with visual confirmation dialog
+
+### 🎨 UI/UX Improvements
+- **Lead Analysis Page**
+  - Blue security banner with shield icon at top of page
+  - Checkbox for data retention preferences
+  - Link to full privacy statement
+  - Animated deletion confirmation with progress indicator
+
+### 📝 Technical Details
+- Confirmed lead data processing is 100% client-side (no server upload)
+- All CSV/Excel processing uses browser FileReader API
+- Data stored only in browser localStorage
+- No database, cloud storage, or server-side caching of lead data
+- Complete user control over data lifecycle
+
+### 📁 Files Modified
+- `/public/js/lead-performance.js` - Auto-cleanup logic, reduced expiry, browser compatibility fix
+- `/views/lead-performance.html` - Security notice, UI elements, Google Sheets instructions
+- `/views/lead-data-privacy.html` - New privacy statement page
+- `/server.js` - Added route for privacy statement
+- `/views/index-new.html` - Fixed navigation header cut-off issue
+
+### 🐛 Bug Fixes
+- **Browser Compatibility**: Fixed Excel file uploads in Safari/Firefox by replacing deprecated `readAsBinaryString`
+- **Navigation Header**: Fixed website-audit page header being cut off due to negative margin
+- **User Experience**: Added Google Sheets export instructions for better clarity
+
+---
+
+## Version 2.6.10 - August 13, 2025 (Performance Optimization Success & UI Updates)
+
+### ⚡ Performance Optimization Complete
+- **Successfully deployed parallel audit execution**
+  - Main audit tests complete in ~1 second (1186ms)
+  - Total audit time ~3 minutes (includes Selenium post-processing)
+  - All audit accuracy maintained
+- **Fixed Chrome/ChromeDriver compatibility**
+  - Removed snap Chromium (AppArmor conflicts)
+  - Installed Google Chrome directly
+  - Resolved version mismatch issues
+
+### 🎨 UI Improvements
+- **Updated Comprehensive Audit timing display**
+  - Changed from "(60-90 seconds)" to "(2-3 minutes)"
+  - More accurate expectation for users
+- **Fixed broken heatmap placeholder**
+  - Created proper placeholder images (SVG and PNG)
+  - Added error handling to display placeholder on failure
+  - Professional "Available on Request" message
+
+### 🐛 Known Issues
+- Report header spacing CSS changes not taking effect
+  - Discovered using `views/reports.html` not `reports-dealer-style.html`
+  - Likely caching issue to resolve next session
+
+---
+
+## Version 2.6.9 - August 11, 2025 (Feature Removal & UI Enhancement)
+
+### ⚡ Performance Optimization (Partial Success)
+- **Parallelized comprehensive audit tests**
+  - All 8 test categories now run simultaneously using `Promise.all()`
+  - Main audit completes in 702-933ms (was 30-45 seconds)
+  - Added error handling for each parallel test
+- **Reduced Selenium delays**
+  - Cut unnecessary wait times by 90%
+  - Total delay reduction: ~10 seconds → ~650ms
+- **Disabled heatmap generation**
+  - Replaced with static placeholder
+  - Shows "Heat Mapping Available On Request"
+- **ISSUE**: VDP audit still causes 4-6 minute hang
+  - Need to disable VDP audit in next session
+  - Backups created for all modified files
+
+### 🔥 Features Removed
+- **Completely removed Local Market Competitor Analysis feature**
+  - Deleted `/lib/competitor-analyzer.js` module
+  - Removed UI section from `views/reports-dealer-style.html`
+  - Removed integration from `server.js`
+  - Updated business plan pricing to remove competitor monitoring tiers
+  - Feature was already disabled in UI but code remained
+
+### 🎨 UI Improvements
+- **Enhanced homepage with 3D text effect**
+  - Added dramatic multi-layer text shadow to "Auto Audit Pro Suite" heading
+  - Creates professional depth effect with stacked shadows
+  - Improved visual hierarchy on landing page
+- **Logo implementation attempt**
+  - Uploaded `auto-audit-pro-logo-transparent.svg` to production
+  - Tested logo in hero section but design didn't suit centered layout
+  - Reverted to enhanced text display
+
+### 🐛 Bug Fixes
+- Fixed SVG XML declaration error (removed blank line before `<?xml`)
+- Corrected file path confusion between suite homepage and audit tool
+
+### 📁 Files Modified
+- `/views/suite-home.html` - Added 3D text effect
+- `/views/reports-dealer-style.html` - Removed competitor analysis section
+- `/server.js` - Removed competitor analysis integration
+- `/AAPS_SAAS_BUSINESS_PLAN.md` - Updated pricing tiers
+
+### 📁 Files Deleted
+- `/lib/competitor-analyzer.js`
+
+### 🔄 Production Deployment
+- All changes deployed to DigitalOcean VPS (146.190.39.214)
+- Services restarted: PM2, Nginx
+- Live at https://autoauditpro.io
+
+---
+
 ## Version 2.6.8 - July 24, 2025 (Production Deployment & Security Fixes)
 
 ### 🚀 Deployment Improvements

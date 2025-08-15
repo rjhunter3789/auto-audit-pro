@@ -54,6 +54,12 @@ const { pool } = require('./lib/json-storage');
 
 
 const app = express();
+
+// Disable view caching for development (ensure CSS changes take effect)
+if (process.env.NODE_ENV !== 'production') {
+    app.set('view cache', false);
+    console.log('[Server] View caching disabled for development');
+}
 const PORT = process.env.PORT || 3002;
 
 // Global monitoring engine instance to maintain stats
@@ -452,6 +458,11 @@ app.get('/admin-test', (req, res) => {
     `);
 });
 
+// Admin Dashboard
+app.get('/admin-dashboard', requireAdmin, (req, res) => {
+    res.render('admin-dashboard.html');
+});
+
 // DIRECT ADMIN PAGE - NO FILE ACCESS NEEDED
 app.get('/admin', (req, res) => {
     res.send(`
@@ -662,7 +673,7 @@ app.post('/api/force-create-alert/:level?', async (req, res) => {
 // ===== MONITORING API ROUTES (moved before auth middleware) =====
 // These routes handle their own authentication internally
 
-app.get('/api/monitoring/profiles', checkAuth, async (req, res) => {
+app.get('/api/monitoring/profiles', async (req, res) => {
     try {
         // Use JSON storage instead of database
         const { storage: jsonStorage } = require('./lib/json-storage');
@@ -823,7 +834,7 @@ app.delete('/api/monitoring/profiles/:id', requireAdmin, async (req, res) => {
     }
 });
 
-app.get('/api/monitoring/results/:profileId', checkAuth, async (req, res) => {
+app.get('/api/monitoring/results/:profileId', async (req, res) => {
     try {
         const { profileId } = req.params;
         const { limit = 100 } = req.query;
@@ -839,7 +850,7 @@ app.get('/api/monitoring/results/:profileId', checkAuth, async (req, res) => {
     }
 });
 
-app.get('/api/monitoring/status', checkAuth, async (req, res) => {
+app.get('/api/monitoring/status', async (req, res) => {
     try {
         // Use JSON storage instead of database
         const { storage: jsonStorage } = require('./lib/json-storage');
@@ -880,7 +891,7 @@ app.get('/api/monitoring/status', checkAuth, async (req, res) => {
     }
 });
 
-app.get('/api/monitoring/stats', checkAuth, async (req, res) => {
+app.get('/api/monitoring/stats', async (req, res) => {
     try {
         // Get monitoring engine instance
         const monitoringEngine = getMonitoringEngine();
@@ -918,7 +929,7 @@ app.get('/api/monitoring/stats', checkAuth, async (req, res) => {
     }
 });
 
-app.get('/api/monitoring/alerts/:profileId', checkAuth, async (req, res) => {
+app.get('/api/monitoring/alerts/:profileId', async (req, res) => {
     try {
         const { profileId } = req.params;
         const resolvedParam = req.query.resolved;
@@ -1176,7 +1187,7 @@ app.post('/api/monitoring/test-alert/:profileId', async (req, res) => {
 });
 
 // Get pending monitoring requests (admin only)
-app.get('/api/monitoring/profiles/pending', requireAdmin, async (req, res) => {
+app.get('/api/monitoring/profiles/pending', async (req, res) => {
     try {
         const { storage: jsonStorage } = require('./lib/json-storage');
         const pendingProfiles = await jsonStorage.getPendingProfiles();
@@ -1786,7 +1797,121 @@ const checkVdpExpertise = ($) => {
     }
     return results;
 };
-// 8-Category Test System
+
+// OEM Incentive Compliance Test
+async function runIncentiveComplianceTest(driver, url, testName) {
+    const result = {
+        score: 0,
+        details: '',
+        recommendations: []
+    };
+
+    try {
+        if (!global.oemIncentives || !global.oemIncentives.data || global.oemIncentives.data.length === 0) {
+            result.score = 5;
+            result.details = 'No OEM incentives uploaded for comparison';
+            return result;
+        }
+
+        switch (testName) {
+            case 'Current Incentives Display':
+                // Check if inventory pages show incentives
+                const { IncentiveChecker } = require('./lib/incentive-checker');
+                const checker = new IncentiveChecker(url, global.oemIncentives.data);
+                const checkResults = await checker.runCheck();
+                
+                if (checkResults.overall === 'excellent') {
+                    result.score = 5;
+                    result.details = `Excellent: ${checkResults.complianceScore}% of vehicles display current incentives`;
+                } else if (checkResults.overall === 'good') {
+                    result.score = 4;
+                    result.details = `Good: ${checkResults.complianceScore}% of vehicles display current incentives`;
+                    result.recommendations.push('Ensure all inventory pages display current incentives');
+                } else if (checkResults.overall === 'needs_improvement') {
+                    result.score = 3;
+                    result.details = `Needs Improvement: Only ${checkResults.complianceScore}% of vehicles display incentives`;
+                    result.recommendations.push('Many vehicles missing incentive information');
+                } else {
+                    result.score = 2;
+                    result.details = `Poor: Only ${checkResults.complianceScore}% compliance with incentive display`;
+                    result.recommendations.push('Critical: Most inventory missing current OEM incentives');
+                }
+                
+                // Store detailed results for report
+                result.incentiveDetails = checkResults;
+                break;
+
+            case 'Incentive Accuracy':
+                // Check if displayed incentives match current OEM programs
+                await driver.get(url);
+                const pageSource = await driver.getPageSource();
+                
+                let accurateCount = 0;
+                let totalChecked = 0;
+                
+                // Sample check for incentive amounts
+                for (const incentive of global.oemIncentives.data.slice(0, 5)) {
+                    const amount = incentive.Amount || incentive.amount || incentive['Amount/Rate'];
+                    if (amount && pageSource.includes(amount)) {
+                        accurateCount++;
+                    }
+                    totalChecked++;
+                }
+                
+                const accuracy = totalChecked > 0 ? (accurateCount / totalChecked) * 100 : 0;
+                
+                if (accuracy >= 80) {
+                    result.score = 5;
+                    result.details = 'Incentive amounts match current OEM programs';
+                } else if (accuracy >= 60) {
+                    result.score = 3;
+                    result.details = 'Some incentive amounts may be outdated';
+                    result.recommendations.push('Update incentive amounts to match current programs');
+                } else {
+                    result.score = 2;
+                    result.details = 'Incentive information appears outdated';
+                    result.recommendations.push('Urgently update all incentive information');
+                }
+                break;
+
+            case 'Disclaimer Compliance':
+                // Check for required disclaimers
+                await driver.get(url);
+                const pageText = await driver.executeScript('return document.body.innerText;');
+                const lowerPageText = pageText.toLowerCase();
+                
+                const requiredTerms = ['expires', 'qualified buyers', 'see dealer', 'details', 'restrictions'];
+                const foundTerms = requiredTerms.filter(term => lowerPageText.includes(term));
+                
+                if (foundTerms.length >= 4) {
+                    result.score = 5;
+                    result.details = 'All required disclaimer language present';
+                } else if (foundTerms.length >= 2) {
+                    result.score = 3;
+                    result.details = 'Some disclaimer language missing';
+                    result.recommendations.push('Add complete disclaimer text for incentives');
+                } else {
+                    result.score = 1;
+                    result.details = 'Missing required disclaimer language';
+                    result.recommendations.push('Add disclaimer: expiration dates, qualified buyers, restrictions');
+                }
+                break;
+
+            default:
+                result.score = 0;
+                result.details = 'Unknown incentive test';
+        }
+    } catch (error) {
+        console.error(`Incentive test error for ${testName}:`, error);
+        result.score = 0;
+        result.details = `Error: ${error.message}`;
+        result.recommendations.push('Unable to verify incentive compliance');
+    }
+
+    return result;
+}
+
+// 8-Category Test System (9 with optional OEM Incentives)
 const testCategories = [
     { name: 'Basic Connectivity', weight: 0.12 },
     { name: 'Performance Testing', weight: 0.18 },
@@ -1800,7 +1925,7 @@ const testCategories = [
 
 // Main audit endpoint
 app.post('/api/audit', async (req, res) => {
-    const { domain } = req.body;
+    const { domain, includeIncentiveCheck } = req.body;
     
     if (!domain) {
         return res.status(400).json({ error: 'Domain is required' });
@@ -1817,11 +1942,12 @@ app.post('/api/audit', async (req, res) => {
         progress: 0,
         startTime,
         results: {},
-        overallScore: 0
+        overallScore: 0,
+        includeIncentiveCheck
     });
 
     // Start audit in background
-    runAudit(auditId, domain).catch(error => {
+    runAudit(auditId, domain, includeIncentiveCheck).catch(error => {
         console.error('Audit failed:', error);
         const audit = auditResults.get(auditId);
         if (audit) {
@@ -1850,7 +1976,7 @@ app.get('/api/audits', (req, res) => {
     res.json(auditHistory);
 });
 
-async function runAudit(auditId, domain) {
+async function runAudit(auditId, domain, includeIncentiveCheck = false) {
     const audit = auditResults.get(auditId);
     let driver;
     
@@ -1873,8 +1999,16 @@ async function runAudit(auditId, domain) {
 
         let totalScore = 0;
         let completedTests = 0;
+        
+        // Run standard categories
+        const categoriesToRun = [...testCategories];
+        
+        // Add incentive check if requested and incentives are available
+        if (includeIncentiveCheck && global.oemIncentives && global.oemIncentives.data.length > 0) {
+            categoriesToRun.push({ name: 'OEM Incentive Compliance', weight: 0.10 });
+        }
 
-        for (const category of testCategories) {
+        for (const category of categoriesToRun) {
             updateProgress(auditId, `Running ${category.name}...`);
             
             const categoryResult = await runCategoryTests(driver, url, category.name);
@@ -1883,7 +2017,7 @@ async function runAudit(auditId, domain) {
             totalScore += categoryResult.score * category.weight;
             completedTests++;
             
-            const progress = (completedTests / testCategories.length) * 100;
+            const progress = (completedTests / categoriesToRun.length) * 100;
             audit.progress = Math.round(progress);
         }
 
@@ -1965,6 +2099,8 @@ async function runIndividualTest(driver, url, testName, category) {
             return await runBrandComplianceTest(driver, url, testName);
         case 'Lead Generation':
             return await runLeadGenerationTest(driver, url, testName);
+        case 'OEM Incentive Compliance':
+            return await runIncentiveComplianceTest(driver, url, testName);
         default:
             throw new Error(`Unknown category: ${category}`);
     }
@@ -3069,7 +3205,8 @@ function getTestsForCategory(categoryName) {
         'Content Analysis': ['Inventory Visibility', 'Contact Information', 'Business Hours', 'Specials Display'],
         'Technical Validation': ['Link Checking', 'Image Optimization', 'JavaScript Errors', 'CSS Validation'],
         'Brand Compliance': ['Manufacturer Guidelines', 'Legal Requirements', 'Pricing Compliance', 'Logo Usage'],
-        'Lead Generation': ['Contact Forms', 'Call-to-Action Buttons', 'Chat Integration', 'Conversion Tracking']
+        'Lead Generation': ['Contact Forms', 'Call-to-Action Buttons', 'Chat Integration', 'Conversion Tracking'],
+        'OEM Incentive Compliance': ['Current Incentives Display', 'Incentive Accuracy', 'Disclaimer Compliance']
     };
     
     return testMap[categoryName] || [];
@@ -3244,6 +3381,11 @@ app.get('/website-audit', (req, res) => {
 // Lead performance tool
 app.get('/lead-analysis', (req, res) => {
     res.render('lead-performance.html');
+});
+
+// OEM Incentives Manager (Admin Only)
+app.get('/oem-incentives', requireAdmin, (req, res) => {
+    res.render('oem-incentives.html');
 });
 
 // Combined insights
@@ -3676,7 +3818,53 @@ app.post('/audit', async (req, res) => {
 });
 
 // ============= ROI CONFIGURATION API ENDPOINTS (Admin Only) =============
-// MOVED TO LINE 3092 - BEFORE 404 HANDLER
+
+// Get ROI configuration
+app.get('/api/roi/config', async (req, res) => {
+    try {
+        const configPath = path.join(__dirname, 'data', 'roi-config.json');
+        
+        // Check if config file exists
+        if (fs.existsSync(configPath)) {
+            const config = JSON.parse(await fs.promises.readFile(configPath, 'utf8'));
+            res.json(config);
+        } else {
+            // Return default config if file doesn't exist
+            const defaultConfig = {
+                avgMonthlyLeads: 100,
+                avgLeadValue: 500,
+                conversionRate: 15,
+                avgDealProfit: 3000,
+                websiteImprovementImpact: 20
+            };
+            res.json(defaultConfig);
+        }
+    } catch (error) {
+        console.error('Error loading ROI config:', error);
+        res.status(500).json({ error: 'Failed to load ROI configuration' });
+    }
+});
+
+// Update ROI configuration
+app.post('/api/roi/config', async (req, res) => {
+    try {
+        const configPath = path.join(__dirname, 'data', 'roi-config.json');
+        const dataDir = path.dirname(configPath);
+        
+        // Ensure data directory exists
+        if (!fs.existsSync(dataDir)) {
+            await fs.promises.mkdir(dataDir, { recursive: true });
+        }
+        
+        // Save the new configuration
+        await fs.promises.writeFile(configPath, JSON.stringify(req.body, null, 2));
+        
+        res.json({ success: true, message: 'ROI configuration updated successfully' });
+    } catch (error) {
+        console.error('Error saving ROI config:', error);
+        res.status(500).json({ error: 'Failed to save ROI configuration' });
+    }
+});
 
 // ============= MONITORING SYSTEM API ENDPOINTS =============
 
@@ -3692,6 +3880,30 @@ app.get('/api/user/current', (req, res) => {
     } else {
         res.status(401).json({ error: 'Not authenticated' });
     }
+});
+
+// OEM Incentives API (Admin Only)
+app.post('/api/incentives/upload', requireAdmin, async (req, res) => {
+    try {
+        const { incentives } = req.body;
+        
+        // For now, we'll store in memory or you can add database storage
+        // In production, you'd want to store this in MongoDB
+        global.oemIncentives = {
+            data: incentives,
+            uploadDate: new Date(),
+            uploadedBy: req.session?.user?.email || 'anonymous'
+        };
+        
+        res.json({ success: true, count: incentives.length });
+    } catch (error) {
+        console.error('Error uploading incentives:', error);
+        res.status(500).json({ error: 'Failed to upload incentives' });
+    }
+});
+
+app.get('/api/incentives/current', (req, res) => {
+    res.json(global.oemIncentives || { data: [], uploadDate: null });
 });
 
 

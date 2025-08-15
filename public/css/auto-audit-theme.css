@@ -1,0 +1,222 @@
+/**
+ * Auto Audit Pro - Brand Theme CSS
+ * Matches the logo's blue/silver color scheme
+ */
+
+:root {
+    /* Primary Colors from Logo */
+    --primary-blue: #4A90E2;
+    --secondary-blue: #7EB3E6;
+    --accent-cyan: #00D4FF;
+    --dark-bg: #1A1A1A;
+    --text-light: #E0E0E0;
+    --text-dark: #333333;
+    --silver: #C0C0C0;
+    
+    /* Legacy Purple (for gradual migration) */
+    --primary-purple: #6B46C1;
+    --secondary-purple: #9333EA;
+    
+    /* Semantic Colors */
+    --success-color: #22c55e;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --info-color: var(--primary-blue);
+}
+
+/* Typography */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    color: var(--text-dark);
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: var(--primary-blue) !important;
+    border-color: var(--primary-blue) !important;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover, 
+.btn-primary:focus,
+.btn-primary:active {
+    background-color: var(--secondary-blue) !important;
+    border-color: var(--secondary-blue) !important;
+    box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+    transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+    background-color: var(--secondary-blue) !important;
+    border-color: var(--secondary-blue) !important;
+    opacity: 0.7;
+}
+
+/* Accent Button (Check Engine Light Color) */
+.btn-accent {
+    background-color: var(--accent-cyan);
+    border-color: var(--accent-cyan);
+    color: var(--dark-bg);
+    font-weight: 600;
+}
+
+.btn-accent:hover {
+    background-color: #00B8E6;
+    border-color: #00B8E6;
+    color: var(--dark-bg);
+    box-shadow: 0 4px 12px rgba(0, 212, 255, 0.4);
+}
+
+/* Form Controls */
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+}
+
+/* Cards */
+.card {
+    border: 1px solid rgba(74, 144, 226, 0.1);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 8px 24px rgba(74, 144, 226, 0.15);
+    transform: translateY(-2px);
+}
+
+/* Badges */
+.badge-primary {
+    background-color: var(--primary-blue);
+}
+
+.badge-accent {
+    background-color: var(--accent-cyan);
+    color: var(--dark-bg);
+}
+
+/* Navigation */
+.navbar-dark {
+    background-color: var(--dark-bg) !important;
+}
+
+.nav-link {
+    transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+    color: var(--accent-cyan) !important;
+}
+
+/* Headers */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--primary-blue);
+    font-weight: 600;
+}
+
+/* Dark backgrounds text */
+.bg-dark h1, 
+.bg-dark h2, 
+.bg-dark h3, 
+.bg-dark h4, 
+.bg-dark h5, 
+.bg-dark h6,
+.dashboard-header h1,
+.dashboard-header h2 {
+    color: white;
+}
+
+/* Links */
+a {
+    color: var(--primary-blue);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: var(--secondary-blue);
+    text-decoration: underline;
+}
+
+/* Progress bars */
+.progress-bar {
+    background-color: var(--primary-blue);
+}
+
+/* Alerts */
+.alert-info {
+    background-color: rgba(74, 144, 226, 0.1);
+    border-color: var(--primary-blue);
+    color: var(--text-dark);
+}
+
+/* Tables */
+.table-hover tbody tr:hover {
+    background-color: rgba(74, 144, 226, 0.05);
+}
+
+/* Status Indicators */
+.status-indicator.green { background-color: var(--success-color); }
+.status-indicator.yellow { background-color: var(--warning-color); }
+.status-indicator.red { background-color: var(--danger-color); }
+
+/* Loading Spinners */
+.spinner-border {
+    color: var(--primary-blue);
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary-blue);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--secondary-blue);
+}
+
+/* Logo Integration */
+.navbar-brand img,
+.suite-brand img {
+    height: 40px;
+    width: auto;
+    margin-right: 10px;
+}
+
+/* Gradient Backgrounds */
+.gradient-primary {
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+}
+
+.gradient-dark {
+    background: linear-gradient(135deg, var(--dark-bg) 0%, #2A2A2A 100%);
+}
+
+/* Check Engine Light Animation (for special elements) */
+@keyframes pulse-cyan {
+    0% { box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(0, 212, 255, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(0, 212, 255, 0); }
+}
+
+.check-engine-pulse {
+    animation: pulse-cyan 2s infinite;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .navbar-brand img,
+    .suite-brand img {
+        height: 32px;
+    }
+}

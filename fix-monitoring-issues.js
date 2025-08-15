@@ -1,4 +1,12 @@
 /**
+ * Auto Audit Pro
+ * © 2025 JL Robinson. All Rights Reserved.
+ * 
+ * This file contains proprietary code for the Auto Audit Pro platform.
+ * Unauthorized use, reproduction, or distribution is prohibited.
+ */
+
+/**
  * Fixes for Monitoring System Issues
  * 
  * Issues to fix:

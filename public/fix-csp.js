@@ -1,3 +1,11 @@
+/**
+ * Auto Audit Pro
+ * © 2025 JL Robinson. All Rights Reserved.
+ * 
+ * This file contains proprietary code for the Auto Audit Pro platform.
+ * Unauthorized use, reproduction, or distribution is prohibited.
+ */
+
 // CSP Fix Script - Include this at the very top of your HTML pages
 (function() {
     'use strict';

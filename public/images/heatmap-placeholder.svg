@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="#f3f4f6"/>
+  
+  <!-- Grid pattern -->
+  <defs>
+    <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#e5e7eb" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#grid)"/>
+  
+  <!-- Center icon and text -->
+  <g transform="translate(960, 540)">
+    <!-- Icon background circle -->
+    <circle cx="0" cy="-50" r="60" fill="#e5e7eb" opacity="0.5"/>
+    
+    <!-- Fire icon (simplified) -->
+    <path d="M -20 -30 Q -10 -60 0 -70 Q 10 -60 20 -30 Q 15 -10 0 0 Q -15 -10 -20 -30 Z" 
+          fill="#9ca3af" opacity="0.7"/>
+    
+    <!-- Text -->
+    <text x="0" y="40" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#6b7280">
+      Heatmap Preview Unavailable
+    </text>
+    <text x="0" y="70" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="#9ca3af">
+      Unable to generate predictive heatmap
+    </text>
+  </g>
+</svg>

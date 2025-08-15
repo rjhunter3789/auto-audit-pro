@@ -14,7 +14,6 @@
 - Daily monitoring (every 59 minutes)
 - Priority support
 - Custom ROI settings
-- Competitor monitoring (1 competitor)
 - Perfect for: Most dealerships
 
 ### Tier 3: ENTERPRISE ($399/month)
@@ -22,11 +21,9 @@
 - 30-minute monitoring
 - White-label reports
 - API access
-- Competitor monitoring (up to 5)
 - Perfect for: Dealer groups
 
 ### Add-ons:
-- Extra competitor monitoring: $25/month each
 - White-label branding: $50/month
 - API access: $100/month
 

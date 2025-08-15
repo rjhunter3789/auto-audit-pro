@@ -1,3 +1,10 @@
+<!--
+  Auto Audit Pro
+  © 2025 JL Robinson. All Rights Reserved.
+  
+  This file contains proprietary code for the Auto Audit Pro platform.
+  Unauthorized use, reproduction, or distribution is prohibited.
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -23,14 +30,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
 
-        /* Header Styles */
-        .dashboard-header {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            color: white;
-            padding: 2rem 0;
-            margin-bottom: 2rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
+        /* Remove old dashboard-header styles */
 
         .dashboard-header h1 {
             font-size: 2.5rem;
@@ -213,6 +213,48 @@
             border-bottom: 1px solid #dee2e6;
         }
         
+        /* Navigation Bar */
+        .suite-nav {
+            background: var(--dark-bg);
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .suite-nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .suite-brand {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .suite-brand:hover {
+            color: #E5E7EB;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            margin: 0;
+        }
+
+        .nav-links a {
+            color: #9CA3AF;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: white;
+        }
+
         /* Anti-LastPass Styles */
         #sms_notification_contact,
         input[name="emergency_contact_sms"] {
@@ -283,32 +325,40 @@
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <div class="dashboard-header">
+    <!-- Navigation Bar -->
+    <nav class="suite-nav">
         <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-7 col-md-12 mb-3 mb-lg-0">
-                    <h1><i class="bi bi-speedometer2"></i> Auto Audit Pro - Website Monitoring</h1>
-                    <p class="mb-0">Real-time website health monitoring - Your digital "Check Engine" light</p>
-                </div>
-                <div class="col-lg-5 col-md-12">
-                    <div class="d-flex justify-content-lg-end justify-content-center gap-2 flex-wrap">
-                        <a href="/" class="btn btn-outline-light btn-sm">
-                            <i class="bi bi-house"></i> <span class="d-none d-sm-inline">Back to Audits</span>
-                        </a>
-                        <a href="/admin-settings-direct" class="btn btn-outline-light btn-sm" id="adminSettingsBtn">
-                            <i class="bi bi-gear"></i> <span class="d-none d-sm-inline">Admin Settings</span>
-                        </a>
-                        <button class="btn btn-light btn-sm" onclick="showAddProfileModal()" id="addWebsiteBtn">
-                            <i class="bi bi-plus-circle"></i> <span class="d-none d-sm-inline" id="addWebsiteText">Add Website</span>
-                        </button>
-                        <button class="btn btn-light btn-sm" onclick="exportReport()" title="Export monitoring data as CSV">
-                            <i class="bi bi-download"></i> <span class="d-none d-sm-inline">Export</span>
-                        </button>
-                        <button class="btn btn-light btn-sm" onclick="refreshDashboard()" title="Refresh dashboard">
-                            <i class="bi bi-arrow-clockwise"></i>
-                        </button>
-                    </div>
+            <a href="/" class="suite-brand">Auto Audit Pro Suite</a>
+            <div class="nav-links">
+                <a href="/website-audit">Website Analysis</a>
+                <a href="/lead-analysis">Lead Performance</a>
+                <a href="/monitoring" class="active">Monitoring</a>
+                <a href="/definitions">Definitions</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="container mt-4">
+        <div class="row align-items-center mb-4">
+            <div class="col-lg-8 col-md-12">
+                <h1 class="mb-2">Website Monitoring Dashboard</h1>
+                <p class="text-muted mb-0">Real-time website health monitoring - Your digital "Check Engine" light</p>
+            </div>
+            <div class="col-lg-4 col-md-12">
+                <div class="d-flex justify-content-lg-end justify-content-start gap-2 flex-wrap">
+                    <a href="/admin-settings-direct" class="btn btn-primary btn-sm" id="adminSettingsBtn">
+                        <i class="bi bi-gear"></i> Admin
+                    </a>
+                    <button class="btn btn-primary btn-sm" onclick="showAddProfileModal()" id="addWebsiteBtn">
+                        <i class="bi bi-plus-circle"></i> Add Website
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm" onclick="exportReport()" title="Export">
+                        <i class="bi bi-download"></i>
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm" onclick="refreshDashboard()" title="Refresh">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
                 </div>
             </div>
         </div>

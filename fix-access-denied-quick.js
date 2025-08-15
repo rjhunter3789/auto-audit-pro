@@ -1,4 +1,12 @@
 /**
+ * Auto Audit Pro
+ * © 2025 JL Robinson. All Rights Reserved.
+ * 
+ * This file contains proprietary code for the Auto Audit Pro platform.
+ * Unauthorized use, reproduction, or distribution is prohibited.
+ */
+
+/**
  * Quick fix for Access Denied issues
  * This script adds a recovery endpoint to help when locked out
  */
