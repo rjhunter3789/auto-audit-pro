@@ -3378,9 +3378,14 @@ app.get('/website-audit', (req, res) => {
     res.render('index-new.html');
 });
 
-// Lead performance tool
+// Lead performance tool - Network Analysis
 app.get('/lead-analysis', (req, res) => {
     res.render('lead-performance.html');
+});
+
+// Lead performance tool - Standalone Dealers
+app.get('/lead-analysis-standalone', (req, res) => {
+    res.render('lead-performance-standalone.html');
 });
 
 // OEM Incentives Manager (Admin Only)

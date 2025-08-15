@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Standalone Dealer Lead Analysis - Auto Audit Pro Suite</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary-purple: #6B46C1;
+            --secondary-purple: #9333EA;
+            --accent-green: #10B981;
+            --accent-red: #EF4444;
+            --dark-bg: #1F2937;
+        }
+
+        body {
+            background: #F3F4F6;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Navigation Bar */
+        .suite-nav {
+            background: var(--dark-bg);
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .suite-nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .suite-brand {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            margin: 0;
+        }
+
+        .nav-links a {
+            color: #9CA3AF;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: white;
+        }
+
+        /* Main Content */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .page-header {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .page-header h1 {
+            color: var(--dark-bg);
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Upload Card */
+        .upload-card {
+            background: white;
+            border: 2px dashed #CBD5E1;
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 2rem;
+        }
+
+        .upload-card:hover {
+            border-color: var(--primary-purple);
+            background: #F9FAFB;
+        }
+
+        .upload-card.dragover {
+            border-color: var(--primary-purple);
+            background: #F3F0FF;
+        }
+
+        .upload-card i {
+            font-size: 3rem;
+            color: var(--primary-purple);
+            margin-bottom: 1rem;
+        }
+
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--dark-bg);
+            margin: 0;
+        }
+
+        /* Charts */
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            height: 400px;
+        }
+
+        /* Analysis Section */
+        .analysis-section {
+            display: none;
+        }
+
+        .analysis-section.active {
+            display: block;
+        }
+
+        /* Format Help */
+        .format-help {
+            background: #F0F9FF;
+            border-left: 4px solid #3B82F6;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            border-radius: 4px;
+        }
+
+        .format-help h5 {
+            color: #1E40AF;
+            margin-bottom: 0.5rem;
+        }
+
+        .format-help code {
+            background: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="suite-nav">
+        <div class="container">
+            <a href="/" class="suite-brand">Auto Audit Pro Suite</a>
+            <div class="nav-links">
+                <a href="/website-audit">Website Analysis</a>
+                <a href="/lead-analysis" class="active">Lead Performance</a>
+                <a href="/monitoring">Monitoring</a>
+                <a href="/definitions">Definitions</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1>Standalone Dealer Lead Analysis</h1>
+            <p>Upload and analyze individual Ford/Lincoln dealer lead reports</p>
+            <div class="mt-3">
+                <a href="/lead-analysis" class="btn btn-outline-primary">
+                    <i class="fas fa-network-wired"></i> Switch to Network Analysis
+                </a>
+            </div>
+        </div>
+
+        <!-- Format Help -->
+        <div class="format-help">
+            <h5><i class="fas fa-info-circle"></i> Expected File Format</h5>
+            <p class="mb-2">Your file should follow this structure:</p>
+            <ul class="mb-0">
+                <li><strong>Cell A1:</strong> Dealer PA Code (e.g., <code>F08684</code> or <code>L12345</code>)</li>
+                <li><strong>Cell C1:</strong> Lead Performance Report</li>
+                <li><strong>Row 2:</strong> Column headers</li>
+                <li><strong>Row 3+:</strong> Lead data (all types: Form, Phone, Chat)</li>
+            </ul>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="upload-card" id="uploadCard">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <h3>Upload Dealer Lead Data</h3>
+            <p>Drag & drop your Excel/CSV file here or click to browse</p>
+            <p class="text-muted small">Supports .xlsx, .xlsm, .xls, and .csv files</p>
+            <input type="file" id="fileInput" accept=".csv,.xlsx,.xlsm,.xls" style="display: none;">
+        </div>
+
+        <!-- Analysis Section -->
+        <div class="analysis-section" id="analysisSection">
+            <!-- Dealer Info -->
+            <div class="dealer-info mb-4">
+                <h2 id="dealerName">-</h2>
+                <p class="text-muted">Analysis Period: <span id="analysisPeriod">-</span></p>
+            </div>
+
+            <!-- Key Metrics -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <h4>Total Leads</h4>
+                    <p class="metric-value" id="totalLeads">-</p>
+                    <p class="text-muted small">All lead types</p>
+                </div>
+                <div class="metric-card">
+                    <h4>Conversion Rate</h4>
+                    <p class="metric-value" id="conversionRate">-</p>
+                    <p class="text-muted small">Leads to sales</p>
+                </div>
+                <div class="metric-card">
+                    <h4>Response Rate</h4>
+                    <p class="metric-value" id="responseRate">-</p>
+                    <p class="text-muted small">Leads responded to</p>
+                </div>
+                <div class="metric-card">
+                    <h4>Avg Response Time</h4>
+                    <p class="metric-value" id="avgResponseTime">-</p>
+                    <p class="text-muted small">In minutes</p>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="chart-container">
+                        <canvas id="leadSourceChart"></canvas>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="chart-container">
+                        <canvas id="responseTimeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lead Type Breakdown -->
+            <div class="chart-container">
+                <h4>Lead Type Performance</h4>
+                <canvas id="leadTypeChart"></canvas>
+            </div>
+
+            <!-- Export Options -->
+            <div class="text-center mt-4">
+                <button class="btn btn-primary" onclick="exportReport()">
+                    <i class="fas fa-download"></i> Export Report
+                </button>
+                <button class="btn btn-outline-primary" onclick="resetAnalysis()">
+                    <i class="fas fa-redo"></i> Upload New File
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lead Performance JavaScript for Standalone Dealers -->
+    <script src="/js/lead-performance-standalone.js"></script>
+</body>
+</html>
