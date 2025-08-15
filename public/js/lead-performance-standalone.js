@@ -339,8 +339,9 @@ function analyzeDealerData(data, filename) {
                 const elapsedH = row[columnMap.elapsedTime];
                 const elapsedI = row[columnMap.elapsedTime2];
                 
-                if (i < 5 && (elapsedH || elapsedI)) {
-                    console.log(`Row ${i} elapsed times - H: ${elapsedH}, I: ${elapsedI}`);
+                if (i < 5) {
+                    console.log(`Row ${i} elapsed times - H: "${elapsedH}", I: "${elapsedI}"`);
+                    console.log(`Row ${i} dates - Received: "${receivedDate}", Response: "${response}"`);
                 }
                 
                 // Try to parse elapsed time (might be in format like "0:15" or "15" or "2:30:45")
@@ -420,14 +421,19 @@ function calculateResponseTime(actionable, response) {
             start = new Date(excelEpoch + actionable * msPerDay);
             end = new Date(excelEpoch + response * msPerDay);
         } else {
-            // Try parsing as regular dates
-            start = new Date(actionable);
-            end = new Date(response);
+            // Try parsing as regular dates - handle "1/15/2025 10:30AM" format
+            // JavaScript's Date constructor might have issues with missing space before AM/PM
+            const actionableStr = String(actionable).replace(/(\d)(AM|PM)/i, '$1 $2');
+            const responseStr = String(response).replace(/(\d)(AM|PM)/i, '$1 $2');
+            
+            start = new Date(actionableStr);
+            end = new Date(responseStr);
         }
         
         // Check if dates are valid
         if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-            console.log(`Invalid dates - Actionable: ${actionable}, Response: ${response}`);
+            console.log(`Invalid dates - Actionable: "${actionable}", Response: "${response}"`);
+            console.log(`Parsed as - Start: ${start}, End: ${end}`);
             return 999999;
         }
         
