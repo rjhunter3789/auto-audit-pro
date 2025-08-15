@@ -160,24 +160,31 @@ function analyzeDealerData(data, filename) {
         }
     }
     
-    // Find column indices (assuming row 2 has headers)
-    const headers = data[1] || [];
+    // Use same column mapping as network dealers
     const columnMap = {
-        leadSource: -1,
-        leadType: -1,
-        outcome: -1,
-        actionableDate: -1,
-        responseDate: -1
+        leadSource: 1,      // Column B
+        leadType: 2,        // Column C
+        outcome: 3,         // Column D
+        actionableDate: 5,  // Column F
+        responseDate: 6,    // Column G
+        elapsedTime: 7,     // Column H
+        saleDate: 9         // Column J
     };
     
-    headers.forEach((header, index) => {
-        const h = String(header).toLowerCase();
-        if (h.includes('lead source')) columnMap.leadSource = index;
-        else if (h.includes('lead type')) columnMap.leadType = index;
-        else if (h.includes('outcome')) columnMap.outcome = index;
-        else if (h.includes('actionable')) columnMap.actionableDate = index;
-        else if (h.includes('response')) columnMap.responseDate = index;
-    });
+    // If headers exist in row 2, try to find columns dynamically
+    if (data[1] && data[1].length > 5) {
+        const headers = data[1];
+        headers.forEach((header, index) => {
+            if (!header) return;
+            const h = String(header).toLowerCase().trim();
+            if (h.includes('lead source')) columnMap.leadSource = index;
+            else if (h.includes('lead type')) columnMap.leadType = index;
+            else if (h.includes('outcome')) columnMap.outcome = index;
+            else if (h.includes('actionable')) columnMap.actionableDate = index;
+            else if (h.includes('response date') || h === 'response date') columnMap.responseDate = index;
+            else if (h.includes('sale date')) columnMap.saleDate = index;
+        });
+    }
     
     // Process data starting from row 3
     for (let i = 2; i < data.length; i++) {
@@ -209,8 +216,12 @@ function analyzeDealerData(data, filename) {
         }
         dealerData.leadSources[leadSource].count++;
         
-        // Check if sold
-        if (outcome && String(outcome).toLowerCase().includes('sold')) {
+        // Check if sold - look for specific outcomes
+        if (outcome && (
+            String(outcome).toLowerCase().includes('sold') ||
+            String(outcome).toLowerCase().includes('retail') ||
+            String(outcome).toLowerCase().includes('delivery')
+        )) {
             dealerData.sales++;
             if (dealerData.leadTypes[leadType]) {
                 dealerData.leadTypes[leadType].sales++;
@@ -223,15 +234,24 @@ function analyzeDealerData(data, filename) {
             const actionable = row[columnMap.actionableDate];
             const response = row[columnMap.responseDate];
             
-            if (response && response !== 'No Response') {
+            // Check for various "no response" indicators
+            if (!response || 
+                response === '' || 
+                String(response).toLowerCase() === 'no response' ||
+                String(response).toLowerCase() === 'no' ||
+                String(response).toLowerCase() === 'none' ||
+                String(response).toLowerCase() === 'n/a') {
+                dealerData.noResponse++;
+                dealerData.responseTimeBreakdown['No Response']++;
+            } else {
                 dealerData.responded++;
                 // Calculate response time category
                 const responseMinutes = calculateResponseTime(actionable, response);
                 categorizeResponseTime(responseMinutes);
-            } else {
-                dealerData.noResponse++;
-                dealerData.responseTimeBreakdown['No Response']++;
             }
+        } else {
+            // If we can't find response columns, log it
+            console.log('Warning: Could not find response date columns');
         }
     }
     
