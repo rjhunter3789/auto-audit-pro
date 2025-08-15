@@ -164,10 +164,11 @@ function analyzeDealerData(data, filename) {
     const columnMap = {
         leadSource: 1,      // Column B
         leadType: 2,        // Column C
-        outcome: 3,         // Column D
+        vehicleType: 3,     // Column D (New/Used/CPO)
         actionableDate: 5,  // Column F
         responseDate: 6,    // Column G
         elapsedTime: 7,     // Column H
+        outcome: 8,         // Column I (might be outcome/status)
         saleDate: 9         // Column J
     };
     
@@ -191,9 +192,10 @@ function analyzeDealerData(data, filename) {
         const row = data[i];
         if (!row || row.length < 3) continue;
         
-        const leadType = row[columnMap.leadType] || row[2]; // Default column C
-        const leadSource = row[columnMap.leadSource] || row[1]; // Default column B
-        const outcome = row[columnMap.outcome] || row[3]; // Default column D
+        const leadType = row[columnMap.leadType] || row[2]; // Column C
+        const leadSource = row[columnMap.leadSource] || row[1]; // Column B
+        const vehicleType = row[columnMap.vehicleType] || row[3]; // Column D (New/Used/CPO)
+        const saleDate = row[columnMap.saleDate] || row[9]; // Column J
         
         // Skip empty or total rows
         if (!leadType || !leadSource || 
@@ -216,17 +218,21 @@ function analyzeDealerData(data, filename) {
         }
         dealerData.leadSources[leadSource].count++;
         
-        // Check if sold - look for specific outcomes
-        if (outcome && (
-            String(outcome).toLowerCase().includes('sold') ||
-            String(outcome).toLowerCase().includes('retail') ||
-            String(outcome).toLowerCase().includes('delivery')
-        )) {
+        // Check if sold - if there's a sale date, it's a sale
+        if (saleDate && saleDate !== '' && saleDate !== 'No' && saleDate !== 'N/A') {
             dealerData.sales++;
             if (dealerData.leadTypes[leadType]) {
                 dealerData.leadTypes[leadType].sales++;
             }
             dealerData.leadSources[leadSource].sales++;
+            
+            // Track by vehicle type if available
+            if (!dealerData.vehicleTypes) {
+                dealerData.vehicleTypes = { New: 0, Used: 0, CPO: 0 };
+            }
+            if (vehicleType && dealerData.vehicleTypes[vehicleType] !== undefined) {
+                dealerData.vehicleTypes[vehicleType]++;
+            }
         }
         
         // Calculate response time
