@@ -121,15 +121,22 @@ function analyzeDealerData(data, filename) {
         name: '',
         brand: '',
         totalLeads: 0,
-        sales: 0,
+        yourSales: 0,          // Sales at your dealership
+        lostSales: 0,          // Sales lost to other dealers
+        noSale: 0,             // Leads that didn't buy anywhere
         responded: 0,
         noResponse: 0,
         leadTypes: {
-            Form: { count: 0, sales: 0 },
-            Phone: { count: 0, sales: 0 },
-            Chat: { count: 0, sales: 0 }
+            Form: { count: 0, yourSales: 0, lostSales: 0 },
+            Phone: { count: 0, yourSales: 0, lostSales: 0 },
+            Chat: { count: 0, yourSales: 0, lostSales: 0 }
         },
         leadSources: {},
+        vehicleTypes: {
+            New: { yourSales: 0, lostSales: 0 },
+            Used: { yourSales: 0, lostSales: 0 },
+            CPO: { yourSales: 0, lostSales: 0 }
+        },
         responseTimeBreakdown: {
             '0-15min': 0,
             '16-30min': 0,
@@ -168,8 +175,11 @@ function analyzeDealerData(data, filename) {
         actionableDate: 5,  // Column F
         responseDate: 6,    // Column G
         elapsedTime: 7,     // Column H
-        outcome: 8,         // Column I (might be outcome/status)
-        saleDate: 9         // Column J
+        elapsedTime2: 8,    // Column I (elapsed time - different calculation)
+        saleDate: 9,        // Column J
+        model: 10,          // Column K
+        sellingDealer: 11,  // Column L (5-digit code or "Other")
+        salesType: 12       // Column M (N/U/C)
     };
     
     // If headers exist in row 2, try to find columns dynamically
@@ -180,7 +190,7 @@ function analyzeDealerData(data, filename) {
             const h = String(header).toLowerCase().trim();
             if (h.includes('lead source')) columnMap.leadSource = index;
             else if (h.includes('lead type')) columnMap.leadType = index;
-            else if (h.includes('outcome')) columnMap.outcome = index;
+            else if (h.includes('vehicle type')) columnMap.vehicleType = index;
             else if (h.includes('actionable')) columnMap.actionableDate = index;
             else if (h.includes('response date') || h === 'response date') columnMap.responseDate = index;
             else if (h.includes('sale date')) columnMap.saleDate = index;
@@ -196,6 +206,8 @@ function analyzeDealerData(data, filename) {
         const leadSource = row[columnMap.leadSource] || row[1]; // Column B
         const vehicleType = row[columnMap.vehicleType] || row[3]; // Column D (New/Used/CPO)
         const saleDate = row[columnMap.saleDate] || row[9]; // Column J
+        const sellingDealer = row[columnMap.sellingDealer] || row[11]; // Column L
+        const salesType = row[columnMap.salesType] || row[12]; // Column M
         
         // Skip empty or total rows
         if (!leadType || !leadSource || 
@@ -218,21 +230,45 @@ function analyzeDealerData(data, filename) {
         }
         dealerData.leadSources[leadSource].count++;
         
-        // Check if sold - if there's a sale date, it's a sale
+        // Check sales outcome
         if (saleDate && saleDate !== '' && saleDate !== 'No' && saleDate !== 'N/A') {
-            dealerData.sales++;
-            if (dealerData.leadTypes[leadType]) {
-                dealerData.leadTypes[leadType].sales++;
+            // There was a sale - check who made it
+            if (sellingDealer && sellingDealer === dealerData.paCode) {
+                // Your dealership made the sale
+                dealerData.yourSales++;
+                if (dealerData.leadTypes[leadType]) {
+                    dealerData.leadTypes[leadType].yourSales++;
+                }
+                if (!dealerData.leadSources[leadSource]) {
+                    dealerData.leadSources[leadSource] = { count: 0, yourSales: 0, lostSales: 0 };
+                }
+                dealerData.leadSources[leadSource].yourSales++;
+                
+                // Track by vehicle type
+                const vType = salesType === 'N' ? 'New' : salesType === 'U' ? 'Used' : salesType === 'C' ? 'CPO' : vehicleType;
+                if (vType && dealerData.vehicleTypes[vType]) {
+                    dealerData.vehicleTypes[vType].yourSales++;
+                }
+            } else if (sellingDealer && (sellingDealer === 'Other' || sellingDealer !== dealerData.paCode)) {
+                // Lost sale to another dealer
+                dealerData.lostSales++;
+                if (dealerData.leadTypes[leadType]) {
+                    dealerData.leadTypes[leadType].lostSales++;
+                }
+                if (!dealerData.leadSources[leadSource]) {
+                    dealerData.leadSources[leadSource] = { count: 0, yourSales: 0, lostSales: 0 };
+                }
+                dealerData.leadSources[leadSource].lostSales++;
+                
+                // Track by vehicle type
+                const vType = salesType === 'N' ? 'New' : salesType === 'U' ? 'Used' : salesType === 'C' ? 'CPO' : vehicleType;
+                if (vType && dealerData.vehicleTypes[vType]) {
+                    dealerData.vehicleTypes[vType].lostSales++;
+                }
             }
-            dealerData.leadSources[leadSource].sales++;
-            
-            // Track by vehicle type if available
-            if (!dealerData.vehicleTypes) {
-                dealerData.vehicleTypes = { New: 0, Used: 0, CPO: 0 };
-            }
-            if (vehicleType && dealerData.vehicleTypes[vehicleType] !== undefined) {
-                dealerData.vehicleTypes[vehicleType]++;
-            }
+        } else {
+            // No sale at all
+            dealerData.noSale++;
         }
         
         // Calculate response time
@@ -304,9 +340,20 @@ function displayResults() {
     
     // Update metrics
     document.getElementById('totalLeads').textContent = dealerData.totalLeads.toLocaleString();
-    document.getElementById('conversionRate').textContent = 
-        dealerData.totalLeads > 0 ? 
-        ((dealerData.sales / dealerData.totalLeads) * 100).toFixed(1) + '%' : '0%';
+    
+    // Calculate conversion rates
+    const yourConversionRate = dealerData.totalLeads > 0 ? 
+        ((dealerData.yourSales / dealerData.totalLeads) * 100).toFixed(1) : 0;
+    const lostToCompetitionRate = dealerData.totalLeads > 0 ? 
+        ((dealerData.lostSales / dealerData.totalLeads) * 100).toFixed(1) : 0;
+    const marketConversionRate = dealerData.totalLeads > 0 ? 
+        (((dealerData.yourSales + dealerData.lostSales) / dealerData.totalLeads) * 100).toFixed(1) : 0;
+    
+    // Update conversion rate to show YOUR conversion rate
+    document.getElementById('conversionRate').textContent = yourConversionRate + '%';
+    document.getElementById('lostToCompetitionRate').textContent = lostToCompetitionRate + '%';
+    document.getElementById('marketConversionRate').textContent = marketConversionRate + '%';
+    
     document.getElementById('responseRate').textContent = 
         dealerData.totalLeads > 0 ? 
         ((dealerData.responded / dealerData.totalLeads) * 100).toFixed(1) + '%' : '0%';
@@ -329,9 +376,17 @@ function initializeCharts() {
             data: {
                 labels: [],
                 datasets: [{
-                    label: 'Leads',
+                    label: 'Total Leads',
                     data: [],
                     backgroundColor: '#6B46C1'
+                }, {
+                    label: 'Your Sales',
+                    data: [],
+                    backgroundColor: '#10B981'
+                }, {
+                    label: 'Lost Sales',
+                    data: [],
+                    backgroundColor: '#EF4444'
                 }]
             },
             options: {
@@ -391,9 +446,13 @@ function initializeCharts() {
                     data: [],
                     backgroundColor: '#6B46C1'
                 }, {
-                    label: 'Sales',
+                    label: 'Your Sales',
                     data: [],
                     backgroundColor: '#10B981'
+                }, {
+                    label: 'Lost Sales',
+                    data: [],
+                    backgroundColor: '#EF4444'
                 }]
             },
             options: {
@@ -420,6 +479,8 @@ function updateCharts() {
         
         charts.leadSource.data.labels = sources.map(s => s[0]);
         charts.leadSource.data.datasets[0].data = sources.map(s => s[1].count);
+        charts.leadSource.data.datasets[1].data = sources.map(s => s[1].yourSales || 0);
+        charts.leadSource.data.datasets[2].data = sources.map(s => s[1].lostSales || 0);
         charts.leadSource.update();
     }
     
@@ -438,9 +499,14 @@ function updateCharts() {
             dealerData.leadTypes.Chat.count
         ];
         charts.leadType.data.datasets[1].data = [
-            dealerData.leadTypes.Form.sales,
-            dealerData.leadTypes.Phone.sales,
-            dealerData.leadTypes.Chat.sales
+            dealerData.leadTypes.Form.yourSales,
+            dealerData.leadTypes.Phone.yourSales,
+            dealerData.leadTypes.Chat.yourSales
+        ];
+        charts.leadType.data.datasets[2].data = [
+            dealerData.leadTypes.Form.lostSales,
+            dealerData.leadTypes.Phone.lostSales,
+            dealerData.leadTypes.Chat.lostSales
         ];
         charts.leadType.update();
     }
@@ -452,8 +518,12 @@ function exportReport() {
     let csv = 'Metric,Value\n';
     csv += `Dealer,${dealerData.name}\n`;
     csv += `Total Leads,${dealerData.totalLeads}\n`;
-    csv += `Total Sales,${dealerData.sales}\n`;
-    csv += `Conversion Rate,${((dealerData.sales / dealerData.totalLeads) * 100).toFixed(1)}%\n`;
+    csv += `Your Sales,${dealerData.yourSales}\n`;
+    csv += `Lost Sales,${dealerData.lostSales}\n`;
+    csv += `No Sale,${dealerData.noSale}\n`;
+    csv += `Your Conversion Rate,${((dealerData.yourSales / dealerData.totalLeads) * 100).toFixed(1)}%\n`;
+    csv += `Lost to Competition Rate,${((dealerData.lostSales / dealerData.totalLeads) * 100).toFixed(1)}%\n`;
+    csv += `Market Conversion Rate,${(((dealerData.yourSales + dealerData.lostSales) / dealerData.totalLeads) * 100).toFixed(1)}%\n`;
     csv += `Response Rate,${((dealerData.responded / dealerData.totalLeads) * 100).toFixed(1)}%\n`;
     
     const blob = new Blob([csv], { type: 'text/csv' });
