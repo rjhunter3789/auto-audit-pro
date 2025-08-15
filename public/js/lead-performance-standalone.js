@@ -3,6 +3,11 @@
  * Auto Audit Pro Suite
  * 
  * Designed specifically for single dealer reports with PA Code format
+ * 
+ * Response Time Calculation:
+ * - Column A: Date/Time dealer received the lead
+ * - Column G: Date/Time dealer responded (empty = no response)
+ * - TODO: Apply same logic to network dealers page
  */
 
 // Global variables
@@ -175,15 +180,16 @@ function analyzeDealerData(data, filename) {
         }
     }
     
-    // Use same column mapping as network dealers
+    // Column mapping for standalone dealer reports
     const columnMap = {
+        receivedDate: 0,    // Column A - Date/Time dealer received the lead
         leadSource: 1,      // Column B
         leadType: 2,        // Column C
         vehicleType: 3,     // Column D (New/Used/CPO)
         actionableDate: 5,  // Column F
-        responseDate: 6,    // Column G
-        elapsedTime: 7,     // Column H - might be response time in minutes/hours
-        elapsedTime2: 8,    // Column I - might be response time in different format
+        responseDate: 6,    // Column G - Date/Time dealer responded
+        elapsedTime: 7,     // Column H
+        elapsedTime2: 8,    // Column I
         saleDate: 9,        // Column J
         model: 10,          // Column K
         sellingDealer: 11,  // Column L (5-digit code or "Other")
@@ -304,14 +310,14 @@ function analyzeDealerData(data, filename) {
             dealerData.noSale++;
         }
         
-        // Calculate response time
-        if (columnMap.actionableDate >= 0 && columnMap.responseDate >= 0) {
-            const actionable = row[columnMap.actionableDate];
-            const response = row[columnMap.responseDate];
+        // Calculate response time using Column A (received) and Column G (response)
+        if (columnMap.receivedDate >= 0 && columnMap.responseDate >= 0) {
+            const receivedDate = row[columnMap.receivedDate];  // Column A - when lead received
+            const response = row[columnMap.responseDate];       // Column G - when responded
             
             // Debug first few rows
-            if (i < 5 && actionable && response) {
-                console.log(`Row ${i} dates - Actionable: ${actionable} (type: ${typeof actionable}), Response: ${response} (type: ${typeof response})`);
+            if (i < 5 && receivedDate) {
+                console.log(`Row ${i} dates - Received: ${receivedDate} (type: ${typeof receivedDate}), Response: ${response} (type: ${typeof response})`);
             }
             
             // Check for various "no response" indicators
@@ -343,8 +349,8 @@ function analyzeDealerData(data, filename) {
                 } else if (elapsedI && elapsedI !== '') {
                     responseMinutes = parseElapsedTime(elapsedI);
                 } else {
-                    // Fall back to calculating from dates
-                    responseMinutes = calculateResponseTime(actionable, response);
+                    // Fall back to calculating from dates (Column A to Column G)
+                    responseMinutes = calculateResponseTime(receivedDate, response);
                 }
                 
                 if (i < 5) {
