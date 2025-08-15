@@ -156,7 +156,7 @@ function analyzeDealerData(data, filename) {
             dealerData.paCode = cellA1;
             dealerData.brand = paCodeMatch[1] === 'F' ? 'Ford' : 'Lincoln';
             dealerData.name = `${dealerData.brand} Dealer ${paCodeMatch[2]}`;
-            console.log('Found dealer:', dealerData.name);
+            console.log('Found dealer:', dealerData.name, 'PA Code:', dealerData.paCode);
         } else {
             // Try to extract from filename
             const filenameMatch = filename.match(/([FL]?\d{5})/);
@@ -194,7 +194,10 @@ function analyzeDealerData(data, filename) {
             else if (h.includes('actionable')) columnMap.actionableDate = index;
             else if (h.includes('response date') || h === 'response date') columnMap.responseDate = index;
             else if (h.includes('sale date')) columnMap.saleDate = index;
+            else if (h.includes('selling dealer') || h.includes('dealer code')) columnMap.sellingDealer = index;
+            else if (h.includes('sales type') || h === 'type') columnMap.salesType = index;
         });
+        console.log('Column mapping after header detection:', columnMap);
     }
     
     // Process data starting from row 3
@@ -233,8 +236,21 @@ function analyzeDealerData(data, filename) {
         // Check sales outcome
         if (saleDate && saleDate !== '' && saleDate !== 'No' && saleDate !== 'N/A') {
             // There was a sale - check who made it
-            if (sellingDealer && sellingDealer === dealerData.paCode) {
+            console.log(`Sale detected - Selling Dealer: "${sellingDealer}", Your PA Code: "${dealerData.paCode}"`);
+            
+            // Normalize selling dealer for comparison
+            const normalizedSellingDealer = String(sellingDealer).trim();
+            const normalizedPACode = dealerData.paCode;
+            
+            // Check if selling dealer matches - try multiple formats
+            const isYourSale = normalizedSellingDealer === normalizedPACode || 
+                               normalizedSellingDealer === normalizedPACode.substring(1) || // Without prefix
+                               (normalizedPACode.startsWith('F') && normalizedSellingDealer === normalizedPACode.replace('F', '')) ||
+                               (normalizedPACode.startsWith('L') && normalizedSellingDealer === normalizedPACode.replace('L', ''));
+            
+            if (sellingDealer && isYourSale) {
                 // Your dealership made the sale
+                console.log('Matched as YOUR sale');
                 dealerData.yourSales++;
                 if (dealerData.leadTypes[leadType]) {
                     dealerData.leadTypes[leadType].yourSales++;
@@ -249,8 +265,9 @@ function analyzeDealerData(data, filename) {
                 if (vType && dealerData.vehicleTypes[vType]) {
                     dealerData.vehicleTypes[vType].yourSales++;
                 }
-            } else if (sellingDealer && (sellingDealer === 'Other' || sellingDealer !== dealerData.paCode)) {
+            } else if (sellingDealer && (normalizedSellingDealer === 'Other' || !isYourSale)) {
                 // Lost sale to another dealer
+                console.log('Matched as LOST sale');
                 dealerData.lostSales++;
                 if (dealerData.leadTypes[leadType]) {
                     dealerData.leadTypes[leadType].lostSales++;
@@ -298,6 +315,8 @@ function analyzeDealerData(data, filename) {
     }
     
     console.log('Analysis complete:', dealerData);
+    console.log(`Sales Summary - Your Sales: ${dealerData.yourSales}, Lost Sales: ${dealerData.lostSales}, No Sale: ${dealerData.noSale}`);
+    console.log(`Conversion Rate: ${((dealerData.yourSales / dealerData.totalLeads) * 100).toFixed(1)}%`);
     displayResults();
 }
 
