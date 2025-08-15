@@ -182,8 +182,8 @@ function analyzeDealerData(data, filename) {
         vehicleType: 3,     // Column D (New/Used/CPO)
         actionableDate: 5,  // Column F
         responseDate: 6,    // Column G
-        elapsedTime: 7,     // Column H
-        elapsedTime2: 8,    // Column I (elapsed time - different calculation)
+        elapsedTime: 7,     // Column H - might be response time in minutes/hours
+        elapsedTime2: 8,    // Column I - might be response time in different format
         saleDate: 9,        // Column J
         model: 10,          // Column K
         sellingDealer: 11,  // Column L (5-digit code or "Other")
@@ -309,6 +309,11 @@ function analyzeDealerData(data, filename) {
             const actionable = row[columnMap.actionableDate];
             const response = row[columnMap.responseDate];
             
+            // Debug first few rows
+            if (i < 5 && actionable && response) {
+                console.log(`Row ${i} dates - Actionable: ${actionable} (type: ${typeof actionable}), Response: ${response} (type: ${typeof response})`);
+            }
+            
             // Check for various "no response" indicators
             if (!response || 
                 response === '' || 
@@ -320,8 +325,31 @@ function analyzeDealerData(data, filename) {
                 dealerData.responseTimeBreakdown['No Response']++;
             } else {
                 dealerData.responded++;
-                // Calculate response time category
-                const responseMinutes = calculateResponseTime(actionable, response);
+                
+                // Try to use elapsed time columns first (might be pre-calculated)
+                let responseMinutes = 999999;
+                
+                // Check if we have elapsed time in column H or I
+                const elapsedH = row[columnMap.elapsedTime];
+                const elapsedI = row[columnMap.elapsedTime2];
+                
+                if (i < 5 && (elapsedH || elapsedI)) {
+                    console.log(`Row ${i} elapsed times - H: ${elapsedH}, I: ${elapsedI}`);
+                }
+                
+                // Try to parse elapsed time (might be in format like "0:15" or "15" or "2:30:45")
+                if (elapsedH && elapsedH !== '') {
+                    responseMinutes = parseElapsedTime(elapsedH);
+                } else if (elapsedI && elapsedI !== '') {
+                    responseMinutes = parseElapsedTime(elapsedI);
+                } else {
+                    // Fall back to calculating from dates
+                    responseMinutes = calculateResponseTime(actionable, response);
+                }
+                
+                if (i < 5) {
+                    console.log(`Row ${i} response time: ${responseMinutes} minutes`);
+                }
                 categorizeResponseTime(responseMinutes);
             }
         } else {
@@ -336,15 +364,79 @@ function analyzeDealerData(data, filename) {
     displayResults();
 }
 
+// Parse elapsed time from various formats (0:15, 2:30:45, 15, etc.)
+function parseElapsedTime(elapsed) {
+    try {
+        const elapsedStr = String(elapsed).trim();
+        
+        // If it's just a number, assume it's minutes
+        if (/^\d+$/.test(elapsedStr)) {
+            return parseInt(elapsedStr);
+        }
+        
+        // If it's in H:MM or HH:MM format
+        if (/^\d+:\d{2}$/.test(elapsedStr)) {
+            const [hours, minutes] = elapsedStr.split(':').map(Number);
+            return hours * 60 + minutes;
+        }
+        
+        // If it's in H:MM:SS or HH:MM:SS format
+        if (/^\d+:\d{2}:\d{2}$/.test(elapsedStr)) {
+            const [hours, minutes, seconds] = elapsedStr.split(':').map(Number);
+            return hours * 60 + minutes + Math.round(seconds / 60);
+        }
+        
+        // If it's in D.HH:MM:SS format (days.hours:minutes:seconds)
+        if (/^\d+\.\d{2}:\d{2}:\d{2}$/.test(elapsedStr)) {
+            const [days, time] = elapsedStr.split('.');
+            const [hours, minutes, seconds] = time.split(':').map(Number);
+            return parseInt(days) * 24 * 60 + hours * 60 + minutes + Math.round(seconds / 60);
+        }
+        
+        console.log(`Unable to parse elapsed time: ${elapsedStr}`);
+        return 999999;
+    } catch (e) {
+        console.error('Error parsing elapsed time:', e);
+        return 999999;
+    }
+}
+
 // Calculate response time in minutes
 function calculateResponseTime(actionable, response) {
-    // This is simplified - you may need to adjust based on your date format
     try {
-        const start = new Date(actionable);
-        const end = new Date(response);
-        return Math.floor((end - start) / 1000 / 60); // Minutes
+        let start, end;
+        
+        // Handle Excel serial dates (numbers representing days since 1900)
+        if (typeof actionable === 'number' && typeof response === 'number') {
+            // Excel stores dates as days since 1900-01-01
+            const msPerDay = 24 * 60 * 60 * 1000;
+            const excelEpoch = new Date(1900, 0, 1).getTime() - (2 * msPerDay); // Excel has 2-day offset
+            start = new Date(excelEpoch + actionable * msPerDay);
+            end = new Date(excelEpoch + response * msPerDay);
+        } else {
+            // Try parsing as regular dates
+            start = new Date(actionable);
+            end = new Date(response);
+        }
+        
+        // Check if dates are valid
+        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+            console.log(`Invalid dates - Actionable: ${actionable}, Response: ${response}`);
+            return 999999;
+        }
+        
+        const diffMinutes = Math.floor((end - start) / 1000 / 60);
+        
+        // Sanity check - response should be after actionable
+        if (diffMinutes < 0) {
+            console.log(`Negative response time - Start: ${start}, End: ${end}`);
+            return 999999;
+        }
+        
+        return diffMinutes;
     } catch (e) {
-        return 999999; // Large number for errors
+        console.error('Error calculating response time:', e);
+        return 999999;
     }
 }
 
