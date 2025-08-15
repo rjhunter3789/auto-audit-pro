@@ -65,9 +65,17 @@ function processFile(file) {
                 data = parseCSV(e.target.result);
             } else {
                 // Excel file
-                const workbook = XLSX.read(e.target.result, { type: 'binary' });
+                const workbook = XLSX.read(e.target.result, { 
+                    type: 'binary',
+                    cellText: false,  // Get raw values, not formatted text
+                    cellDates: true   // Parse dates properly
+                });
                 const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                data = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                data = XLSX.utils.sheet_to_json(firstSheet, { 
+                    header: 1,
+                    raw: true,        // Get raw values
+                    defval: ''        // Default empty cells to empty string
+                });
             }
             
             analyzeDealerData(data, file.name);
@@ -238,15 +246,23 @@ function analyzeDealerData(data, filename) {
             // There was a sale - check who made it
             console.log(`Sale detected - Selling Dealer: "${sellingDealer}", Your PA Code: "${dealerData.paCode}"`);
             
-            // Normalize selling dealer for comparison
-            const normalizedSellingDealer = String(sellingDealer).trim();
+            // Normalize selling dealer for comparison - remove any Excel comment artifacts
+            let normalizedSellingDealer = String(sellingDealer).trim();
+            
+            // Remove any comment indicators or extra content after the dealer code
+            // Excel comments might appear as "04417[comment]" or similar
+            normalizedSellingDealer = normalizedSellingDealer.split(/[\[\({\s]/)[0].trim();
+            
             const normalizedPACode = dealerData.paCode;
+            const paCodeWithoutPrefix = normalizedPACode.substring(1); // Remove F or L prefix
+            
+            console.log(`Comparing: Selling="${normalizedSellingDealer}" vs PA="${normalizedPACode}" vs PA without prefix="${paCodeWithoutPrefix}"`);
             
             // Check if selling dealer matches - try multiple formats
             const isYourSale = normalizedSellingDealer === normalizedPACode || 
-                               normalizedSellingDealer === normalizedPACode.substring(1) || // Without prefix
-                               (normalizedPACode.startsWith('F') && normalizedSellingDealer === normalizedPACode.replace('F', '')) ||
-                               (normalizedPACode.startsWith('L') && normalizedSellingDealer === normalizedPACode.replace('L', ''));
+                               normalizedSellingDealer === paCodeWithoutPrefix || // Most common case: 04417 vs F04417
+                               normalizedSellingDealer === normalizedPACode.replace(/[FL]/, '') || // Remove F or L
+                               normalizedPACode.endsWith(normalizedSellingDealer); // PA code ends with dealer
             
             if (sellingDealer && isYourSale) {
                 // Your dealership made the sale
