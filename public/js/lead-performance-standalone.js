@@ -41,40 +41,39 @@ const LEAD_PROVIDERS = {
   OTHER: []
 };
 
+// Track if this is a real browser close vs navigation
+let isActuallyClosing = true;
+
+// Mark as navigation when clicking any link or button
+document.addEventListener('click', function(e) {
+    if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON' || e.target.closest('a') || e.target.closest('button')) {
+        isActuallyClosing = false;
+        setTimeout(() => { isActuallyClosing = true; }, 100);
+    }
+});
+
 // Security: Auto-cleanup on tab/window close
 window.addEventListener('beforeunload', function(e) {
-    // Skip warning if navigating to ROI calculator
-    if (window.isNavigatingToROI) {
+    // Skip if just navigating
+    if (!isActuallyClosing || window.isNavigatingToROI) {
         return;
     }
     
     // Check if user wants to keep data
     const keepData = localStorage.getItem('keepDataOnClose') === 'true';
     if (!keepData && dealerData) {
-        // Show confirmation
-        e.preventDefault();
-        e.returnValue = 'Your lead data will be cleared when you close this tab. Continue?';
+        // Clear data on actual browser close
+        localStorage.removeItem('standaloneDealerData');
+        localStorage.removeItem('standaloneDataInfo');
+        localStorage.removeItem('roiCalculatorDealer');
+        localStorage.removeItem('fromStandaloneAnalysis');
+        sessionStorage.clear();
     }
 });
 
 window.addEventListener('unload', function() {
-    // Skip cleanup if navigating to ROI calculator
-    if (window.isNavigatingToROI) {
-        return;
-    }
-    
-    const keepData = localStorage.getItem('keepDataOnClose') === 'true';
-    if (!keepData) {
-        // Clear all lead data - NO customer PII is ever sent to server
-        localStorage.removeItem('standaloneDealerData');
-        localStorage.removeItem('standaloneDataInfo');
-        // Don't clear ROI calculator data if navigating there
-        if (!window.isNavigatingToROI) {
-            localStorage.removeItem('roiCalculatorDealer');
-            localStorage.removeItem('fromStandaloneAnalysis');
-        }
-        sessionStorage.clear();
-    }
+    // Don't clear data on regular navigation - only on actual browser close
+    // The beforeunload event will handle the browser close scenario
 });
 
 // Initialize when page loads
@@ -82,7 +81,22 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Standalone Lead Analysis initializing...');
     setupFileUpload();
     initializeCharts();
+    checkForStoredData();
 });
+
+// Check for previously analyzed data
+function checkForStoredData() {
+    const storedData = localStorage.getItem('standaloneDealerData');
+    if (storedData) {
+        try {
+            dealerData = JSON.parse(storedData);
+            console.log('Restored previous dealer data:', dealerData.name);
+            displayResults();
+        } catch (e) {
+            console.error('Error restoring dealer data:', e);
+        }
+    }
+}
 
 // Setup file upload handlers
 function setupFileUpload() {
@@ -431,6 +445,10 @@ function analyzeDealerData(data, filename) {
     console.log('Analysis complete:', dealerData);
     console.log(`Sales Summary - Your Sales: ${dealerData.yourSales}, Lost Sales: ${dealerData.lostSales}, No Sale: ${dealerData.noSale}`);
     console.log(`Conversion Rate: ${((dealerData.yourSales / dealerData.totalLeads) * 100).toFixed(1)}%`);
+    
+    // Save dealer data for navigation
+    localStorage.setItem('standaloneDealerData', JSON.stringify(dealerData));
+    
     displayResults();
 }
 
@@ -792,6 +810,7 @@ function exportReport() {
 // Reset analysis
 function resetAnalysis() {
     dealerData = null;
+    localStorage.removeItem('standaloneDealerData');
     document.getElementById('uploadCard').style.display = 'block';
     document.getElementById('analysisSection').classList.remove('active');
     document.getElementById('fileInput').value = '';
