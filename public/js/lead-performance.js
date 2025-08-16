@@ -3280,3 +3280,4 @@ function refreshDataTimer() {
         alert('Error refreshing timer. Please try again.');
     }
 }
+}
