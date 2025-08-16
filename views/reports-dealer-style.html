@@ -731,7 +731,8 @@
         });
         
         // Show up to 5 recommendations
-        flatRecommendations.slice(0, 5).forEach(function(rec) { %>
+        %>
+        <% flatRecommendations.slice(0, 5).forEach(function(rec) { %>
         <div class="recommendation keep-together">
             <strong><%= rec.title %></strong>
             <p style="margin: 10px 0;"><%= rec.description %></p>
