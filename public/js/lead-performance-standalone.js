@@ -823,8 +823,8 @@ function openROICalculator() {
     // Set flag to prevent beforeunload warning
     window.isNavigatingToROI = true;
     
-    // Navigate to ROI calculator
-    window.location.href = '/lead-analysis-network#calculator';
+    // Navigate to standalone ROI calculator page
+    window.location.href = '/roi-calculator';
 }
 
 // Make functions available globally

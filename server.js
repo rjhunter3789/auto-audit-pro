@@ -3429,6 +3429,11 @@ app.get('/lead-analysis-network', (req, res) => {
     res.render('lead-performance.html');
 });
 
+// ROI Calculator - Standalone page for both single and network dealers
+app.get('/roi-calculator', (req, res) => {
+    res.render('roi-calculator.html');
+});
+
 // Data Security Information Page
 app.get('/data-security', (req, res) => {
     res.render('data-security.html');
