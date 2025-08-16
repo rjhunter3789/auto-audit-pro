@@ -58,11 +58,21 @@ window.addEventListener('beforeunload', function(e) {
 });
 
 window.addEventListener('unload', function() {
+    // Skip cleanup if navigating to ROI calculator
+    if (window.isNavigatingToROI) {
+        return;
+    }
+    
     const keepData = localStorage.getItem('keepDataOnClose') === 'true';
     if (!keepData) {
         // Clear all lead data - NO customer PII is ever sent to server
         localStorage.removeItem('standaloneDealerData');
         localStorage.removeItem('standaloneDataInfo');
+        // Don't clear ROI calculator data if navigating there
+        if (!window.isNavigatingToROI) {
+            localStorage.removeItem('roiCalculatorDealer');
+            localStorage.removeItem('fromStandaloneAnalysis');
+        }
         sessionStorage.clear();
     }
 });
@@ -806,9 +816,9 @@ function openROICalculator() {
             ((dealerData.responded / dealerData.totalLeads) * 100).toFixed(1) : 0
     };
     
-    // Store in sessionStorage for the network page to pick up
-    sessionStorage.setItem('selectedDealer', JSON.stringify(dealerForROI));
-    sessionStorage.setItem('fromStandaloneAnalysis', 'true');
+    // Store in localStorage (not sessionStorage) to survive page navigation
+    localStorage.setItem('roiCalculatorDealer', JSON.stringify(dealerForROI));
+    localStorage.setItem('fromStandaloneAnalysis', 'true');
     
     // Set flag to prevent beforeunload warning
     window.isNavigatingToROI = true;

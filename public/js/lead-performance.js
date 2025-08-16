@@ -89,8 +89,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Check if coming from standalone analysis with ROI data
     setTimeout(() => {
-        const fromStandalone = sessionStorage.getItem('fromStandaloneAnalysis');
-        const selectedDealer = sessionStorage.getItem('selectedDealer');
+        const fromStandalone = localStorage.getItem('fromStandaloneAnalysis');
+        const selectedDealer = localStorage.getItem('roiCalculatorDealer');
         
         if (fromStandalone === 'true' && selectedDealer) {
             try {
@@ -121,8 +121,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 showSection('calculator');
                 
                 // Clear the flags
-                sessionStorage.removeItem('fromStandaloneAnalysis');
-                // Keep selectedDealer for potential use
+                localStorage.removeItem('fromStandaloneAnalysis');
+                localStorage.removeItem('roiCalculatorDealer');
                 
                 // Auto-calculate ROI
                 if (typeof calculateROI === 'function') {
