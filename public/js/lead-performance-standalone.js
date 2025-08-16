@@ -782,6 +782,34 @@ function resetAnalysis() {
     document.getElementById('fileInput').value = '';
 }
 
+// Open ROI Calculator with dealer data
+function openROICalculator() {
+    if (!dealerData) {
+        alert('No dealer data available');
+        return;
+    }
+    
+    // Create a simplified dealer object matching network format
+    const dealerForROI = {
+        name: dealerData.name,
+        pa_code: dealerData.paCode,
+        total_leads: dealerData.totalLeads,
+        total_sales: dealerData.yourSales, // Only YOUR sales for conversion rate
+        conversion_rate: dealerData.totalLeads > 0 ? 
+            ((dealerData.yourSales / dealerData.totalLeads) * 100).toFixed(1) : 0,
+        response_rate: dealerData.totalLeads > 0 ?
+            ((dealerData.responded / dealerData.totalLeads) * 100).toFixed(1) : 0
+    };
+    
+    // Store in sessionStorage for the network page to pick up
+    sessionStorage.setItem('selectedDealer', JSON.stringify(dealerForROI));
+    sessionStorage.setItem('fromStandaloneAnalysis', 'true');
+    
+    // Navigate to ROI calculator
+    window.location.href = '/lead-analysis-network#calculator';
+}
+
 // Make functions available globally
 window.exportReport = exportReport;
 window.resetAnalysis = resetAnalysis;
+window.openROICalculator = openROICalculator;

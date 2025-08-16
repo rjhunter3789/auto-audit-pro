@@ -87,6 +87,53 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }, 1000);
     
+    // Check if coming from standalone analysis with ROI data
+    setTimeout(() => {
+        const fromStandalone = sessionStorage.getItem('fromStandaloneAnalysis');
+        const selectedDealer = sessionStorage.getItem('selectedDealer');
+        
+        if (fromStandalone === 'true' && selectedDealer) {
+            try {
+                const dealer = JSON.parse(selectedDealer);
+                console.log('Received dealer data from standalone:', dealer);
+                
+                // Populate ROI calculator with this data
+                if (document.getElementById('currentConversion')) {
+                    document.getElementById('currentConversion').value = dealer.conversion_rate || 0;
+                }
+                if (document.getElementById('targetConversion')) {
+                    document.getElementById('targetConversion').value = parseFloat(dealer.conversion_rate || 0) + 2;
+                }
+                if (document.getElementById('currentLeads')) {
+                    document.getElementById('currentLeads').value = dealer.total_leads || 0;
+                }
+                
+                // Update display to show dealer name
+                const roiSection = document.getElementById('calculator');
+                if (roiSection) {
+                    const dealerNameElem = roiSection.querySelector('h3');
+                    if (dealerNameElem) {
+                        dealerNameElem.innerHTML = `<i class="fas fa-calculator"></i> ROI Calculator - ${dealer.name}`;
+                    }
+                }
+                
+                // Switch to calculator tab
+                showSection('calculator');
+                
+                // Clear the flags
+                sessionStorage.removeItem('fromStandaloneAnalysis');
+                // Keep selectedDealer for potential use
+                
+                // Auto-calculate ROI
+                if (typeof calculateROI === 'function') {
+                    setTimeout(calculateROI, 100);
+                }
+            } catch (e) {
+                console.error('Error loading standalone dealer data:', e);
+            }
+        }
+    }, 1500);
+    
     // Test: Try to update response time display after a short delay
     setTimeout(() => {
         const testElem = document.getElementById('response15min');
