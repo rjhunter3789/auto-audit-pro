@@ -640,8 +640,8 @@ function processUploadedData(data, filename = '') {
                 // Try different regex patterns for time format
                 let totalMinutes = null;
                 
-                // Pattern 1: "0h 30m" format
-                let match = elapsedTime.match(/(\d+)h (\d+)m/);
+                // Pattern 1: "0h 30m" or "0h 13m" format (with space)
+                let match = elapsedTime.match(/(\d+)h\s+(\d+)m/);
                 if (match) {
                     totalMinutes = parseInt(match[1]) * 60 + parseInt(match[2]);
                 } else {

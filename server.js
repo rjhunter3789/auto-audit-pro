@@ -49,6 +49,9 @@ const groupAnalysis = require('./lib/group-analysis');
 const DealerSearcher = require('./lib/dealer-search');
 const PredictiveHeatmapGenerator = require('./lib/predictive-heatmap');
 
+// Load security monitoring
+const securityMonitor = require('./middleware/security-monitor');
+
 // Load JSON storage for monitoring system
 const { pool } = require('./lib/json-storage');
 
@@ -134,6 +137,20 @@ app.get('/favicon.ico', (req, res) => {
 
 // Allow access to views for admin pages
 app.use('/views', express.static(path.join(__dirname, 'views')));
+
+// Security monitoring with localhost whitelist
+app.use((req, res, next) => {
+    const ip = req.ip || req.connection.remoteAddress || '';
+    
+    // Whitelist localhost and local IPs
+    if (ip === '::1' || ip === '127.0.0.1' || ip === '::ffff:127.0.0.1' || 
+        ip.includes('localhost') || ip === '') {
+        return next();
+    }
+    
+    // Apply security checks for non-localhost
+    securityMonitor.checkSuspiciousActivity(req, res, next);
+});
 
 // DIRECT ADMIN SETTINGS ACCESS - NO AUTH CHECKS
 // This is placed BEFORE any auth middleware to ensure it always works
@@ -381,10 +398,10 @@ app.post('/api/login', (req, res) => {
                 });
             }
             
-            clearFailedAttempts(ip);
+            securityMonitor.clearFailedAttempts(ip);
             
             // Log successful login
-            logSecurityEvent({
+            securityMonitor.logSecurityEvent({
                 type: 'LOGIN_SUCCESS',
                 ip: ip,
                 path: '/api/login',
@@ -394,7 +411,7 @@ app.post('/api/login', (req, res) => {
             res.redirect('/');
         });
     } else {
-        trackFailedLogin(ip);
+        securityMonitor.trackFailedLogin(ip);
         
         // Log failed attempt
         logSecurityEvent({
