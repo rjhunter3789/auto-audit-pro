@@ -710,7 +710,7 @@
         <% if (!results.enhancedRecommendations || results.enhancedRecommendations.length === 0) { %>
         <p style="color: #6B7280; font-style: italic; margin: 20px 0;">No Recommendations At This Time</p>
         <% } else { %>
-        <% 
+        <%
         // Flatten recommendations from the nested structure
         let flatRecommendations = [];
         results.enhancedRecommendations.forEach(function(rec) {
