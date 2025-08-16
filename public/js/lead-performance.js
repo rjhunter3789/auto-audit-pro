@@ -72,6 +72,16 @@ document.addEventListener('DOMContentLoaded', function() {
         loadSavedSettings();
     }, 100);
     
+    // Handle hash navigation
+    if (window.location.hash === '#calculator') {
+        setTimeout(() => {
+            const calculatorBtn = document.querySelector('[onclick="showSection(\'calculator\')"]');
+            if (calculatorBtn) {
+                calculatorBtn.click();
+            }
+        }, 200);
+    }
+    
     // Check if we should select a specific dealer
     setTimeout(() => {
         const selectDealer = sessionStorage.getItem('selectDealer');
@@ -117,8 +127,27 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
                 
-                // Switch to calculator tab
-                showSection('calculator');
+                // Switch to calculator tab - need to activate the button too
+                const calculatorBtn = document.querySelector('[onclick="showSection(\'calculator\')"]');
+                if (calculatorBtn) {
+                    calculatorBtn.click();
+                } else {
+                    // Fallback: manually switch sections
+                    document.querySelectorAll('.content-section').forEach(section => {
+                        section.classList.remove('active');
+                    });
+                    document.querySelectorAll('.tab-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    const calcSection = document.getElementById('calculator');
+                    if (calcSection) {
+                        calcSection.classList.add('active');
+                    }
+                    const calcTab = document.querySelector('.tab-btn[onclick*="calculator"]');
+                    if (calcTab) {
+                        calcTab.classList.add('active');
+                    }
+                }
                 
                 // Clear the flags
                 localStorage.removeItem('fromStandaloneAnalysis');
