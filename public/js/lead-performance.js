@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle hash navigation
     if (window.location.hash === '#calculator') {
         setTimeout(() => {
-            const calculatorBtn = document.querySelector('[onclick="showSection(\'calculator\')"]');
+            const calculatorBtn = document.getElementById('calculatorTab');
             if (calculatorBtn) {
                 calculatorBtn.click();
             }
@@ -101,6 +101,8 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => {
         const fromStandalone = localStorage.getItem('fromStandaloneAnalysis');
         const selectedDealer = localStorage.getItem('roiCalculatorDealer');
+        
+        console.log('Checking for standalone data - fromStandalone:', fromStandalone, 'hasDealer:', !!selectedDealer);
         
         if (fromStandalone === 'true' && selectedDealer) {
             try {
@@ -128,10 +130,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 // Switch to calculator tab - need to activate the button too
-                const calculatorBtn = document.querySelector('[onclick="showSection(\'calculator\')"]');
+                console.log('Attempting to switch to calculator tab...');
+                const calculatorBtn = document.getElementById('calculatorTab');
+                console.log('Calculator button found:', !!calculatorBtn);
+                
                 if (calculatorBtn) {
+                    console.log('Clicking calculator button...');
                     calculatorBtn.click();
                 } else {
+                    console.log('Using fallback tab switching...');
                     // Fallback: manually switch sections
                     document.querySelectorAll('.content-section').forEach(section => {
                         section.classList.remove('active');
@@ -142,10 +149,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     const calcSection = document.getElementById('calculator');
                     if (calcSection) {
                         calcSection.classList.add('active');
+                        console.log('Calculator section activated');
                     }
-                    const calcTab = document.querySelector('.tab-btn[onclick*="calculator"]');
+                    const calcTab = document.getElementById('calculatorTab');
                     if (calcTab) {
                         calcTab.classList.add('active');
+                        console.log('Calculator tab activated');
                     }
                 }
                 
@@ -161,7 +170,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Error loading standalone dealer data:', e);
             }
         }
-    }, 1500);
+    }, 2500); // Increased timeout to ensure page is fully loaded
     
     // Test: Try to update response time display after a short delay
     setTimeout(() => {
