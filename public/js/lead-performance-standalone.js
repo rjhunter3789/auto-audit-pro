@@ -5,8 +5,9 @@
  * Designed specifically for single dealer reports with PA Code format
  * 
  * Response Time Calculation:
- * - Column A: Date/Time dealer received the lead
+ * - Column F: Date/Time Actionable (when dealer could respond - business hours)
  * - Column G: Date/Time dealer responded (empty = no response)
+ * - Response time measures from actionable time, not receipt time
  * - TODO: Apply same logic to network dealers page
  */
 
@@ -310,14 +311,14 @@ function analyzeDealerData(data, filename) {
             dealerData.noSale++;
         }
         
-        // Calculate response time using Column A (received) and Column G (response)
-        if (columnMap.receivedDate >= 0 && columnMap.responseDate >= 0) {
-            const receivedDate = row[columnMap.receivedDate];  // Column A - when lead received
-            const response = row[columnMap.responseDate];       // Column G - when responded
+        // Calculate response time using Column F (actionable) and Column G (response)
+        if (columnMap.actionableDate >= 0 && columnMap.responseDate >= 0) {
+            const actionableDate = row[columnMap.actionableDate];  // Column F - when actionable (business hours)
+            const response = row[columnMap.responseDate];           // Column G - when responded
             
             // Debug first few rows
-            if (i < 5 && receivedDate) {
-                console.log(`Row ${i} dates - Received: ${receivedDate} (type: ${typeof receivedDate}), Response: ${response} (type: ${typeof response})`);
+            if (i < 5 && actionableDate) {
+                console.log(`Row ${i} dates - Actionable: ${actionableDate} (type: ${typeof actionableDate}), Response: ${response} (type: ${typeof response})`);
             }
             
             // Check for various "no response" indicators
@@ -341,7 +342,7 @@ function analyzeDealerData(data, filename) {
                 
                 if (i < 5) {
                     console.log(`Row ${i} elapsed times - H: "${elapsedH}", I: "${elapsedI}"`);
-                    console.log(`Row ${i} dates - Received: "${receivedDate}", Response: "${response}"`);
+                    console.log(`Row ${i} dates - Actionable: "${actionableDate}", Response: "${response}"`);
                 }
                 
                 // Try to parse elapsed time (might be in format like "0:15" or "15" or "2:30:45")
@@ -350,8 +351,8 @@ function analyzeDealerData(data, filename) {
                 } else if (elapsedI && elapsedI !== '') {
                     responseMinutes = parseElapsedTime(elapsedI);
                 } else {
-                    // Fall back to calculating from dates (Column A to Column G)
-                    responseMinutes = calculateResponseTime(receivedDate, response);
+                    // Fall back to calculating from dates (Column F to Column G)
+                    responseMinutes = calculateResponseTime(actionableDate, response);
                 }
                 
                 if (i < 5) {
