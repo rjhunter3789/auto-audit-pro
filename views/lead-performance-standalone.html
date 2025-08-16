@@ -172,6 +172,43 @@
             padding: 2px 6px;
             border-radius: 3px;
         }
+        
+        /* Print Styles */
+        @media print {
+            .suite-nav,
+            .page-header .btn,
+            .page-header button,
+            .page-header a,
+            .upload-card,
+            .text-center.mt-4,
+            footer {
+                display: none !important;
+            }
+            
+            body {
+                background: white;
+                padding: 20px;
+            }
+            
+            .main-container {
+                max-width: 100%;
+                padding: 0;
+            }
+            
+            .chart-container {
+                break-inside: avoid;
+                height: 300px !important;
+            }
+            
+            .metric-card {
+                break-inside: avoid;
+            }
+            
+            .page-header h1 {
+                color: black;
+                font-size: 24pt;
+            }
+        }
     </style>
 </head>
 <body>
@@ -200,19 +237,10 @@
                 <button class="btn btn-outline-secondary ms-2" onclick="showSecuritySettings()">
                     <i class="fas fa-shield-alt"></i> Security Settings
                 </button>
+                <button class="btn btn-outline-info ms-2" onclick="showFileFormatHelp()">
+                    <i class="fas fa-info-circle"></i> File Format Help
+                </button>
             </div>
-        </div>
-
-        <!-- Format Help -->
-        <div class="format-help">
-            <h5><i class="fas fa-info-circle"></i> Expected File Format</h5>
-            <p class="mb-2">Your file should follow this structure:</p>
-            <ul class="mb-0">
-                <li><strong>Cell A1:</strong> Dealer PA Code (e.g., <code>F08684</code> or <code>L12345</code>)</li>
-                <li><strong>Cell C1:</strong> Lead Performance Report</li>
-                <li><strong>Row 2:</strong> Column headers</li>
-                <li><strong>Row 3+:</strong> Lead data (all types: Form, Phone, Chat)</li>
-            </ul>
         </div>
 
         <!-- Upload Section -->
@@ -288,9 +316,15 @@
 
             <!-- Export Options -->
             <div class="text-center mt-4">
-                <button class="btn btn-primary" onclick="exportReport()">
-                    <i class="fas fa-download"></i> Export Report
+                <button class="btn btn-primary" onclick="window.print()">
+                    <i class="fas fa-print"></i> Print Report
                 </button>
+                <button class="btn btn-primary" onclick="exportReport()">
+                    <i class="fas fa-download"></i> Export Data
+                </button>
+                <a href="/lead-analysis-network#calculator" class="btn btn-success">
+                    <i class="fas fa-calculator"></i> ROI Calculator
+                </a>
                 <button class="btn btn-outline-primary" onclick="resetAnalysis()">
                     <i class="fas fa-redo"></i> Upload New File
                 </button>
@@ -300,6 +334,49 @@
 
     <!-- Lead Performance JavaScript for Standalone Dealers -->
     <script src="/js/lead-performance-standalone.js"></script>
+
+    <!-- File Format Help Modal -->
+    <div class="modal fade" id="formatModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-file-excel text-success"></i> Expected File Format
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Your Excel/CSV file should follow this structure:</p>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <tr>
+                                <td><strong>Cell A1</strong></td>
+                                <td>Dealer PA Code (e.g., <code>F08684</code> or <code>L12345</code>)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Cell C1</strong></td>
+                                <td>Lead Performance Report</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Row 2</strong></td>
+                                <td>Column headers</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Row 3+</strong></td>
+                                <td>Lead data (all types: Form, Phone, Chat)</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-lightbulb"></i> <strong>Tip:</strong> The file can be a single dealer export from your CRM or lead management system.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Security Settings Modal -->
     <div class="modal fade" id="securityModal" tabindex="-1" aria-hidden="true">
@@ -391,6 +468,11 @@
     
     <!-- Security Settings Functions -->
     <script>
+        function showFileFormatHelp() {
+            const modal = new bootstrap.Modal(document.getElementById('formatModal'));
+            modal.show();
+        }
+
         function showSecuritySettings() {
             // Load current settings
             document.getElementById('keepDataOnClose').checked = localStorage.getItem('keepDataOnClose') === 'true';
