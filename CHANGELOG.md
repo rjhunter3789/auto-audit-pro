@@ -1,5 +1,46 @@
 # Auto Audit Pro Suite - Changelog & Feature Documentation
 
+## Version 2.6.14 - August 16, 2025 (Session 3 - ROI Calculator & Response Time Fixes)
+
+### 🚀 New Features
+- **Standalone ROI Calculator Page**
+  - Created dedicated `/roi-calculator` route
+  - Direct navigation from Single Dealer analysis
+  - Automatic data transfer via localStorage
+  - Pre-populates conversion rate and lead volume
+  - Clean, focused calculator experience
+
+### 🎨 Major Improvements
+- **Data Persistence Enhancement**
+  - Analysis data now persists during page navigation
+  - Only clears on actual browser/tab close
+  - Automatic restoration when returning to Single Dealer page
+  - Smart detection of navigation vs browser close
+
+- **Security Self-Service**
+  - Added `/unblock-me-please` emergency endpoint
+  - Users can self-unblock if accidentally blocked
+  - Prevents lockout from legitimate back-button navigation
+
+### 🐛 Bug Fixes
+- **ROI Calculator Navigation**
+  - Fixed "Leave Site?" warning when clicking ROI Calculator
+  - Eliminated complex tab switching issues
+  - Seamless data transfer between pages
+
+- **Response Time Parsing**
+  - Fixed "Unable to parse elapsed time: 0h 13m" errors
+  - Added support for "Xh Ym" format (e.g., "23h 18m", "0h 5m")
+  - Improved response time categorization accuracy
+  - Note: Same fix applied to both network and standalone files
+
+### 📁 Files Modified
+- `/views/roi-calculator.html` - NEW standalone calculator page
+- `/public/js/lead-performance-standalone.js` - Elapsed time fix, persistence
+- `/public/js/lead-performance.js` - localStorage migration, tab fixes
+- `/server.js` - New routes for calculator and unblock
+- `/middleware/security-monitor.js` - Export clearFailedAttempts
+
 ## Version 2.6.13 - August 16, 2025 (Session 2 - UX Improvements & Third-Party Foundation)
 
 ### 🎨 Lead Performance UX Overhaul
