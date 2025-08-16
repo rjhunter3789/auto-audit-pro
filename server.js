@@ -138,6 +138,29 @@ app.get('/favicon.ico', (req, res) => {
 // Allow access to views for admin pages
 app.use('/views', express.static(path.join(__dirname, 'views')));
 
+// EMERGENCY IP UNBLOCK - Must be BEFORE security middleware
+app.get('/unblock-me-please', (req, res) => {
+    const ip = req.ip || req.connection.remoteAddress;
+    console.log(`🔓 Unblock request from IP: ${ip}`);
+    
+    // Clear from security monitor's failed attempts
+    if (securityMonitor.clearFailedAttempts) {
+        securityMonitor.clearFailedAttempts(ip);
+    }
+    
+    res.send(`
+        <html>
+        <head><title>IP Unblocked</title></head>
+        <body style="font-family: Arial; padding: 50px; text-align: center;">
+            <h1>✅ Your IP has been unblocked!</h1>
+            <p>IP Address: ${ip}</p>
+            <p><a href="/website-audit" style="font-size: 20px;">Go to Website Audit</a></p>
+            <p><a href="/" style="font-size: 20px;">Go to Home Page</a></p>
+        </body>
+        </html>
+    `);
+});
+
 // Security monitoring with localhost whitelist
 app.use((req, res, next) => {
     const ip = req.ip || req.connection.remoteAddress || '';
@@ -158,6 +181,7 @@ app.get('/admin-settings-direct', (req, res) => {
     const filePath = path.join(__dirname, 'views', 'admin-settings.html');
     res.sendFile(filePath);
 });
+
 
 // DIRECT MONITORING ACCESS - NO AUTH FOR TESTING
 app.get('/monitoring-direct', (req, res) => {

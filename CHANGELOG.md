@@ -1,5 +1,64 @@
 # Auto Audit Pro Suite - Changelog & Feature Documentation
 
+## Version 2.6.13 - August 16, 2025 (Session 2 - UX Improvements & Third-Party Foundation)
+
+### 🎨 Lead Performance UX Overhaul
+- **Navigation Improvements**
+  - Made Standalone Dealer Analysis the primary page (`/lead-analysis`)
+  - Network Analysis moved to secondary route (`/lead-analysis-network`)
+  - Security Settings button moved to header for consistency
+  - Fixed monitoring dashboard navigation (dark header, visible links)
+
+- **Brand-Agnostic Updates**
+  - Removed Ford-specific references for universal dealership use
+  - Changed "Ford dealer" → "dealers" on Network page
+  - Renamed "Standalone Dealer Lead Analysis" → "Dealer Lead Analysis"
+  - Updated descriptions to be more personal ("your individual dealer lead reports")
+
+- **Dealer Lead Analysis Enhancements**
+  - Converted "Expected File Format" to popup modal (cleaner interface)
+  - Added Print button for reports with print-friendly CSS
+  - Added ROI Calculator link to network page calculator
+  - Simplified file format help display
+
+- **Network Lead Performance Simplification**  
+  - Reduced upload methods from 4 to 2 (drag-drop + click anywhere)
+  - Removed redundant "Browse Files" button and visible file input
+  - Cleaner, less confusing upload interface
+
+### 🚀 Third-Party Lead Provider Foundation
+- **Infrastructure Added** (Currently Disabled)
+  - Created `THIRD-PARTY-LEADS-IMPLEMENTATION.md` with comprehensive plan
+  - Added feature flag `ENABLE_THIRD_PARTY_ANALYSIS` (default: false)
+  - Built `LEAD_PROVIDERS` structure ready for expansion
+  - Added categorization functions (inactive until enabled)
+  - Zero impact on current functionality
+
+- **Ready for Future**
+  - Support for Cars.com, AutoTrader, CarGurus, TrueCar, etc.
+  - Provider comparison analytics
+  - ROI calculations by lead source
+  - Activation requires only flag change and test data
+
+### 🐛 Bug Fixes
+- **Fixed**: Critical EJS syntax error in `reports-dealer-style.html`
+  - Removed extra closing `%>` tag causing "Missing catch or finally" error
+  - Website audit functionality restored
+
+### 📁 Files Modified
+- `/views/lead-performance-standalone.html` - Major UX improvements
+- `/views/lead-performance.html` - Simplified upload, updated titles
+- `/views/monitoring-dashboard.html` - Added dark navigation styling
+- `/views/reports-dealer-style.html` - Fixed EJS syntax error
+- `/server.js` - Updated routes for primary/secondary pages
+- `/public/js/lead-performance-standalone.js` - Added third-party foundation
+
+### 📁 Files Added
+- `/THIRD-PARTY-LEADS-IMPLEMENTATION.md` - Comprehensive implementation guide
+- `/RECOVERY-LOG-2025-08-16-SESSION2.md` - Session documentation
+
+---
+
 ## Version 2.6.12 - August 14, 2025 (Navigation Consistency Update)
 
 ### 🎨 UI/UX Improvements
