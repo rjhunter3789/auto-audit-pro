@@ -3395,14 +3395,14 @@ app.get('/website-audit', (req, res) => {
     res.render('index-new.html');
 });
 
-// Lead performance tool - Network Analysis
+// Lead performance tool - Standalone Dealers (Primary)
 app.get('/lead-analysis', (req, res) => {
-    res.render('lead-performance.html');
+    res.render('lead-performance-standalone.html');
 });
 
-// Lead performance tool - Standalone Dealers
-app.get('/lead-analysis-standalone', (req, res) => {
-    res.render('lead-performance-standalone.html');
+// Lead performance tool - Network Analysis (Secondary)
+app.get('/lead-analysis-network', (req, res) => {
+    res.render('lead-performance.html');
 });
 
 // Data Security Information Page
