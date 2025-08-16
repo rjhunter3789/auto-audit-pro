@@ -421,7 +421,7 @@ function analyzeDealerData(data, filename) {
                     console.log(`Row ${i} dates - Actionable: "${actionableDate}", Response: "${response}"`);
                 }
                 
-                // Try to parse elapsed time (might be in format like "0:15" or "15" or "2:30:45")
+                // Try to parse elapsed time
                 if (elapsedH && elapsedH !== '') {
                     responseMinutes = parseElapsedTime(elapsedH);
                 } else if (elapsedI && elapsedI !== '') {
@@ -434,7 +434,14 @@ function analyzeDealerData(data, filename) {
                 if (i < 5) {
                     console.log(`Row ${i} response time: ${responseMinutes} minutes`);
                 }
-                categorizeResponseTime(responseMinutes);
+                
+                // Only categorize valid response times
+                if (responseMinutes < 999999) {
+                    categorizeResponseTime(responseMinutes);
+                } else {
+                    // If we couldn't parse the time, count it as 24hr+
+                    dealerData.responseTimeBreakdown['24hr+']++;
+                }
             }
         } else {
             // If we can't find response columns, log it
@@ -452,7 +459,7 @@ function analyzeDealerData(data, filename) {
     displayResults();
 }
 
-// Parse elapsed time from various formats (0:15, 2:30:45, 15, etc.)
+// Parse elapsed time from various formats (0:15, 2:30:45, 15, 0h 13m, etc.)
 function parseElapsedTime(elapsed) {
     try {
         const elapsedStr = String(elapsed).trim();
@@ -460,6 +467,16 @@ function parseElapsedTime(elapsed) {
         // If it's just a number, assume it's minutes
         if (/^\d+$/.test(elapsedStr)) {
             return parseInt(elapsedStr);
+        }
+        
+        // If it's in "Xh Ym" format (e.g., "0h 13m", "23h 18m")
+        if (/^\d+h\s+\d+m$/.test(elapsedStr)) {
+            const match = elapsedStr.match(/^(\d+)h\s+(\d+)m$/);
+            if (match) {
+                const hours = parseInt(match[1]);
+                const minutes = parseInt(match[2]);
+                return hours * 60 + minutes;
+            }
         }
         
         // If it's in H:MM or HH:MM format
