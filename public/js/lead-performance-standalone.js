@@ -15,6 +15,32 @@
 let dealerData = null;
 let charts = {};
 
+// Feature flag for third-party lead analysis (set to true when ready)
+const ENABLE_THIRD_PARTY_ANALYSIS = false;
+
+// Lead provider categories - ready for expansion
+const LEAD_PROVIDERS = {
+  OEM: [
+    'FordDirect', 'Ford.com', 'Lincoln', 'FordDirect.com',
+    'Ford Direct', 'Lincoln.com', 'Build & Price'
+  ],
+  // Uncomment and populate when ready to enable third-party analysis
+  /*
+  THIRD_PARTY: [
+    'Cars.com', 'AutoTrader', 'AutoTrader.com', 'CarGurus',
+    'TrueCar', 'Edmunds', 'CarFax', 'Carvana', 'Vroom',
+    'Craigslist', 'Facebook Marketplace', 'Capital One Auto'
+  ],
+  */
+  WEBSITE: [
+    'Website', 'Dealer Website', 'Direct', 'Chat', 
+    'Website Chat', 'Live Chat', 'Contact Form'
+  ],
+  PHONE: ['Phone', 'Call', 'Inbound Call', 'Phone Up'],
+  WALK_IN: ['Walk In', 'Showroom', 'In Person', 'Walk-in'],
+  OTHER: []
+};
+
 // Security: Auto-cleanup on tab/window close
 window.addEventListener('beforeunload', function(e) {
     // Check if user wants to keep data
@@ -472,6 +498,59 @@ function calculateResponseTime(actionable, response) {
         console.error('Error calculating response time:', e);
         return 999999;
     }
+}
+
+// Categorize lead source (ready for third-party expansion)
+function categorizeLeadSource(source) {
+    if (!ENABLE_THIRD_PARTY_ANALYSIS) {
+        // Current behavior - simple categorization
+        return source;
+    }
+    
+    if (!source) return 'OTHER';
+    
+    const normalizedSource = source.toString().trim().toLowerCase();
+    
+    // Check each category
+    for (const [category, providers] of Object.entries(LEAD_PROVIDERS)) {
+        if (providers.some(provider => 
+            normalizedSource.includes(provider.toLowerCase())
+        )) {
+            return category;
+        }
+    }
+    
+    return 'OTHER';
+}
+
+// Get clean provider name for display
+function getProviderName(source) {
+    if (!ENABLE_THIRD_PARTY_ANALYSIS) {
+        // Current behavior - return as is
+        return source || 'Unknown';
+    }
+    
+    if (!source) return 'Unknown';
+    
+    const normalizedSource = source.toString().trim();
+    
+    // Direct matches first
+    for (const providers of Object.values(LEAD_PROVIDERS)) {
+        const match = providers.find(p => 
+            normalizedSource.toLowerCase() === p.toLowerCase()
+        );
+        if (match) return match;
+    }
+    
+    // Partial matches
+    for (const providers of Object.values(LEAD_PROVIDERS)) {
+        const match = providers.find(p => 
+            normalizedSource.toLowerCase().includes(p.toLowerCase())
+        );
+        if (match) return match;
+    }
+    
+    return normalizedSource;
 }
 
 // Categorize response time
