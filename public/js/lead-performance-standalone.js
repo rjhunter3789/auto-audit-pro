@@ -43,6 +43,11 @@ const LEAD_PROVIDERS = {
 
 // Security: Auto-cleanup on tab/window close
 window.addEventListener('beforeunload', function(e) {
+    // Skip warning if navigating to ROI calculator
+    if (window.isNavigatingToROI) {
+        return;
+    }
+    
     // Check if user wants to keep data
     const keepData = localStorage.getItem('keepDataOnClose') === 'true';
     if (!keepData && dealerData) {
@@ -804,6 +809,9 @@ function openROICalculator() {
     // Store in sessionStorage for the network page to pick up
     sessionStorage.setItem('selectedDealer', JSON.stringify(dealerForROI));
     sessionStorage.setItem('fromStandaloneAnalysis', 'true');
+    
+    // Set flag to prevent beforeunload warning
+    window.isNavigatingToROI = true;
     
     // Navigate to ROI calculator
     window.location.href = '/lead-analysis-network#calculator';
