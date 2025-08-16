@@ -3388,6 +3388,11 @@ app.get('/lead-analysis-standalone', (req, res) => {
     res.render('lead-performance-standalone.html');
 });
 
+// Data Security Information Page
+app.get('/data-security', (req, res) => {
+    res.render('data-security.html');
+});
+
 // OEM Incentives Manager (Admin Only)
 app.get('/oem-incentives', requireAdmin, (req, res) => {
     res.render('oem-incentives.html');

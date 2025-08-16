@@ -15,6 +15,27 @@
 let dealerData = null;
 let charts = {};
 
+// Security: Auto-cleanup on tab/window close
+window.addEventListener('beforeunload', function(e) {
+    // Check if user wants to keep data
+    const keepData = localStorage.getItem('keepDataOnClose') === 'true';
+    if (!keepData && dealerData) {
+        // Show confirmation
+        e.preventDefault();
+        e.returnValue = 'Your lead data will be cleared when you close this tab. Continue?';
+    }
+});
+
+window.addEventListener('unload', function() {
+    const keepData = localStorage.getItem('keepDataOnClose') === 'true';
+    if (!keepData) {
+        // Clear all lead data - NO customer PII is ever sent to server
+        localStorage.removeItem('standaloneDealerData');
+        localStorage.removeItem('standaloneDataInfo');
+        sessionStorage.clear();
+    }
+});
+
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Standalone Lead Analysis initializing...');
