@@ -467,7 +467,7 @@ app.get('/api/health', (req, res) => {
     res.json({ 
         status: 'OK', 
         timestamp: new Date().toISOString(),
-        version: '2.4.3',
+        version: '2.6.14',
         categories: 8,
         features: ['8-category testing', 'real performance data', 'content analysis'],
         environment: process.env.NODE_ENV || 'development'
@@ -3406,7 +3406,7 @@ function generateAuditId() {
 // --- Website Routes ---
 
 // Import comprehensive audit tests
-const { runComprehensiveAudit, runSEOAudit } = require('./lib/audit-tests');
+const { runComprehensiveAudit, runSEOAudit } = require('./lib/audit-tests-enhanced');
 const { auditVDP, auditServicePage, auditInventoryPage, auditSpecialsPage } = require('./lib/page-specific-tests');
 
 // This shows the main suite landing page
@@ -3417,6 +3417,10 @@ app.get('/', (req, res) => {
 // Website audit tool (original functionality)
 app.get('/website-audit', (req, res) => {
     res.render('index-new.html');
+});
+
+app.get('/test-nav', (req, res) => {
+    res.render('test-nav.html');
 });
 
 // Lead performance tool - Standalone Dealers (Primary)
@@ -3457,6 +3461,59 @@ app.get('/definitions', (req, res) => {
 // Settings Guide page
 app.get('/settings-guide', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'settings-guide.html'));
+});
+
+// Inventory Incentive Audit - Custom audit for inventory incentives only
+app.get('/inventory-incentive-audit', (req, res) => {
+    res.render('inventory-incentive-audit.html');
+});
+
+// Run inventory incentive audit
+app.post('/inventory-incentive-audit', async (req, res) => {
+    const { url } = req.body;
+    if (!url) {
+        return res.status(400).json({ error: 'URL is required' });
+    }
+    
+    let siteUrl = url;
+    if (!siteUrl.startsWith('http')) {
+        siteUrl = 'https://' + siteUrl;
+    }
+    
+    try {
+        console.log('[Inventory Incentive Audit] Starting for:', siteUrl);
+        
+        // Check if we have OEM incentives loaded
+        if (!global.oemIncentives || !global.oemIncentives.data || global.oemIncentives.data.length === 0) {
+            return res.json({
+                success: false,
+                error: 'No OEM incentives data available. Please upload incentive data first.',
+                requiresData: true
+            });
+        }
+        
+        // Run the incentive checker
+        const { IncentiveChecker } = require('./lib/incentive-checker');
+        const checker = new IncentiveChecker(siteUrl, global.oemIncentives.data);
+        const results = await checker.runCheck();
+        
+        // Add timestamp and URL to results
+        results.url = siteUrl;
+        results.timestamp = new Date().toISOString();
+        results.incentivesCount = global.oemIncentives.data.length;
+        
+        res.json({
+            success: true,
+            results: results
+        });
+        
+    } catch (error) {
+        console.error('[Inventory Incentive Audit] Error:', error);
+        res.json({
+            success: false,
+            error: error.message || 'Failed to complete audit'
+        });
+    }
 });
 
 // This runs the audit when the user submits the form
