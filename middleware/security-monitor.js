@@ -15,11 +15,11 @@ const failedAttempts = new Map();
 const blockedIPs = new Set();
 
 // Configuration
-const MAX_ATTEMPTS = 3; // Changed from 5 to 3 for stricter security
-const BLOCK_DURATION = 30 * 60 * 1000; // 30 minutes
+const MAX_ATTEMPTS = 10; // Changed from 3 to 10 - more tolerance for users
+const BLOCK_DURATION = 5 * 60 * 1000; // 5 minutes instead of 30
 const SUSPICIOUS_PATHS = [
-    '/wp-admin', '/wp-login', '.php', '/phpmyadmin',
-    '/config', '/.env', '/backup', '.sql',
+    '/wp-admin', '/wp-login', '/phpmyadmin',
+    '/.env', '/backup', '.sql',
     '/.git', '/eval', '/shell'
 ];
 
@@ -61,15 +61,25 @@ function checkSuspiciousActivity(req, res, next) {
     }
     
     // Check for suspicious paths (common attack vectors)
-    for (const suspicious of SUSPICIOUS_PATHS) {
-        if (requestPath.includes(suspicious)) {
-            logSecurityEvent({
-                type: 'INTRUSION_ATTEMPT',
-                ip: ip,
-                path: requestPath,
-                details: `Suspicious path accessed: ${suspicious}`
-            });
-            
+      // Whitelist legitimate admin routes
+      const legitimateAdminPaths = ['/admin', '/admin/', '/admin/settings', '/admin-dashboard', '/admin/test'];
+      const isLegitimateAdmin = legitimateAdminPaths.some(path => requestPath === path ||
+  requestPath.startsWith(path + '/'));
+
+      if (!isLegitimateAdmin) {
+          for (const suspicious of SUSPICIOUS_PATHS) {
+              // Use more precise matching - check for exact path or path with trailing slash
+              if (requestPath === suspicious ||
+                  requestPath.startsWith(suspicious + '/') ||
+                  requestPath.startsWith(suspicious + '?') ||
+                  requestPath.startsWith(suspicious + '.')) {
+
+                  logSecurityEvent({
+                      type: 'INTRUSION_ATTEMPT',
+                      ip: ip,
+                      path: requestPath,
+                      details: `Suspicious path accessed: ${suspicious}`
+              });
             // Auto-block this IP
             blockedIPs.add(ip);
             setTimeout(() => blockedIPs.delete(ip), BLOCK_DURATION);
@@ -77,6 +87,7 @@ function checkSuspiciousActivity(req, res, next) {
             return res.status(404).send('Not Found');
         }
     }
+ }
     
     // Check for SQL injection patterns (skip login endpoint to avoid false positives)
     if (requestPath !== '/api/login') {
