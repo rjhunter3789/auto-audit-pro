@@ -1,0 +1,547 @@
+<!--
+  Auto Audit Pro
+  © 2025 JL Robinson. All Rights Reserved.
+  
+  This file contains proprietary code for the Auto Audit Pro platform.
+  Unauthorized use, reproduction, or distribution is prohibited.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Settings - Auto Audit Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #2c3e50;
+            --success-color: #22c55e;
+            --danger-color: #dc3545;
+            --light-bg: #f8f9fa;
+        }
+
+        body {
+            background-color: var(--light-bg);
+        }
+
+        .admin-header {
+            background: linear-gradient(135deg, var(--danger-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .settings-card {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            color: var(--secondary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-save {
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+        }
+
+        .btn-save:hover {
+            background-color: #1ea74e;
+            color: white;
+        }
+
+        .btn-reset {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+        }
+
+        .alert-fixed {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+            min-width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="admin-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-8">
+                    <h1><i class="bi bi-gear-fill"></i> Admin Settings</h1>
+                    <p class="mb-0">Configure platform settings and ROI calculations</p>
+                </div>
+                <div class="col-4 text-end">
+                    <button class="btn btn-outline-light" onclick="window.location.href='/monitoring-direct'">
+                        <i class="bi bi-arrow-left"></i> Back to Monitoring
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- ROI Configuration -->
+        <div class="settings-card">
+            <h3 class="section-title">ROI Calculation Settings</h3>
+            <form id="roiConfigForm">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Business Metrics</h5>
+                        <div class="mb-3">
+                            <label class="form-label">Average Leads per Month</label>
+                            <input type="number" class="form-control" id="avgLeadsPerMonth" min="0" step="1">
+                            <small class="text-muted">Typical number of leads a dealership receives monthly</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Average Conversion Rate</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="avgConversionRate" min="0" max="100" step="0.1">
+                                <span class="input-group-text">%</span>
+                            </div>
+                            <small class="text-muted">Percentage of leads that convert to sales</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Average Deal Value</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" id="avgDealValue" min="0" step="100">
+                            </div>
+                            <small class="text-muted">Average vehicle sale price</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Average Gross Profit per Deal</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" id="avgGrossProfit" min="0" step="100">
+                            </div>
+                            <small class="text-muted">Average profit per vehicle sold</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Expected Improvements</h5>
+                        <div class="mb-3">
+                            <label class="form-label">Missing Phone Number - Lead Increase</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="imp_missingPhoneNumber" min="0" max="100" step="1">
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Missing Contact Form - Lead Increase</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="imp_missingContactForm" min="0" max="100" step="1">
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Slow Page Load - Conversion Increase</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="imp_slowPageLoad" min="0" max="100" step="1">
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Poor Mobile Experience - Lead Increase</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="imp_poorMobileExperience" min="0" max="100" step="1">
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-save me-2">
+                        <i class="bi bi-check-circle"></i> Save Changes
+                    </button>
+                    <button type="button" class="btn btn-reset" onclick="resetConfig()">
+                        <i class="bi bi-arrow-clockwise"></i> Reset to Defaults
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Monitoring Settings -->
+        <div class="settings-card">
+            <h3 class="section-title">Monitoring Settings</h3>
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Default Settings</h5>
+                    <div class="mb-3">
+                        <label class="form-label">Default Check Frequency</label>
+                        <select class="form-select" id="defaultCheckFrequency" disabled>
+                            <option value="15">Every 15 minutes</option>
+                            <option value="30">Every 30 minutes</option>
+                            <option value="59" selected>Every 59 minutes</option>
+                            <option value="60">Every hour</option>
+                            <option value="120">Every 2 hours</option>
+                        </select>
+                        <small class="text-muted">Currently set to 59 minutes (hardcoded)</small>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h5>API Usage <button class="btn btn-sm btn-secondary float-end" onclick="loadApiStats()">Refresh</button></h5>
+                    <div class="alert alert-info">
+                        <strong>ScrapingDog API Status:</strong><br>
+                        API Key: <span id="apiKeyStatus">Checking...</span><br>
+                        Total Requests: <span id="totalRequests">0</span><br>
+                        Successful: <span id="successfulRequests">0</span><br>
+                        Failed: <span id="failedRequests">0</span><br>
+                        Success Rate: <span id="successRate">0%</span><br>
+                        Avg Cost/Request: <span id="avgCost">$0</span><br>
+                        Last Updated: <span id="lastUpdated">Never</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Monitoring Requests -->
+        <div class="settings-card">
+            <h3 class="section-title">Pending Monitoring Requests</h3>
+            <div id="pendingRequestsContainer">
+                <div class="text-center text-muted py-3">
+                    <i class="bi bi-hourglass-split"></i> Loading pending requests...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Alert -->
+    <div id="successAlert" class="alert alert-success alert-dismissible fade alert-fixed" role="alert" style="display: none;">
+        <i class="bi bi-check-circle"></i> <span id="successMessage">Settings saved successfully!</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Error Alert -->
+    <div id="errorAlert" class="alert alert-danger alert-dismissible fade alert-fixed" role="alert" style="display: none;">
+        <i class="bi bi-exclamation-circle"></i> <span id="errorMessage">Error saving settings</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        let currentConfig = null;
+        
+        // Default configuration
+        function getDefaultConfig() {
+            return {
+                business: {
+                    avgLeadsPerMonth: 100,
+                    avgConversionRate: 10,
+                    avgDealValue: 35000,
+                    avgGrossProfit: 3000
+                },
+                improvements: {
+                    missingPhoneNumber: 10,
+                    missingContactForm: 15,
+                    slowPageLoad: 8,
+                    poorMobileExperience: 12
+                }
+            };
+        }
+
+        // Load current configuration
+        async function loadConfig() {
+            try {
+                let response;
+                try {
+                    response = await axios.get('/api/roi/config');
+                } catch (apiError) {
+                    if (apiError.response && apiError.response.status === 404) {
+                        console.warn('ROI API not available, using static config as fallback');
+                        // Fallback to static config file
+                        response = await axios.get('/roi-config-static.json');
+                        showError('Server restart needed - ROI settings are read-only until restart');
+                    } else {
+                        throw apiError;
+                    }
+                }
+                currentConfig = response.data;
+                
+                // Populate form fields
+                document.getElementById('avgLeadsPerMonth').value = currentConfig.avgLeadsPerMonth;
+                document.getElementById('avgConversionRate').value = currentConfig.avgConversionRate * 100;
+                document.getElementById('avgDealValue').value = currentConfig.avgDealValue;
+                document.getElementById('avgGrossProfit').value = currentConfig.avgGrossProfit;
+                
+                // Populate improvements
+                if (currentConfig.improvements) {
+                    document.getElementById('imp_missingPhoneNumber').value = currentConfig.improvements.missingPhoneNumber?.leadIncrease || 0;
+                    document.getElementById('imp_missingContactForm').value = currentConfig.improvements.missingContactForm?.leadIncrease || 0;
+                    document.getElementById('imp_slowPageLoad').value = currentConfig.improvements.slowPageLoad?.conversionIncrease || 0;
+                    document.getElementById('imp_poorMobileExperience').value = currentConfig.improvements.poorMobileExperience?.leadIncrease || 0;
+                }
+                
+                // Load API stats
+                await loadApiStats();
+                
+            } catch (error) {
+                console.error('Error loading config:', error);
+                // DISABLED: Permission check causing issues
+                // if (error.response && error.response.status === 403) {
+                //     showError('Admin access required to view settings');
+                //     setTimeout(() => {
+                //         window.location.href = '/';
+                //     }, 2000);
+                // }
+                // Use default config on any error
+                currentConfig = getDefaultConfig();
+                // Populate form with default values
+                document.getElementById('avgLeadsPerMonth').value = currentConfig.business.avgLeadsPerMonth;
+                document.getElementById('avgConversionRate').value = currentConfig.business.avgConversionRate;
+                document.getElementById('avgDealValue').value = currentConfig.business.avgDealValue;
+                document.getElementById('avgGrossProfit').value = currentConfig.business.avgGrossProfit;
+                
+                // Populate improvements
+                document.getElementById('imp_missingPhoneNumber').value = currentConfig.improvements.missingPhoneNumber;
+                document.getElementById('imp_missingContactForm').value = currentConfig.improvements.missingContactForm;
+                document.getElementById('imp_slowPageLoad').value = currentConfig.improvements.slowPageLoad;
+                document.getElementById('imp_poorMobileExperience').value = currentConfig.improvements.poorMobileExperience;
+            }
+        }
+
+        // Load API stats
+        async function loadApiStats() {
+            try {
+                const response = await axios.get('/api/monitoring/stats');
+                const stats = response.data;
+                
+                console.log('Loaded monitoring stats:', stats);
+                
+                // Check if ScrapingDog API key is configured
+                document.getElementById('apiKeyStatus').textContent = stats.scrapingDogStats ? 'Configured' : 'Not configured';
+                
+                if (stats.scrapingDogStats) {
+                    document.getElementById('totalRequests').textContent = stats.scrapingDogStats.totalRequests || 0;
+                    document.getElementById('successfulRequests').textContent = stats.scrapingDogStats.successfulRequests || 0;
+                    document.getElementById('failedRequests').textContent = stats.scrapingDogStats.failedRequests || 0;
+                    document.getElementById('successRate').textContent = stats.scrapingDogStats.successRate || '0%';
+                    document.getElementById('avgCost').textContent = stats.scrapingDogStats.averageCost || '$0';
+                    
+                    // Format last updated time
+                    if (stats.scrapingDogStats.lastUpdated) {
+                        const lastUpdated = new Date(stats.scrapingDogStats.lastUpdated);
+                        document.getElementById('lastUpdated').textContent = lastUpdated.toLocaleString();
+                    } else {
+                        document.getElementById('lastUpdated').textContent = 'Never';
+                    }
+                } else {
+                    // Reset all values if no stats
+                    document.getElementById('totalRequests').textContent = '0';
+                    document.getElementById('successfulRequests').textContent = '0';
+                    document.getElementById('failedRequests').textContent = '0';
+                    document.getElementById('successRate').textContent = '0%';
+                    document.getElementById('avgCost').textContent = '$0';
+                    document.getElementById('lastUpdated').textContent = 'Never';
+                }
+                
+                // Also show general monitoring stats if available
+                if (stats.seleniumRequests !== undefined) {
+                    console.log('Selenium requests:', stats.seleniumRequests);
+                    console.log('ScrapingDog usage rate:', stats.scrapingDogUsageRate);
+                }
+            } catch (error) {
+                console.error('Error loading API stats:', error);
+                document.getElementById('apiKeyStatus').textContent = 'Error loading stats';
+            }
+        }
+
+        // Save configuration
+        document.getElementById('roiConfigForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const newConfig = {
+                avgLeadsPerMonth: parseInt(document.getElementById('avgLeadsPerMonth').value),
+                avgConversionRate: parseFloat(document.getElementById('avgConversionRate').value) / 100,
+                avgDealValue: parseInt(document.getElementById('avgDealValue').value),
+                avgGrossProfit: parseInt(document.getElementById('avgGrossProfit').value),
+                improvements: {
+                    missingPhoneNumber: { leadIncrease: parseInt(document.getElementById('imp_missingPhoneNumber').value) },
+                    missingContactForm: { leadIncrease: parseInt(document.getElementById('imp_missingContactForm').value) },
+                    slowPageLoad: { conversionIncrease: parseInt(document.getElementById('imp_slowPageLoad').value) },
+                    poorMobileExperience: { leadIncrease: parseInt(document.getElementById('imp_poorMobileExperience').value) }
+                }
+            };
+            
+            try {
+                await axios.put('/api/roi/config', newConfig);
+                showSuccess('Settings saved successfully!');
+                await loadConfig(); // Reload to confirm
+            } catch (error) {
+                console.error('Error saving config:', error);
+                if (error.response && error.response.status === 404) {
+                    showError('Cannot save - Server restart needed to enable ROI settings API');
+                } else {
+                    showError(error.response?.data?.error || 'Failed to save settings');
+                }
+            }
+        });
+
+        // Reset configuration
+        async function resetConfig() {
+            if (confirm('Are you sure you want to reset all ROI settings to defaults?')) {
+                try {
+                    await axios.post('/api/roi/reset');
+                    showSuccess('Settings reset to defaults!');
+                    await loadConfig();
+                } catch (error) {
+                    console.error('Error resetting config:', error);
+                    if (error.response && error.response.status === 404) {
+                        showError('Cannot reset - Server restart needed to enable ROI settings API');
+                    } else {
+                        showError('Failed to reset settings');
+                    }
+                }
+            }
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            document.getElementById('successMessage').textContent = message;
+            const alert = document.getElementById('successAlert');
+            alert.style.display = 'block';
+            alert.classList.add('show');
+            setTimeout(() => {
+                alert.classList.remove('show');
+                setTimeout(() => alert.style.display = 'none', 150);
+            }, 3000);
+        }
+
+        // Show error message
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            const alert = document.getElementById('errorAlert');
+            alert.style.display = 'block';
+            alert.classList.add('show');
+            setTimeout(() => {
+                alert.classList.remove('show');
+                setTimeout(() => alert.style.display = 'none', 150);
+            }, 5000);
+        }
+
+        // Load pending monitoring requests
+        async function loadPendingRequests() {
+            try {
+                const response = await axios.get('/api/monitoring/profiles/pending');
+                const pendingRequests = response.data;
+                
+                const container = document.getElementById('pendingRequestsContainer');
+                
+                if (pendingRequests.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-check-circle" style="font-size: 2rem;"></i>
+                            <p class="mt-2">No pending requests</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = `
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Dealer Name</th>
+                                    <th>Website URL</th>
+                                    <th>Requested By</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                pendingRequests.forEach(request => {
+                    const requestDate = new Date(request.created_at).toLocaleDateString();
+                    html += `
+                        <tr>
+                            <td>${request.dealer_name}</td>
+                            <td><a href="${request.website_url}" target="_blank">${request.website_url}</a></td>
+                            <td>${request.requested_by || 'Unknown'}</td>
+                            <td>${requestDate}</td>
+                            <td>
+                                <button class="btn btn-sm btn-success me-1" onclick="approveRequest('${request.id}')">
+                                    <i class="bi bi-check"></i> Approve
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="denyRequest('${request.id}')">
+                                    <i class="bi bi-x"></i> Deny
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading pending requests:', error);
+                document.getElementById('pendingRequestsContainer').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i> Error loading pending requests
+                    </div>
+                `;
+            }
+        }
+
+        // Approve monitoring request
+        async function approveRequest(profileId) {
+            if (!confirm('Approve this monitoring request?')) return;
+            
+            try {
+                await axios.post(`/api/monitoring/profiles/${profileId}/approve`);
+                showSuccess('Monitoring request approved');
+                loadPendingRequests();
+            } catch (error) {
+                console.error('Error approving request:', error);
+                showError('Failed to approve request');
+            }
+        }
+
+        // Deny monitoring request
+        async function denyRequest(profileId) {
+            const reason = prompt('Reason for denial (optional):');
+            if (reason === null) return; // User cancelled
+            
+            try {
+                await axios.post(`/api/monitoring/profiles/${profileId}/deny`, { reason });
+                showSuccess('Monitoring request denied');
+                loadPendingRequests();
+            } catch (error) {
+                console.error('Error denying request:', error);
+                showError('Failed to deny request');
+            }
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadConfig();
+            loadPendingRequests();
+            // Auto-refresh API stats every 30 seconds
+            setInterval(loadApiStats, 30000);
+            // Auto-refresh pending requests every 30 seconds
+            setInterval(loadPendingRequests, 30000);
+        });
+    </script>
+</body>
+</html>

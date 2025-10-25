@@ -1,0 +1,68 @@
+ADD PROCESSING INDICATOR TO VOICE ASSISTANT
+==========================================
+
+1. SSH to server:
+   ssh root@146.190.39.214
+   cd /var/www/smart-doc-v2
+   nano templates/voice-handsfree.html
+
+2. Find the chat request section (around line 377-390):
+   Ctrl+_ 
+   377
+
+3. Add a processing indicator after sending the chat request. Look for:
+   const aiResponse = await fetch('/api/chat', {
+
+4. Add these lines BEFORE the fetch call:
+   // Show processing indicator
+   addMessage('G is thinking...', 'system-message');
+   
+5. After the fetch completes, remove the indicator. Find:
+   if (aiResult.success) {
+       addMessage(aiResult.response, 'assistant-message');
+
+6. Change it to:
+   if (aiResult.success) {
+       // Remove the "thinking" message
+       const messages = chatContainer.querySelectorAll('.message');
+       const lastMessage = messages[messages.length - 1];
+       if (lastMessage && lastMessage.textContent === 'G is thinking...') {
+           lastMessage.remove();
+       }
+       addMessage(aiResult.response, 'assistant-message');
+
+7. Add CSS for system messages. Find the </style> tag (around line 170) and add before it:
+
+   .system-message {
+       align-self: center;
+       background: none;
+       color: #888;
+       font-style: italic;
+       font-size: 14px;
+       padding: 10px;
+   }
+
+8. Also add a timeout handler. After the fetch call, add:
+   
+   // Set a timeout to show if it's taking too long
+   const timeoutId = setTimeout(() => {
+       const messages = chatContainer.querySelectorAll('.message');
+       const lastMessage = messages[messages.length - 1];
+       if (lastMessage && lastMessage.textContent === 'G is thinking...') {
+           lastMessage.textContent = 'G is taking longer than usual...';
+       }
+   }, 10000); // 10 seconds
+
+   // Clear timeout when response comes
+   clearTimeout(timeoutId);
+
+9. Save and exit:
+   Ctrl+X, Y, Enter
+
+10. Restart:
+    pm2 restart smart-doc-v2
+
+This will show:
+- "G is thinking..." when processing starts
+- "G is taking longer than usual..." if it takes over 10 seconds
+- Removes the message when response arrives

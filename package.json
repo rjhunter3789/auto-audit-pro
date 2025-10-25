@@ -36,7 +36,7 @@
     "proper-lockfile": "^4.1.2",
     "puppeteer": "^21.0.0",
     "selenium-webdriver": "^4.15.0",
-    "sharp": "^0.33.0",
+    "sharp": "^0.33.5",
     "twilio": "^5.7.3",
     "winston": "^3.11.0"
   },

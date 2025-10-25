@@ -1,0 +1,60 @@
+QUICK FIX - DISABLE AUTO-STOP
+=============================
+
+Connect to server:
+ssh root@146.190.39.214
+cd /var/www/smart-doc-v2
+nano templates/voice-handsfree.html
+
+Go to line 333:
+Ctrl+_
+333
+Enter
+
+You should see this code:
+-----------------------------------
+                if (average < SILENCE_THRESHOLD) {
+                    silenceDuration += 16;
+                    const progress = Math.min(100, (silenceDuration / SILENCE_DURATION) * 100);
+                    silenceProgress.style.width = progress + '%';
+                    
+                    if (silenceDuration >= SILENCE_DURATION) {
+                        stopListening();
+                    }
+                } else {
+                    silenceDuration = 0;
+                    silenceProgress.style.width = '0%';
+                }
+-----------------------------------
+
+Add // to the beginning of each line to comment it out:
+-----------------------------------
+                // if (average < SILENCE_THRESHOLD) {
+                //     silenceDuration += 16;
+                //     const progress = Math.min(100, (silenceDuration / SILENCE_DURATION) * 100);
+                //     silenceProgress.style.width = progress + '%';
+                //     
+                //     if (silenceDuration >= SILENCE_DURATION) {
+                //         stopListening();
+                //     }
+                // } else {
+                //     silenceDuration = 0;
+                //     silenceProgress.style.width = '0%';
+                // }
+-----------------------------------
+
+Save and exit:
+Ctrl+X
+Y
+Enter
+
+Restart:
+pm2 restart smart-doc-v2
+
+This will:
+✅ Disable automatic silence detection
+✅ Make recording tap-to-start, tap-to-stop
+✅ Give you full control over when to stop recording
+✅ Work around the audio analyser 0 levels bug
+
+Test at: https://smartdoc.autoauditpro.io/voice-handsfree

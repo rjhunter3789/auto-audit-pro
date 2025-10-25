@@ -1,0 +1,66 @@
+The “Access Denied” message is produced by the requireAdmin middleware in server.js.
+The middleware checks req.session.authenticated along with the isAdmin flag or role value:
+
+function requireAdmin(req, res, next) {
+    ...
+    if (req.session.authenticated && (req.session.isAdmin === true || req.session.role === 'admin')) {
+        ...
+    } else {
+        console.log('[RequireAdmin] Access denied');
+        ...
+        res.status(403).send(` ... Access Denied page ... `);
+    }
+}
+
+The route /admin/settings is protected by this middleware:
+
+app.get('/admin/settings', requireAdmin, (req, res) => {
+    console.log('[Admin Settings] Accessed by:', req.session.username);
+    const filePath = path.join(__dirname, 'views', 'admin-settings.html');
+    res.sendFile(filePath);
+});
+
+For the middleware to grant access, the session must have authenticated=true and either isAdmin=true or role === 'admin'. The login handler sets these values when an admin user signs in:
+
+if (authenticatedUser || isAdmin) {
+    req.session.authenticated = true;
+    ...
+    if (authenticatedUser) {
+        req.session.username = authenticatedUser.username;
+        req.session.role = authenticatedUser.role;
+        req.session.isAdmin = authenticatedUser.isAdmin || false;
+        ...
+    } else {
+        req.session.username = username;
+        req.session.role = 'admin';
+        req.session.isAdmin = true;
+    }
+    req.session.save((err) => { ... });
+}
+
+If your session does not have isAdmin: true after logging in, requireAdmin will return the Access Denied page. Check your current session using the debugging endpoint /api/session-info and ensure isAdmin is true. If it isn’t, there is a helper endpoint /api/fix-admin-session intended to set these flags.
+
+Note that there is a bug around the session debugging code: /api/fix-admin-session and /api/ensure-admin are defined inside the /api/session-info handler because of a missing closing brace. The relevant section looks like:
+
+app.get('/api/session-info', (req, res) => {
+    ...
+    res.json({...});
+
+ // Admin session fix endpoint - ensures admin access works
+ app.get('/api/fix-admin-session', (req, res) => { ... });
+
+ // Auto-fix admin session on login
+ app.post('/api/ensure-admin', (req, res) => { ... });
+});
+
+Because the closing }); for /api/session-info occurs at line 288, these fix routes are only attached after the first request to /api/session-info, which can lead to inconsistent behavior.
+
+Key points
+
+Verify that after login your session contains isAdmin: true (use /api/session-info).
+
+If not, call /api/fix-admin-session to set it.
+
+Consider correcting the misplaced closing brace so that /api/fix-admin-session and /api/ensure-admin are defined normally.
+
+With those adjustments the “Access Denied” issue should be resolved for admin users.

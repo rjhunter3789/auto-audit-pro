@@ -1,0 +1,103 @@
+QUICK MOBILE FIX - PROVEN SOLUTION
+==================================
+
+1. Connect to server:
+   ssh root@146.190.39.214
+   cd /var/www/smart-doc-v2
+   nano templates/voice-handsfree.html
+
+2. Go to initAudio function (line 223):
+   Ctrl+_
+   223
+   Enter
+
+3. Replace the ENTIRE initAudio function with this simple version:
+
+async function initAudio() {
+    try {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') return;
+        
+        console.log('Requesting microphone...');
+        
+        // Simple audio - PROVEN TO WORK ON iPHONE!
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        console.log('Got media stream');
+        
+        // Create audio context if needed
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        // Setup audio analysis
+        if (!analyser) {
+            analyser = audioContext.createAnalyser();
+            microphone = audioContext.createMediaStreamSource(stream);
+            microphone.connect(analyser);
+            analyser.fftSize = 256;
+        }
+        
+        // Simple MediaRecorder - NO FORMAT SPECIFIED
+        mediaRecorder = new MediaRecorder(stream);
+        console.log('MediaRecorder created');
+        
+        mediaRecorder.ondataavailable = event => {
+            console.log('Data available:', event.data.size);
+            if (event.data.size > 0) {
+                audioChunks.push(event.data);
+            }
+        };
+        
+        mediaRecorder.onstop = async () => {
+            console.log('MediaRecorder stopped, chunks:', audioChunks.length);
+            if (audioChunks.length > 0) {
+                const audioBlob = new Blob(audioChunks);
+                console.log('Created blob, size:', audioBlob.size);
+                audioChunks = [];
+                await processAudio(audioBlob);
+            } else {
+                console.log('No audio chunks recorded');
+                resetButton();
+            }
+        };
+        
+        // Start monitoring audio levels
+        monitorAudioLevels();
+        
+    } catch (err) {
+        console.error('Microphone access denied:', err);
+        status.textContent = 'Microphone access required';
+        micButton.disabled = true;
+    }
+}
+
+4. Find where initAudio() is called at bottom (around line 540):
+   Ctrl+_
+   540
+   Enter
+   
+   Comment it out:
+   // initAudio();  // Don't init on page load for iOS
+
+5. Find handleMicPress function (around line 327):
+   Ctrl+_
+   327
+   Enter
+   
+   Add this after line 331 (after the console.log):
+   
+   // Initialize audio on first press (for iOS permissions)
+   if (!mediaRecorder) {
+       await initAudio();
+   }
+
+6. Save and restart:
+   Ctrl+X
+   Y
+   Enter
+   pm2 restart smart-doc-v2
+
+This uses the EXACT approach that worked in your test!
+- Simple getUserMedia
+- No format detection
+- No iOS-specific code
+- Requests permission on button click (not page load)

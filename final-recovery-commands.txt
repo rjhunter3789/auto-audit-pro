@@ -1,0 +1,57 @@
+FINAL RECOVERY AND TEST COMMANDS
+================================
+
+1. Connect to server:
+   ssh root@146.190.39.214
+   cd /var/www/smart-doc-v2
+   source ../smart-document-assistant/venv/bin/activate
+
+2. Test web search directly:
+   python3
+   from web_search import search_web
+   results = search_web("Tesla stock price", 3)
+   print(f"Found {len(results)} results")
+   for r in results:
+       print(f"- {r['title'][:50]}...")
+   exit()
+
+3. Check the current app status:
+   pm2 status smart-doc-v2
+   pm2 logs smart-doc-v2 --lines 20
+
+4. Restart the app fresh:
+   pm2 restart smart-doc-v2
+   
+5. Monitor live logs while testing:
+   pm2 logs smart-doc-v2
+
+6. In another terminal, check if the endpoints work:
+   curl -X POST https://smartdoc.autoauditpro.io/api/chat \
+     -H "Content-Type: application/json" \
+     -d '{"message": "search the web for Tesla stock"}'
+
+WORKING FEATURES:
+✅ Voice recording with silence detection
+✅ Google Drive search ("search my drive for...")
+✅ Web search backend (DuckDuckGo fallback working)
+✅ Conversation memory
+✅ Text-to-speech responses
+✅ G personality (automotive expert)
+
+KNOWN ISSUES:
+⚠️ Mic button occasionally needs page refresh
+⚠️ Web search results may not show in response
+⚠️ Mobile requires permissions and fresh page load
+
+TEST PHRASES:
+- "Hey G, search the web for Tesla stock price"
+- "Google the latest Ford F-150 Lightning news"
+- "What's the current EV market share?"
+- "Search my drive for IMPEL documents"
+
+If mic won't engage:
+1. Close all browser tabs
+2. Clear browser cache
+3. Open new incognito/private window
+4. Go to https://smartdoc.autoauditpro.io/voice-handsfree
+5. Allow microphone permissions when prompted

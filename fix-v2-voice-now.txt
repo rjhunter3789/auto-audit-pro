@@ -1,0 +1,38 @@
+SMART-DOC V2 VOICE FIX
+======================
+
+1. SSH to your server:
+   ssh root@146.190.39.214
+
+2. Go to Smart-Doc V2:
+   cd /var/www/smart-doc-v2
+
+3. Edit app.py:
+   nano app.py
+
+4. Find the transcribe_voice function (around line 126) that has:
+   
+   transcript = client.audio.transcriptions.create(
+       model="whisper-1",
+       file=audio_file
+   )
+
+5. Replace with:
+   
+   # Read the audio file content
+   audio_data = audio_file.read()
+   audio_file.seek(0)
+   
+   # Create transcription with proper file format
+   transcript = client.audio.transcriptions.create(
+       model="whisper-1",
+       file=("audio.webm", audio_data, "audio/webm")
+   )
+
+6. Save (Ctrl+X, Y, Enter)
+
+7. Restart:
+   pm2 restart smart-doc-v2
+
+8. Test at:
+   https://smartdoc.autoauditpro.io/voice

@@ -1,0 +1,107 @@
+WEBM AUDIO FIX FOR SMART-DOC V2
+================================
+
+1. Connect to your server:
+   ssh root@146.190.39.214
+
+2. Navigate to Smart-Doc V2:
+   cd /var/www/smart-doc-v2
+   source venv/bin/activate
+
+3. Install ffmpeg (if not already installed):
+   apt update && apt install -y ffmpeg
+
+4. Update the transcription endpoint in app.py:
+   nano app.py
+
+5. Find the transcribe_voice function (around line 131) and replace it with:
+
+@app.route('/api/voice/transcribe', methods=['POST'])
+@login_required
+def transcribe_voice():
+    """Transcribe voice to text"""
+    try:
+        if 'audio' not in request.files:
+            return jsonify({'success': False, 'error': 'No audio file provided'})
+        
+        audio_file = request.files['audio']
+        
+        # Use OpenAI Whisper to transcribe
+        client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+        
+        # Read the audio data
+        audio_file.seek(0)
+        audio_data = audio_file.read()
+        
+        # Convert WebM to WAV using ffmpeg
+        import subprocess
+        import tempfile
+        import os
+        
+        # Save WebM to temporary file
+        with tempfile.NamedTemporaryFile(suffix='.webm', delete=False) as webm_file:
+            webm_file.write(audio_data)
+            webm_path = webm_file.name
+        
+        # Convert to WAV
+        wav_path = webm_path.replace('.webm', '.wav')
+        try:
+            cmd = [
+                'ffmpeg', '-i', webm_path,
+                '-acodec', 'pcm_s16le',
+                '-ar', '16000',
+                '-ac', '1',
+                '-y', wav_path
+            ]
+            subprocess.run(cmd, check=True, capture_output=True)
+            
+            # Read WAV file and create transcription
+            with open(wav_path, 'rb') as wav_file:
+                transcript = client.audio.transcriptions.create(
+                    model="whisper-1",
+                    file=wav_file,
+                    language="en"
+                )
+            
+            return jsonify({
+                'success': True,
+                'text': transcript.text
+            })
+            
+        except subprocess.CalledProcessError as e:
+            return jsonify({
+                'success': False,
+                'error': f'Audio conversion failed: {e.stderr.decode() if e.stderr else str(e)}'
+            })
+        except Exception as e:
+            return jsonify({
+                'success': False,
+                'error': str(e)
+            })
+        finally:
+            # Clean up temporary files
+            if os.path.exists(webm_path):
+                os.unlink(webm_path)
+            if os.path.exists(wav_path):
+                os.unlink(wav_path)
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
+
+6. Add imports at the top of app.py (if not already there):
+   import subprocess
+   import tempfile
+
+7. Save and exit:
+   Ctrl+X, Y, Enter
+
+8. Restart the app:
+   pm2 restart smart-doc-v2
+
+9. Test at:
+   https://smartdoc.autoauditpro.io/voice-handsfree
+
+This fix converts the WebM audio from the browser to WAV format before sending to OpenAI.

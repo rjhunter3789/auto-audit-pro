@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Doc Voice Assistant - Hands Free</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000;
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: #111;
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .mode-indicator {
+            background: #2ecc71;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .message {
+            max-width: 85%;
+            padding: 15px 20px;
+            border-radius: 20px;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .user-message {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-left: auto;
+        }
+        
+        .assistant-message {
+            align-self: flex-start;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            color: #e0e0e0;
+        }
+        
+        .controls {
+            background: #111;
+            border-top: 1px solid #333;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .mic-button {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: #333;
+            border: 3px solid #555;
+            color: white;
+            font-size: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .mic-button.listening {
+            background: #e74c3c;
+            border-color: #c0392b;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .mic-button.processing {
+            background: #f39c12;
+            border-color: #d68910;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
+            70% { box-shadow: 0 0 0 30px rgba(231, 76, 60, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+        }
+        
+        .status {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #aaa;
+        }
+        
+        .silence-indicator {
+            margin-top: 10px;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .silence-progress {
+            height: 100%;
+            background: #3498db;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+        
+        .interrupt-note {
+            position: fixed;
+            bottom: 180px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .audio-visualizer {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            gap: 3px;
+            height: 40px;
+            align-items: center;
+        }
+        
+        .audio-bar {
+            width: 4px;
+            background: white;
+            transition: height 0.1s;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>Smart Doc Assistant</h2>
+        <div class="mode-indicator">Hands-Free Mode</div>
+    </div>
+    
+    <div class="chat-container" id="chatContainer">
+        <div class="message assistant-message">
+            Hello! I'm in hands-free mode. Just tap the microphone to start talking, and I'll stop listening after a pause. You can interrupt me anytime by tapping again.
+        </div>
+    </div>
+    
+    <div class="interrupt-note" id="interruptNote">
+        Tap to interrupt
+    </div>
+    
+    <div class="controls">
+        <button class="mic-button" id="micButton">
+            <span id="micIcon">🎤</span>
+            <div class="audio-visualizer" id="visualizer" style="display: none;">
+                <div class="audio-bar" style="height: 10px;"></div>
+                <div class="audio-bar" style="height: 20px;"></div>
+                <div class="audio-bar" style="height: 15px;"></div>
+                <div class="audio-bar" style="height: 25px;"></div>
+                <div class="audio-bar" style="height: 18px;"></div>
+            </div>
+        </button>
+        <div class="status" id="status">Tap to speak</div>
+        <div class="silence-indicator" id="silenceIndicator">
+            <div class="silence-progress" id="silenceProgress"></div>
+        </div>
+    </div>
+    
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+        let isListening = false;
+        let isProcessing = false;
+        let silenceDetector;
+        let audioContext;
+        let analyser;
+        let microphone;
+        let silenceTimer;
+        let currentAudio = null;
+        
+        const micButton = document.getElementById('micButton');
+        const micIcon = document.getElementById('micIcon');
+        const visualizer = document.getElementById('visualizer');
+        const status = document.getElementById('status');
+        const chatContainer = document.getElementById('chatContainer');
+        const silenceIndicator = document.getElementById('silenceIndicator');
+        const silenceProgress = document.getElementById('silenceProgress');
+        const interruptNote = document.getElementById('interruptNote');
+        
+        // Initialize audio context and analyser for silence detection
+        async function initAudio() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                microphone = audioContext.createMediaStreamSource(stream);
+                microphone.connect(analyser);
+                analyser.fftSize = 256;
+                
+                mediaRecorder = new MediaRecorder(stream);
+                
+                mediaRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+                
+                mediaRecorder.onstop = async () => {
+                    if (audioChunks.length > 0) {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        audioChunks = [];
+                        await processAudio(audioBlob);
+                    }
+                };
+                
+                // Start monitoring audio levels
+                monitorAudioLevels();
+                
+            } catch (err) {
+                console.error('Microphone access denied:', err);
+                status.textContent = 'Microphone access required';
+                micButton.disabled = true;
+            }
+        }
+        
+        function monitorAudioLevels() {
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            let silenceDuration = 0;
+            const SILENCE_THRESHOLD = 30;
+            const SILENCE_DURATION = 2000; // 2 seconds of silence
+            
+            function checkAudioLevel() {
+                if (!isListening) {
+                    requestAnimationFrame(checkAudioLevel);
+                    return;
+                }
+                
+                analyser.getByteFrequencyData(dataArray);
+                const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+                
+                // Update visualizer
+                const bars = visualizer.querySelectorAll('.audio-bar');
+                bars.forEach((bar, i) => {
+                    const height = Math.min(40, dataArray[i * 50] / 3);
+                    bar.style.height = height + 'px';
+                });
+                
+                if (average < SILENCE_THRESHOLD) {
+                    silenceDuration += 100;
+                    const progress = Math.min(100, (silenceDuration / SILENCE_DURATION) * 100);
+                    silenceProgress.style.width = progress + '%';
+                    
+                    if (silenceDuration >= SILENCE_DURATION) {
+                        stopListening();
+                    }
+                } else {
+                    silenceDuration = 0;
+                    silenceProgress.style.width = '0%';
+                }
+                
+                requestAnimationFrame(checkAudioLevel);
+            }
+            
+            checkAudioLevel();
+        }
+        
+        micButton.onclick = () => {
+            if (isProcessing) return;
+            
+            if (currentAudio) {
+                // Interrupt current audio
+                currentAudio.pause();
+                currentAudio = null;
+                interruptNote.style.display = 'none';
+                addMessage('(Interrupted)', 'system-message');
+            }
+            
+            if (isListening) {
+                stopListening();
+            } else {
+                startListening();
+            }
+        };
+        
+        function startListening() {
+            if (mediaRecorder && mediaRecorder.state === 'inactive') {
+                audioChunks = [];
+                mediaRecorder.start(100); // Collect data every 100ms
+                isListening = true;
+                micButton.classList.add('listening');
+                micIcon.style.display = 'none';
+                visualizer.style.display = 'flex';
+                status.textContent = 'Listening... (stops on pause)';
+                silenceIndicator.style.display = 'block';
+            }
+        }
+        
+        function stopListening() {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                isListening = false;
+                micButton.classList.remove('listening');
+                micButton.classList.add('processing');
+                micIcon.style.display = 'block';
+                micIcon.textContent = '⏳';
+                visualizer.style.display = 'none';
+                status.textContent = 'Processing...';
+                silenceIndicator.style.display = 'none';
+                silenceProgress.style.width = '0%';
+            }
+        }
+        
+        async function processAudio(audioBlob) {
+            try {
+                isProcessing = true;
+                
+                const formData = new FormData();
+                formData.append('audio', audioBlob, 'recording.webm');
+                
+                const response = await fetch('/api/voice/transcribe', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    addMessage(result.text, 'user-message');
+                    
+                    // Get AI response
+                    const aiResponse = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            message: result.text
+                        })
+                    });
+                    
+                    const aiResult = await aiResponse.json();
+                    
+                    if (aiResult.success) {
+                        addMessage(aiResult.response, 'assistant-message');
+                        
+                        // Play audio response
+                        if (aiResult.audio_url) {
+                            currentAudio = new Audio(aiResult.audio_url);
+                            interruptNote.style.display = 'block';
+                            
+                            currentAudio.onended = () => {
+                                currentAudio = null;
+                                interruptNote.style.display = 'none';
+                            };
+                            
+                            currentAudio.play();
+                        }
+                    }
+                } else {
+                    status.textContent = 'Error: ' + result.error;
+                }
+            } catch (error) {
+                status.textContent = 'Error: ' + error.message;
+            } finally {
+                isProcessing = false;
+                micButton.classList.remove('processing');
+                micIcon.textContent = '🎤';
+                status.textContent = 'Tap to speak';
+            }
+        }
+        
+        function addMessage(text, className) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ' + className;
+            messageDiv.textContent = text;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        
+        // Initialize on load
+        initAudio();
+    </script>
+</body>
+</html>

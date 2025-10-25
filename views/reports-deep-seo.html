@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<!--
+ * Auto Audit Pro - Deep SEO Analysis Report
+ * © 2025 JL Robinson. All Rights Reserved.
+ * 
+ * Author: JL Robinson
+ * Contact: nakapaahu@gmail.com
+ * 
+ * This software is protected by copyright law.
+ * Unauthorized reproduction or distribution is prohibited.
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep SEO Analysis - <%= results.domain %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/navigation.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary-blue: #4A90E2;
+            --secondary-blue: #7EB3E6;
+            --accent-cyan: #00D4FF;
+            --dark-bg: #1A1A1A;
+            --text-light: #E0E0E0;
+            --text-dark: #333333;
+            --warning-yellow: #FFC107;
+            --success-green: #28A745;
+            --danger-red: #DC3545;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        .deep-seo-header {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+        }
+        
+        .overall-score-circle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: white;
+            color: var(--text-dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            margin: 0 auto;
+        }
+        
+        .score-value {
+            font-size: 4rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+        
+        .score-label {
+            font-size: 1rem;
+            color: #666;
+            margin-top: 0.5rem;
+        }
+        
+        .score-excellent { color: var(--success-green); }
+        .score-good { color: #6CC070; }
+        .score-fair { color: var(--warning-yellow); }
+        .score-poor { color: var(--danger-red); }
+        
+        .category-card {
+            border: none;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .category-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+        }
+        
+        .category-header {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+            padding: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .category-header h3 {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .category-score {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .score-bar {
+            width: 150px;
+            height: 8px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .score-fill {
+            height: 100%;
+            background-color: var(--primary-blue);
+            transition: width 0.3s;
+        }
+        
+        .test-item {
+            padding: 1rem;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .test-item:last-child {
+            border-bottom: none;
+        }
+        
+        .test-passed {
+            color: var(--success-green);
+        }
+        
+        .test-failed {
+            color: var(--danger-red);
+        }
+        
+        .test-warning {
+            color: var(--warning-yellow);
+        }
+        
+        .issue-card {
+            border-left: 4px solid var(--danger-red);
+            background-color: #fff;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-radius: 0 8px 8px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        }
+        
+        .issue-card.priority-high {
+            border-left-color: var(--danger-red);
+        }
+        
+        .issue-card.priority-medium {
+            border-left-color: var(--warning-yellow);
+        }
+        
+        .issue-card.priority-low {
+            border-left-color: #6c757d;
+        }
+        
+        .technical-stats {
+            background-color: #f8f9fa;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-top: 2rem;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 1rem;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
+        
+        .opportunity-card {
+            background-color: #e8f5e9;
+            border-left: 4px solid var(--success-green);
+            padding: 1rem 1.5rem;
+            margin-bottom: 1rem;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .back-to-suite {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-blue);
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            transition: opacity 0.2s;
+        }
+        
+        .back-to-suite:hover {
+            opacity: 0.8;
+            color: var(--primary-blue);
+        }
+        
+        .export-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        
+        .btn-export {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            
+            .category-card {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="suite-nav no-print">
+        <div class="container">
+            <div class="suite-title">Auto Audit Pro Suite</div>
+            <div class="nav-links">
+                <a href="/website-audit" class="active">Website Analysis</a>
+                <a href="/lead-analysis">Lead Performance</a>
+                <a href="/monitoring">Website Monitoring</a>
+                <a href="/definitions">Definitions</a>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Header Section -->
+    <div class="deep-seo-header">
+        <div class="container text-center">
+            <h1 class="mb-3">Deep SEO Analysis Report</h1>
+            <p class="lead mb-4"><%= results.url %></p>
+            <div class="overall-score-circle">
+                <div class="score-value <%= results.overallScore >= 80 ? 'score-excellent' : results.overallScore >= 60 ? 'score-good' : results.overallScore >= 40 ? 'score-fair' : 'score-poor' %>">
+                    <%= results.overallScore %>
+                </div>
+                <div class="score-label">Overall Score</div>
+            </div>
+            <p class="mt-3">
+                <small>Analysis completed in <%= results.executionTime %> seconds</small>
+            </p>
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- Back Link -->
+        <a href="/website-audit" class="back-to-suite no-print">
+            <i class="fas fa-arrow-left"></i>
+            Back to Website Analysis
+        </a>
+        
+        <!-- Technical Statistics -->
+        <div class="technical-stats">
+            <h2 class="text-center mb-4">Site Analysis Overview</h2>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <div class="stat-value"><%= results.technicalDetails?.pagesAnalyzed || 0 %></div>
+                        <div class="stat-label">Pages Analyzed</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <div class="stat-value"><%= results.technicalDetails?.totalInternalLinks || 0 %></div>
+                        <div class="stat-label">Internal Links</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <div class="stat-value"><%= results.issues?.length || 0 %></div>
+                        <div class="stat-label">Issues Found</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <div class="stat-value"><%= results.opportunities?.length || 0 %></div>
+                        <div class="stat-label">Opportunities</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Critical Issues Section -->
+        <% if (results.issues && results.issues.filter(i => i.priority === 'critical' || i.priority === 'high').length > 0) { %>
+        <div class="mt-5">
+            <h2 class="mb-4"><i class="fas fa-exclamation-triangle text-danger"></i> Critical Issues to Address</h2>
+            <% results.issues.filter(i => i.priority === 'critical' || i.priority === 'high').forEach(issue => { %>
+                <div class="issue-card priority-<%= issue.priority %>">
+                    <h5><%= issue.title %></h5>
+                    <p class="mb-2"><%= issue.details %></p>
+                    <% if (issue.recommendation) { %>
+                        <p class="mb-0"><strong>Recommendation:</strong> <%= issue.recommendation %></p>
+                    <% } %>
+                    <small class="text-muted">Category: <%= issue.category %></small>
+                </div>
+            <% }); %>
+        </div>
+        <% } %>
+        
+        <!-- Category Results -->
+        <div class="mt-5">
+            <h2 class="mb-4">Detailed Analysis by Category</h2>
+            
+            <% results.categories.forEach(category => { %>
+                <div class="category-card">
+                    <div class="category-header" data-bs-toggle="collapse" data-bs-target="#category-<%= category.name.replace(/\s+/g, '-') %>">
+                        <h3>
+                            <span>
+                                <i class="fas <%= category.icon %>"></i>
+                                <%= category.name %>
+                            </span>
+                            <div class="category-score">
+                                <span><%= Math.round((category.score / category.maxScore) * 100) %>%</span>
+                                <div class="score-bar">
+                                    <div class="score-fill" style="width: <%= Math.round((category.score / category.maxScore) * 100) %>%"></div>
+                                </div>
+                            </div>
+                        </h3>
+                        <p class="mb-0 mt-2 text-muted"><%= category.description %></p>
+                    </div>
+                    <div id="category-<%= category.name.replace(/\s+/g, '-') %>" class="collapse show">
+                        <div class="card-body">
+                            <% category.tests.forEach(test => { %>
+                                <div class="test-item">
+                                    <span>
+                                        <% if (test.passed) { %>
+                                            <i class="fas fa-check-circle test-passed"></i>
+                                        <% } else { %>
+                                            <i class="fas fa-times-circle test-failed"></i>
+                                        <% } %>
+                                        <%= test.name %>
+                                    </span>
+                                    <span class="text-muted"><%= test.value || (test.passed ? 'Pass' : 'Fail') %></span>
+                                </div>
+                            <% }); %>
+                        </div>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+        
+        <!-- Opportunities Section -->
+        <% if (results.opportunities && results.opportunities.length > 0) { %>
+        <div class="mt-5">
+            <h2 class="mb-4"><i class="fas fa-lightbulb text-warning"></i> Improvement Opportunities</h2>
+            <% results.opportunities.forEach(opp => { %>
+                <div class="opportunity-card">
+                    <h6 class="mb-1"><%= opp.title %></h6>
+                    <p class="mb-0"><%= opp.details %></p>
+                </div>
+            <% }); %>
+        </div>
+        <% } %>
+        
+        <!-- Orphaned Pages -->
+        <% if (results.technicalDetails?.orphanedPages && results.technicalDetails.orphanedPages.length > 0) { %>
+        <div class="mt-5">
+            <h2 class="mb-4"><i class="fas fa-unlink"></i> Orphaned Pages Found</h2>
+            <div class="alert alert-warning">
+                <p>The following pages have no internal links pointing to them, making them difficult for search engines and users to discover:</p>
+                <ul class="mb-0">
+                    <% results.technicalDetails.orphanedPages.forEach(page => { %>
+                        <li><%= page %></li>
+                    <% }); %>
+                </ul>
+            </div>
+        </div>
+        <% } %>
+        
+        <!-- Export Options -->
+        <div class="export-buttons no-print">
+            <button class="btn btn-primary btn-export" onclick="window.print()">
+                <i class="fas fa-file-pdf"></i> Export as PDF
+            </button>
+            <button class="btn btn-secondary btn-export" onclick="exportToCSV()">
+                <i class="fas fa-file-csv"></i> Export as CSV
+            </button>
+            <button class="btn btn-secondary btn-export" onclick="exportToJSON()">
+                <i class="fas fa-file-code"></i> Export as JSON
+            </button>
+        </div>
+        
+        <!-- Run New Audit -->
+        <div class="text-center mt-5 mb-5 no-print">
+            <a href="/website-audit" class="btn btn-lg btn-primary">Run New Audit</a>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="mt-5 py-4 bg-dark text-white text-center">
+        <div class="container">
+            <p class="mb-2">© 2025 JL Robinson. All Rights Reserved.</p>
+            <p class="small mb-0">Auto Audit Pro™ - Professional Dealership Website Analysis Platform</p>
+        </div>
+    </footer>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Export functions
+        function exportToCSV() {
+            const results = <%- JSON.stringify(results) %>;
+            let csv = 'Category,Test,Result,Value\n';
+            
+            results.categories.forEach(category => {
+                category.tests.forEach(test => {
+                    csv += `"${category.name}","${test.name}","${test.passed ? 'Pass' : 'Fail'}","${test.value || ''}"\n`;
+                });
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `deep-seo-audit-${results.domain}-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+        }
+        
+        function exportToJSON() {
+            const results = <%- JSON.stringify(results) %>;
+            const blob = new Blob([JSON.stringify(results, null, 2)], { type: 'application/json' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `deep-seo-audit-${results.domain}-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+        }
+    </script>
+</body>
+</html>

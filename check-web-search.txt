@@ -1,0 +1,44 @@
+SSH Commands to Check Web Search:
+================================
+
+1. Connect to server:
+   ssh root@146.190.39.214
+
+2. Navigate to project:
+   cd /var/www/smart-doc-v2
+
+3. Check if web_search.py exists and has content:
+   ls -la web_search.py
+   cat web_search.py
+
+4. Check if web search is imported in app.py:
+   grep -n "from web_search import" app.py
+   grep -n "web_keywords" app.py
+
+5. Check the web search integration block:
+   sed -n '253,265p' app.py
+
+6. Test web search module directly:
+   source ../smart-document-assistant/venv/bin/activate
+   python3
+   from web_search import search_web
+   results = search_web("Tesla stock price today", 3)
+   print(results)
+   exit()
+
+7. Check PM2 logs for any web search errors:
+   pm2 logs smart-doc-v2 --lines 50 | grep -i "search\|web"
+
+8. Test with a voice command that should trigger web search:
+   - "Hey G, search the web for Tesla stock price"
+   - "What's the latest news about Tesla?"
+   - "Google the current Ford F-150 Lightning price"
+
+The web search should work with keywords like:
+- "search the web"
+- "google"
+- "what is"
+- "latest"
+- "news"
+- "current"
+- "today"

@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Definitions & Glossary - Auto Audit Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary-purple: #6B46C1;
+            --secondary-purple: #9333EA;
+            --light-purple: #E9D5FF;
+            --dark-bg: #1F2937;
+        }
+
+    <link rel="stylesheet" href="/css/navigation.css">
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        /* Navigation Bar */
+        .suite-nav {
+            background: var(--dark-bg);
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .suite-nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .suite-brand {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .suite-brand:hover {
+            color: #E5E7EB;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            margin: 0;
+        }
+
+        .nav-links a {
+            color: #9CA3AF;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: white;
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .definitions-header {
+            background: rgba(31, 41, 55, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            color: white;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .definitions-content {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .category-section {
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid #E5E7EB;
+        }
+
+        .category-section:last-child {
+            border-bottom: none;
+        }
+
+        .category-title {
+            color: var(--primary-purple);
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .category-icon {
+            font-size: 2rem;
+            margin-right: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .term-card {
+            background: #F9FAFB;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--primary-purple);
+            transition: transform 0.2s;
+        }
+
+        .term-card:hover {
+            transform: translateX(5px);
+        }
+
+        .term-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .term-definition {
+            color: #6B7280;
+            margin-bottom: 0.5rem;
+        }
+
+        .term-examples {
+            font-size: 0.875rem;
+            color: #9CA3AF;
+            font-style: italic;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 1rem;
+            color: white;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+
+        .back-link:hover {
+            opacity: 0.8;
+            color: white;
+        }
+
+        .glossary-nav {
+            position: sticky;
+            top: 20px;
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .glossary-nav h5 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .glossary-nav a {
+            display: block;
+            color: #6B7280;
+            text-decoration: none;
+            padding: 0.5rem 0;
+            transition: color 0.2s;
+        }
+
+        .glossary-nav a:hover {
+            color: var(--primary-purple);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="suite-nav">
+        <div class="container">
+            <a href="/" class="suite-brand">Auto Audit Pro Suite</a>
+            <div class="nav-links">
+                <a href="/website-audit">Website Analysis</a>
+                <a href="/lead-analysis">Lead Performance</a>
+                <a href="/monitoring">Monitoring</a>
+                <a href="/definitions" class="active">Definitions</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-container">
+
+        <div class="definitions-header">
+            <h1>Definitions & Glossary</h1>
+            <p>Understanding the metrics and terminology used in Auto Audit Pro</p>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-3">
+                <div class="glossary-nav">
+                    <h5>Quick Navigation</h5>
+                    <a href="#categories">Audit Categories</a>
+                    <a href="#seo-terms"><i class="fas fa-search"></i> SEO Terms</a>
+                    <a href="#metrics">Performance Metrics</a>
+                    <a href="#technical">Technical Terms</a>
+                    <a href="#compliance">Compliance Terms</a>
+                    <a href="#lead-gen">Lead Generation</a>
+                    <a href="#priority">Priority Levels</a>
+                    <a href="#analytics"><i class="fas fa-chart-line"></i> Analytics & Insights</a>
+                </div>
+            </div>
+
+            <div class="col-lg-9">
+                <div class="definitions-content">
+                    <!-- Audit Categories Section -->
+                    <div class="category-section" id="categories">
+                        <h2 class="category-title">
+                            <i class="fas fa-layer-group category-icon"></i>
+                            Audit Categories
+                        </h2>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Basic Connectivity</h3>
+                            <p class="term-definition">
+                                Tests fundamental website functionality to ensure the site is accessible and secure.
+                            </p>
+                            <p class="term-examples">
+                                Examples: SSL certificate validation, DNS resolution, server response time, redirect handling
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Performance Testing</h3>
+                            <p class="term-definition">
+                                Evaluates how quickly your website loads and responds to user interactions. Uses Google's Core Web Vitals as benchmarks.
+                            </p>
+                            <p class="term-examples">
+                                Examples: Page load speed, Largest Contentful Paint (LCP), First Input Delay (FID), Cumulative Layout Shift (CLS)
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">SEO Analysis</h3>
+                            <p class="term-definition">
+                                Checks search engine optimization elements that help your website rank higher in search results.
+                            </p>
+                            <p class="term-examples">
+                                Examples: Meta tags, heading structure, schema markup, XML sitemap, robots.txt
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">User Experience</h3>
+                            <p class="term-definition">
+                                Assesses how easy and intuitive your website is for visitors to use across all devices.
+                            </p>
+                            <p class="term-examples">
+                                Examples: Navigation clarity, form functionality, mobile responsiveness, accessibility features
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Content Analysis</h3>
+                            <p class="term-definition">
+                                Reviews the quality and completeness of your website's content, especially critical dealership information.
+                            </p>
+                            <p class="term-examples">
+                                Examples: Inventory accuracy, contact information visibility, business hours, specials and promotions
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Technical Validation</h3>
+                            <p class="term-definition">
+                                Validates the technical quality of your website's code and resources.
+                            </p>
+                            <p class="term-examples">
+                                Examples: Broken links, image optimization, JavaScript errors, CSS validation
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Brand Compliance</h3>
+                            <p class="term-definition">
+                                Ensures your website meets manufacturer guidelines and legal requirements.
+                            </p>
+                            <p class="term-examples">
+                                Examples: Proper logo usage, pricing disclaimers, legal statements, manufacturer branding guidelines
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Lead Generation</h3>
+                            <p class="term-definition">
+                                Evaluates how effectively your website captures and converts visitor interest into leads.
+                            </p>
+                            <p class="term-examples">
+                                Examples: Contact forms, call-to-action buttons, chat integration, conversion tracking
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- SEO Terms Section -->
+                    <div class="category-section" id="seo-terms">
+                        <h2 class="category-title">
+                            <i class="fas fa-search category-icon"></i>
+                            SEO (Search Engine Optimization) Terms
+                        </h2>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Meta Title (Title Tag)</h3>
+                            <p class="term-definition">
+                                The clickable headline that appears in search engine results. Should be 50-60 characters and include your dealership name and location.
+                            </p>
+                            <p class="term-examples">
+                                Good example: "Smith Ford | New & Used Cars | Dallas, TX"
+                                <br>Bad example: "Home" or title over 60 characters
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Meta Description</h3>
+                            <p class="term-definition">
+                                A brief summary of your page that appears under the title in search results. Should be 150-160 characters and include a call to action.
+                            </p>
+                            <p class="term-examples">
+                                Example: "Visit Smith Ford in Dallas for great deals on new and used Ford vehicles. Browse our inventory online or call (555) 123-4567 today!"
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">H1 Tag (Primary Heading)</h3>
+                            <p class="term-definition">
+                                The main heading on your page. Each page should have exactly one H1 tag that clearly describes the page content.
+                            </p>
+                            <p class="term-examples">
+                                Good: One clear H1 per page<br>
+                                Bad: Multiple H1 tags, missing H1, or H1 that doesn't match page content
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Alt Text (Alternative Text)</h3>
+                            <p class="term-definition">
+                                Descriptive text for images that helps search engines understand image content and assists visually impaired users.
+                            </p>
+                            <p class="term-examples">
+                                Good: "2024 Ford F-150 Platinum exterior front view"<br>
+                                Bad: "image1.jpg" or missing alt text
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Schema Markup (Structured Data)</h3>
+                            <p class="term-definition">
+                                Code that helps search engines understand your business information and can create rich snippets in search results.
+                            </p>
+                            <p class="term-examples">
+                                Dealership schema includes: Business name, address, phone, hours, reviews, inventory
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Local SEO</h3>
+                            <p class="term-definition">
+                                Optimization strategies focused on appearing in local search results and Google Maps for "near me" searches.
+                            </p>
+                            <p class="term-examples">
+                                Key factors: Google Business Profile, NAP consistency, local keywords, reviews
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">NAP Consistency</h3>
+                            <p class="term-definition">
+                                Ensuring your business Name, Address, and Phone number are exactly the same across all online listings.
+                            </p>
+                            <p class="term-examples">
+                                Critical for: Local SEO rankings, Google Maps visibility, customer trust
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Canonical URL</h3>
+                            <p class="term-definition">
+                                A tag that tells search engines which version of a page is the "master" copy when you have similar or duplicate content.
+                            </p>
+                            <p class="term-examples">
+                                Important for: Inventory pages, avoiding duplicate content penalties
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Mobile-First Indexing</h3>
+                            <p class="term-definition">
+                                Google primarily uses the mobile version of your website for indexing and ranking in search results.
+                            </p>
+                            <p class="term-examples">
+                                Impact: Mobile responsiveness is critical for SEO rankings
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Page Speed</h3>
+                            <p class="term-definition">
+                                How fast your web pages load. A critical ranking factor that affects both SEO and user experience.
+                            </p>
+                            <p class="term-examples">
+                                Target: Under 3 seconds for mobile, under 2 seconds for desktop
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Internal Linking</h3>
+                            <p class="term-definition">
+                                Links from one page on your website to another page on the same website. Helps users navigate and distributes page authority.
+                            </p>
+                            <p class="term-examples">
+                                Best practice: Link to relevant inventory, service pages, and contact information
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">XML Sitemap</h3>
+                            <p class="term-definition">
+                                A file that lists all important URLs on your website to help search engines discover and crawl your pages efficiently.
+                            </p>
+                            <p class="term-examples">
+                                Location: yourdealership.com/sitemap.xml<br>
+                                Should be submitted to Google Search Console
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Robots.txt</h3>
+                            <p class="term-definition">
+                                A file that tells search engines which pages they can and cannot crawl on your website.
+                            </p>
+                            <p class="term-examples">
+                                Location: yourdealership.com/robots.txt<br>
+                                Common use: Block admin pages, thank you pages
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">HTTPS (SSL Certificate)</h3>
+                            <p class="term-definition">
+                                Secure version of HTTP that encrypts data between the browser and website. Required for SEO rankings and customer trust.
+                            </p>
+                            <p class="term-examples">
+                                Look for: Green padlock in browser, "https://" in URL
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Rich Snippets</h3>
+                            <p class="term-definition">
+                                Enhanced search results that show additional information like ratings, prices, or availability directly in Google search results.
+                            </p>
+                            <p class="term-examples">
+                                For dealerships: Star ratings, inventory count, price ranges, business hours
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Keyword Optimization</h3>
+                            <p class="term-definition">
+                                Strategic placement of relevant search terms throughout your website content to help pages rank for those searches.
+                            </p>
+                            <p class="term-examples">
+                                Examples: "Ford dealer Dallas", "oil change near me", "2024 F-150 for sale"
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Bounce Rate</h3>
+                            <p class="term-definition">
+                                The percentage of visitors who leave your website after viewing only one page. High bounce rates can negatively impact SEO.
+                            </p>
+                            <p class="term-examples">
+                                Good: Under 40% | Average: 40-55% | Poor: Over 55%
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">404 Error</h3>
+                            <p class="term-definition">
+                                An error message when a page cannot be found. Too many 404 errors can hurt your SEO and user experience.
+                            </p>
+                            <p class="term-examples">
+                                Common cause: Deleted inventory pages without redirects
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">301 Redirect</h3>
+                            <p class="term-definition">
+                                A permanent redirect from one URL to another. Preserves SEO value when moving or removing pages.
+                            </p>
+                            <p class="term-examples">
+                                Use for: Old inventory URLs, changed page locations, outdated specials
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Performance Metrics Section -->
+                    <div class="category-section" id="metrics">
+                        <h2 class="category-title">
+                            <i class="fas fa-tachometer-alt category-icon"></i>
+                            Performance Metrics
+                        </h2>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Core Web Vitals</h3>
+                            <p class="term-definition">
+                                Google's set of specific factors that are important to a webpage's user experience.
+                            </p>
+                            <p class="term-examples">
+                                Includes: LCP (loading), FID (interactivity), and CLS (visual stability)
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Largest Contentful Paint (LCP)</h3>
+                            <p class="term-definition">
+                                Measures loading performance. To provide a good user experience, LCP should occur within 2.5 seconds of when the page first starts loading.
+                            </p>
+                            <p class="term-examples">
+                                Good: ≤2.5s | Needs Improvement: ≤4s | Poor: >4s
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">First Input Delay (FID)</h3>
+                            <p class="term-definition">
+                                Measures interactivity. To provide a good user experience, pages should have a FID of 100 milliseconds or less.
+                            </p>
+                            <p class="term-examples">
+                                Good: ≤100ms | Needs Improvement: ≤300ms | Poor: >300ms
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Cumulative Layout Shift (CLS)</h3>
+                            <p class="term-definition">
+                                Measures visual stability. To provide a good user experience, pages should maintain a CLS of 0.1 or less.
+                            </p>
+                            <p class="term-examples">
+                                Good: ≤0.1 | Needs Improvement: ≤0.25 | Poor: >0.25
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Time to First Byte (TTFB)</h3>
+                            <p class="term-definition">
+                                The time it takes for a user's browser to receive the first byte of page content from your server. Indicates server responsiveness.
+                            </p>
+                            <p class="term-examples">
+                                Good: <200ms | Acceptable: <500ms | Poor: >500ms
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">First Contentful Paint (FCP)</h3>
+                            <p class="term-definition">
+                                Marks the time when the first text or image is painted on screen. Users see that the page is actually loading.
+                            </p>
+                            <p class="term-examples">
+                                Good: ≤1.8s | Needs Improvement: ≤3s | Poor: >3s
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Time to Interactive (TTI)</h3>
+                            <p class="term-definition">
+                                The time it takes for a page to become fully interactive - when users can click buttons, fill forms, and interact with elements.
+                            </p>
+                            <p class="term-examples">
+                                Good: ≤3.8s | Needs Improvement: ≤7.3s | Poor: >7.3s
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Total Blocking Time (TBT)</h3>
+                            <p class="term-definition">
+                                The total time between FCP and TTI when the main thread is blocked and unable to respond to user input.
+                            </p>
+                            <p class="term-examples">
+                                Good: ≤200ms | Needs Improvement: ≤600ms | Poor: >600ms
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Speed Index</h3>
+                            <p class="term-definition">
+                                How quickly the contents of a page are visibly populated. Lower numbers mean faster visual loading.
+                            </p>
+                            <p class="term-examples">
+                                Good: ≤3.4s | Needs Improvement: ≤5.8s | Poor: >5.8s
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Page Size</h3>
+                            <p class="term-definition">
+                                The total download size of your webpage including all resources. Directly impacts load time, especially on mobile.
+                            </p>
+                            <p class="term-examples">
+                                Target: <2MB for mobile | Warning: >3MB | Critical: >5MB
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Number of Requests</h3>
+                            <p class="term-definition">
+                                Total HTTP requests needed to load the page. Each request adds latency and impacts performance.
+                            </p>
+                            <p class="term-examples">
+                                Good: <50 requests | Acceptable: <100 | Poor: >100 requests
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Mobile Performance Score</h3>
+                            <p class="term-definition">
+                                Overall performance rating for mobile devices, where most dealership traffic originates. Based on lab data simulating mobile conditions.
+                            </p>
+                            <p class="term-examples">
+                                Good: 90-100 | Needs Improvement: 50-89 | Poor: 0-49
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Desktop Performance Score</h3>
+                            <p class="term-definition">
+                                Overall performance rating for desktop computers. Usually higher than mobile due to better processing power and network speeds.
+                            </p>
+                            <p class="term-examples">
+                                Good: 90-100 | Needs Improvement: 50-89 | Poor: 0-49
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Image Optimization</h3>
+                            <p class="term-definition">
+                                Properly sized, compressed, and formatted images. Vehicle photos are often the largest files on dealership sites.
+                            </p>
+                            <p class="term-examples">
+                                Best practices: WebP format, lazy loading, responsive images, compression
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">JavaScript Execution Time</h3>
+                            <p class="term-definition">
+                                Time spent parsing, compiling, and executing JavaScript. Heavy scripts can block the main thread and make sites unresponsive.
+                            </p>
+                            <p class="term-examples">
+                                Good: <2s | Needs Improvement: <4s | Poor: >4s
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Render-Blocking Resources</h3>
+                            <p class="term-definition">
+                                CSS and JavaScript files that prevent the page from displaying until they're fully loaded. Should be minimized or deferred.
+                            </p>
+                            <p class="term-examples">
+                                Impact: Each blocking resource adds 100-500ms to initial render time
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">DOM Size</h3>
+                            <p class="term-definition">
+                                The total number of HTML elements on the page. Large DOMs slow down page interactions and use more memory.
+                            </p>
+                            <p class="term-examples">
+                                Good: <800 nodes | Warning: <1,400 nodes | Error: >1,400 nodes
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Server Response Time</h3>
+                            <p class="term-definition">
+                                How quickly your web server responds to requests. Affected by hosting quality, server configuration, and traffic load.
+                            </p>
+                            <p class="term-examples">
+                                Target: <200ms | Acceptable: <500ms | Slow: >500ms
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Cache Hit Rate</h3>
+                            <p class="term-definition">
+                                Percentage of resources served from cache instead of downloading again. Higher rates mean faster repeat visits.
+                            </p>
+                            <p class="term-examples">
+                                Good: >80% | Acceptable: 50-80% | Poor: <50%
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Technical Terms Section -->
+                    <div class="category-section" id="technical">
+                        <h2 class="category-title">
+                            <i class="fas fa-code category-icon"></i>
+                            Technical Terms
+                        </h2>
+
+                        <div class="term-card">
+                            <h3 class="term-name">SSL Certificate</h3>
+                            <p class="term-definition">
+                                A digital certificate that authenticates a website's identity and enables an encrypted connection (HTTPS).
+                            </p>
+                            <p class="term-examples">
+                                Important for: Security, SEO rankings, customer trust
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Schema Markup</h3>
+                            <p class="term-definition">
+                                Structured data that helps search engines understand your content and display rich snippets in search results.
+                            </p>
+                            <p class="term-examples">
+                                Examples: Business info, reviews, inventory, events
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">XML Sitemap</h3>
+                            <p class="term-definition">
+                                A file that lists all important pages on your website, helping search engines discover and crawl your content.
+                            </p>
+                            <p class="term-examples">
+                                Best practice: Should be submitted to Google Search Console
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Robots.txt</h3>
+                            <p class="term-definition">
+                                A file that tells search engine crawlers which pages or files they can or can't request from your site.
+                            </p>
+                            <p class="term-examples">
+                                Location: yourwebsite.com/robots.txt
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">CDN (Content Delivery Network)</h3>
+                            <p class="term-definition">
+                                A network of servers distributed globally that deliver web content based on user location. Speeds up image and file loading.
+                            </p>
+                            <p class="term-examples">
+                                Benefits: Faster load times, reduced server load, better uptime
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Minification</h3>
+                            <p class="term-definition">
+                                Process of removing unnecessary characters from code (spaces, comments, line breaks) without changing functionality. Reduces file sizes.
+                            </p>
+                            <p class="term-examples">
+                                Applied to: CSS, JavaScript, HTML | Size reduction: 20-40%
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">GZIP Compression</h3>
+                            <p class="term-definition">
+                                Server-side compression that reduces file sizes by up to 70% before sending to browsers. Essential for performance.
+                            </p>
+                            <p class="term-examples">
+                                Works on: HTML, CSS, JavaScript, JSON | Not for: Images, PDFs
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Browser Caching</h3>
+                            <p class="term-definition">
+                                Storing website resources on visitors' devices so they don't need to download them again on repeat visits.
+                            </p>
+                            <p class="term-examples">
+                                Recommended: 1 year for static assets, 1 hour for HTML
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Responsive Design</h3>
+                            <p class="term-definition">
+                                Website design that automatically adjusts layout and content to fit any screen size, from phones to desktops.
+                            </p>
+                            <p class="term-examples">
+                                Key breakpoints: Mobile (<768px), Tablet (768-1024px), Desktop (>1024px)
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">API (Application Programming Interface)</h3>
+                            <p class="term-definition">
+                                A way for different software systems to communicate. Dealerships use APIs for inventory feeds, CRM integration, and financing.
+                            </p>
+                            <p class="term-examples">
+                                Common uses: Inventory updates, lead submission, credit applications
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Lazy Loading</h3>
+                            <p class="term-definition">
+                                Technique that delays loading images and videos until they're about to enter the viewport. Improves initial page load.
+                            </p>
+                            <p class="term-examples">
+                                Best for: Vehicle images, gallery photos, below-the-fold content
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Progressive Web App (PWA)</h3>
+                            <p class="term-definition">
+                                Web technology that makes websites work like mobile apps - installable, work offline, send notifications.
+                            </p>
+                            <p class="term-examples">
+                                Benefits: App-like experience, offline inventory browsing, push notifications
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">WebP Image Format</h3>
+                            <p class="term-definition">
+                                Modern image format that provides 25-35% better compression than JPEG while maintaining quality. Faster loading vehicle photos.
+                            </p>
+                            <p class="term-examples">
+                                Browser support: 95%+ | Fallback needed for older browsers
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">JavaScript Framework</h3>
+                            <p class="term-definition">
+                                Pre-written JavaScript code libraries that provide structure for building interactive features. Common in modern dealership sites.
+                            </p>
+                            <p class="term-examples">
+                                Popular: React, Vue, Angular | Used for: Inventory search, calculators
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Broken Links</h3>
+                            <p class="term-definition">
+                                Links that lead to non-existent pages (404 errors). Hurt user experience and SEO rankings.
+                            </p>
+                            <p class="term-examples">
+                                Common causes: Deleted inventory, removed specials, site restructuring
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Cross-Browser Compatibility</h3>
+                            <p class="term-definition">
+                                Ensuring your website works correctly across different web browsers (Chrome, Safari, Firefox, Edge).
+                            </p>
+                            <p class="term-examples">
+                                Test priority: Chrome (65%), Safari (19%), Edge (5%), Firefox (3%)
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Mobile-First Design</h3>
+                            <p class="term-definition">
+                                Design approach that starts with mobile layout then expands to larger screens. Critical since 60%+ of traffic is mobile.
+                            </p>
+                            <p class="term-examples">
+                                Key elements: Touch-friendly buttons, readable fonts, fast loading
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Database Query Optimization</h3>
+                            <p class="term-definition">
+                                Making database searches faster and more efficient. Critical for inventory searches and filtering.
+                            </p>
+                            <p class="term-examples">
+                                Impact: Can reduce search time from seconds to milliseconds
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Compliance Terms Section -->
+                    <div class="category-section" id="compliance">
+                        <h2 class="category-title">
+                            <i class="fas fa-gavel category-icon"></i>
+                            Compliance Terms
+                        </h2>
+
+                        <div class="term-card">
+                            <h3 class="term-name">MSRP (Manufacturer's Suggested Retail Price)</h3>
+                            <p class="term-definition">
+                                The price that a manufacturer recommends for retailers to sell their product. Required to be displayed on many automotive websites.
+                            </p>
+                            <p class="term-examples">
+                                Must include: Clear pricing, disclaimers about additional fees
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Pricing Disclaimers</h3>
+                            <p class="term-definition">
+                                Legal statements that clarify what is and isn't included in advertised prices.
+                            </p>
+                            <p class="term-examples">
+                                Common disclaimers: "Plus tax, title, and license", "See dealer for details"
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Equal Opportunity Statement</h3>
+                            <p class="term-definition">
+                                A legal requirement stating that the dealership does not discriminate in lending or employment.
+                            </p>
+                            <p class="term-examples">
+                                Required by: Federal and state fair lending laws
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">ADA Compliance (Americans with Disabilities Act)</h3>
+                            <p class="term-definition">
+                                Legal requirement ensuring websites are accessible to people with disabilities. Includes screen reader compatibility and keyboard navigation.
+                            </p>
+                            <p class="term-examples">
+                                Requirements: Alt text, proper headings, color contrast, keyboard access
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">WCAG Guidelines</h3>
+                            <p class="term-definition">
+                                Web Content Accessibility Guidelines that define how to make web content accessible. Current standard is WCAG 2.1 Level AA.
+                            </p>
+                            <p class="term-examples">
+                                Key areas: Perceivable, Operable, Understandable, Robust (POUR)
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Privacy Policy</h3>
+                            <p class="term-definition">
+                                Legal document explaining how your dealership collects, uses, and protects customer data. Required by law in many states.
+                            </p>
+                            <p class="term-examples">
+                                Must include: Data collection, usage, sharing, customer rights
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Cookie Policy</h3>
+                            <p class="term-definition">
+                                Disclosure about website cookies and tracking technologies. Required for compliance with privacy laws.
+                            </p>
+                            <p class="term-examples">
+                                Types: Essential, analytics, marketing, third-party cookies
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">GDPR (General Data Protection Regulation)</h3>
+                            <p class="term-definition">
+                                European privacy law that may apply if you have EU visitors. Requires explicit consent for data collection.
+                            </p>
+                            <p class="term-examples">
+                                Requirements: Consent forms, data portability, right to deletion
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">CCPA (California Consumer Privacy Act)</h3>
+                            <p class="term-definition">
+                                California privacy law giving consumers rights over their personal data. Applies to businesses serving California residents.
+                            </p>
+                            <p class="term-examples">
+                                Rights: Know, delete, opt-out, non-discrimination
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">FTC Guidelines</h3>
+                            <p class="term-definition">
+                                Federal Trade Commission rules for automotive advertising. Requires clear and conspicuous disclosures.
+                            </p>
+                            <p class="term-examples">
+                                Key areas: Pricing clarity, financing terms, availability claims
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Truth in Lending Act (TILA)</h3>
+                            <p class="term-definition">
+                                Federal law requiring clear disclosure of credit terms and costs. Applies to financing and lease advertisements.
+                            </p>
+                            <p class="term-examples">
+                                Must disclose: APR, down payment, payment amount, term length
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Monroney Sticker (Window Sticker)</h3>
+                            <p class="term-definition">
+                                Federally required label on new vehicles showing MSRP, features, and fuel economy. Often displayed digitally on websites.
+                            </p>
+                            <p class="term-examples">
+                                Required info: Base price, options, destination charge, total MSRP
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Terms of Service</h3>
+                            <p class="term-definition">
+                                Legal agreement between your dealership and website users. Sets rules for website use and limits liability.
+                            </p>
+                            <p class="term-examples">
+                                Covers: Usage rules, disclaimers, dispute resolution, limitations
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Data Security Standards</h3>
+                            <p class="term-definition">
+                                Requirements for protecting customer information, especially financial data. Includes PCI compliance for payment processing.
+                            </p>
+                            <p class="term-examples">
+                                Key elements: Encryption, secure forms, regular updates, access control
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Advertising Disclaimers</h3>
+                            <p class="term-definition">
+                                Legal text clarifying terms, conditions, and limitations of advertised offers. Must be clear and conspicuous.
+                            </p>
+                            <p class="term-examples">
+                                Examples: "To qualified buyers", "Limited time offer", "See dealer"
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">NAD/NADA Guidelines</h3>
+                            <p class="term-definition">
+                                National Automobile Dealers Association best practices for ethical advertising and business conduct.
+                            </p>
+                            <p class="term-examples">
+                                Focus: Transparent pricing, honest advertising, fair dealing
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">State Licensing Requirements</h3>
+                            <p class="term-definition">
+                                State-specific dealer license information that must be displayed on websites. Varies by state.
+                            </p>
+                            <p class="term-examples">
+                                May include: License number, regulatory agency, complaint process
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Manufacturer Compliance</h3>
+                            <p class="term-definition">
+                                Requirements set by vehicle manufacturers for authorized dealers. Includes branding, content, and technical standards.
+                            </p>
+                            <p class="term-examples">
+                                Areas: Logo usage, color schemes, content accuracy, co-op advertising
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Lead Generation Section -->
+                    <div class="category-section" id="lead-gen">
+                        <h2 class="category-title">
+                            <i class="fas fa-bullseye category-icon"></i>
+                            Lead Generation Terms
+                        </h2>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Conversion Rate</h3>
+                            <p class="term-definition">
+                                The percentage of website visitors who complete a desired action (fill out a form, call, chat, etc.).
+                            </p>
+                            <p class="term-examples">
+                                Industry average: 2-3% | Good: 3-5% | Excellent: >5%
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Call-to-Action (CTA)</h3>
+                            <p class="term-definition">
+                                Buttons or links that encourage users to take a specific action, typically leading to conversion.
+                            </p>
+                            <p class="term-examples">
+                                Examples: "Get ePrice", "Schedule Test Drive", "Check Availability", "Value Your Trade"
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Lead Form</h3>
+                            <p class="term-definition">
+                                An online form used to capture visitor information and generate leads for the sales team.
+                            </p>
+                            <p class="term-examples">
+                                Best practices: Keep it short (3-5 fields), make phone optional, clear value proposition
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Lead Scoring</h3>
+                            <p class="term-definition">
+                                System that ranks leads based on their likelihood to purchase. Helps sales teams prioritize follow-up efforts.
+                            </p>
+                            <p class="term-examples">
+                                Factors: Pages viewed, time on site, form completions, vehicle interactions
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Lead Nurturing</h3>
+                            <p class="term-definition">
+                                Process of building relationships with potential customers through targeted communications until they're ready to buy.
+                            </p>
+                            <p class="term-examples">
+                                Methods: Email campaigns, retargeting ads, personalized content, follow-up calls
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Landing Page</h3>
+                            <p class="term-definition">
+                                Standalone web page created specifically for a marketing campaign where visitors "land" after clicking an ad or link.
+                            </p>
+                            <p class="term-examples">
+                                Best for: Model-specific campaigns, service specials, seasonal promotions
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">A/B Testing</h3>
+                            <p class="term-definition">
+                                Comparing two versions of a webpage or element to see which performs better for conversions.
+                            </p>
+                            <p class="term-examples">
+                                Test elements: CTA buttons, form length, headlines, images, pricing display
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Heat Mapping</h3>
+                            <p class="term-definition">
+                                Visual representation of where users click, scroll, and spend time on your website. Identifies engagement patterns.
+                            </p>
+                            <p class="term-examples">
+                                Insights: Most-clicked areas, scroll depth, ignored elements, user confusion points
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Conversion Funnel</h3>
+                            <p class="term-definition">
+                                The journey visitors take from first visiting your site to becoming a lead. Each step should guide toward conversion.
+                            </p>
+                            <p class="term-examples">
+                                Stages: Homepage → Inventory → VDP → Lead Form → Thank You Page
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Lead Magnet</h3>
+                            <p class="term-definition">
+                                Valuable content or offers given in exchange for contact information. Incentivizes visitors to become leads.
+                            </p>
+                            <p class="term-examples">
+                                Examples: Price quotes, trade-in values, payment calculators, buyer's guides
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Form Abandonment</h3>
+                            <p class="term-definition">
+                                When visitors start filling out a form but leave before submitting. High rates indicate form problems.
+                            </p>
+                            <p class="term-examples">
+                                Common causes: Too many fields, technical errors, unclear value, required phone number
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Chat Widget</h3>
+                            <p class="term-definition">
+                                Live chat or automated chatbot feature that allows instant communication with website visitors.
+                            </p>
+                            <p class="term-examples">
+                                Benefits: 24/7 availability, instant response, lead capture, appointment scheduling
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Click-to-Call</h3>
+                            <p class="term-definition">
+                                Phone numbers that mobile users can tap to instantly call your dealership. Critical for mobile conversions.
+                            </p>
+                            <p class="term-examples">
+                                Best practice: Prominent placement, department-specific numbers, tracking enabled
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Lead Response Time</h3>
+                            <p class="term-definition">
+                                How quickly your dealership contacts a lead after submission. Faster response dramatically improves conversion.
+                            </p>
+                            <p class="term-examples">
+                                Benchmarks: <5 minutes (78% contact rate), <1 hour (50%), >24 hours (10%)
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Progressive Profiling</h3>
+                            <p class="term-definition">
+                                Gradually collecting lead information over multiple interactions instead of asking for everything upfront.
+                            </p>
+                            <p class="term-examples">
+                                First visit: Email only | Second: Add name | Third: Phone and preferences
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Exit Intent Popup</h3>
+                            <p class="term-definition">
+                                Targeted message that appears when a visitor shows signs of leaving your website without converting.
+                            </p>
+                            <p class="term-examples">
+                                Triggers: Mouse to browser bar, rapid scrolling up, tab switching
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Social Proof</h3>
+                            <p class="term-definition">
+                                Evidence that others have had positive experiences with your dealership. Builds trust and encourages conversion.
+                            </p>
+                            <p class="term-examples">
+                                Types: Customer reviews, testimonials, awards, "XX sold this month" counters
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Retargeting Pixels</h3>
+                            <p class="term-definition">
+                                Code that tracks website visitors and allows you to show them targeted ads after they leave your site.
+                            </p>
+                            <p class="term-examples">
+                                Platforms: Google Ads, Facebook Pixel, Microsoft Advertising
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Lead Attribution</h3>
+                            <p class="term-definition">
+                                Tracking which marketing channels and touchpoints contributed to a lead conversion.
+                            </p>
+                            <p class="term-examples">
+                                Sources: Organic search, paid ads, social media, direct traffic, email
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Micro-Conversions</h3>
+                            <p class="term-definition">
+                                Smaller actions that indicate interest but aren't full lead submissions. Steps toward the main conversion goal.
+                            </p>
+                            <p class="term-examples">
+                                Examples: VDP views, calculator usage, brochure downloads, video plays
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Thank You Page</h3>
+                            <p class="term-definition">
+                                Page shown after lead submission that confirms receipt and sets expectations for next steps.
+                            </p>
+                            <p class="term-examples">
+                                Should include: Confirmation message, response time expectation, additional CTAs
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Priority Levels Section -->
+                    <div class="category-section" id="priority">
+                        <h2 class="category-title">
+                            <i class="fas fa-exclamation-triangle category-icon"></i>
+                            Priority Levels
+                        </h2>
+
+                        <div class="term-card">
+                            <h3 class="term-name">High Priority</h3>
+                            <p class="term-definition">
+                                Critical issues that significantly impact user experience, lead generation, or compliance. Should be fixed immediately.
+                            </p>
+                            <p class="term-examples">
+                                Examples: Site not secure (no SSL), forms not working, no contact information, mobile site broken
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Medium Priority</h3>
+                            <p class="term-definition">
+                                Important issues that affect performance or user experience but don't prevent basic functionality.
+                            </p>
+                            <p class="term-examples">
+                                Examples: Slow page load, missing meta descriptions, limited CTAs, poor image optimization
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Low Priority</h3>
+                            <p class="term-definition">
+                                Minor issues or enhancements that would improve the site but have minimal impact on core functionality.
+                            </p>
+                            <p class="term-examples">
+                                Examples: Missing favicon, no breadcrumbs, limited social media integration
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Critical Issues</h3>
+                            <p class="term-definition">
+                                Problems that completely prevent website functionality or pose immediate security/legal risks. Require emergency attention.
+                            </p>
+                            <p class="term-examples">
+                                Examples: Website down, malware detected, data breach, no SSL on payment forms
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Revenue Impact</h3>
+                            <p class="term-definition">
+                                Issues directly affecting your ability to generate leads and sales. Priority based on potential business loss.
+                            </p>
+                            <p class="term-examples">
+                                High impact: Broken forms, missing CTAs, inventory not loading, phone numbers wrong
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">User Experience Priority</h3>
+                            <p class="term-definition">
+                                Problems that frustrate visitors and cause them to leave your site. Focus on friction points in the customer journey.
+                            </p>
+                            <p class="term-examples">
+                                Key areas: Mobile responsiveness, page speed, navigation clarity, form simplicity
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">SEO Priority</h3>
+                            <p class="term-definition">
+                                Issues affecting search engine visibility and rankings. Important for long-term organic traffic growth.
+                            </p>
+                            <p class="term-examples">
+                                Focus areas: Title tags, meta descriptions, page speed, mobile-friendliness, schema
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Compliance Priority</h3>
+                            <p class="term-definition">
+                                Legal and regulatory requirements that could result in fines or lawsuits if not addressed.
+                            </p>
+                            <p class="term-examples">
+                                Must fix: ADA violations, missing privacy policy, incorrect pricing disclaimers
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Quick Wins</h3>
+                            <p class="term-definition">
+                                Easy-to-fix issues that provide immediate improvements with minimal effort or cost.
+                            </p>
+                            <p class="term-examples">
+                                Examples: Add meta descriptions, fix broken links, compress images, update hours
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Scheduled Maintenance</h3>
+                            <p class="term-definition">
+                                Regular updates and optimizations that should be planned as part of ongoing website maintenance.
+                            </p>
+                            <p class="term-examples">
+                                Monthly: Content updates, performance checks | Quarterly: Full audits, UX reviews
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Enhancement Opportunities</h3>
+                            <p class="term-definition">
+                                Improvements that aren't fixing problems but could provide competitive advantages or better user experience.
+                            </p>
+                            <p class="term-examples">
+                                Ideas: Add virtual tours, implement live chat, create interactive tools, add video
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Mobile-First Priority</h3>
+                            <p class="term-definition">
+                                Issues specifically affecting mobile users, who represent 60%+ of dealership traffic. Mobile problems = high priority.
+                            </p>
+                            <p class="term-examples">
+                                Critical: Touch targets too small, text unreadable, forms unusable, slow loading
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Performance Budget</h3>
+                            <p class="term-definition">
+                                Setting limits on page size, load time, and resources to maintain fast performance. Helps prioritize optimizations.
+                            </p>
+                            <p class="term-examples">
+                                Targets: <3 sec load time, <2MB page size, <50 requests, >90 performance score
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Security Priority</h3>
+                            <p class="term-definition">
+                                Vulnerabilities that could compromise customer data or website integrity. Always high priority regardless of size.
+                            </p>
+                            <p class="term-examples">
+                                Issues: Outdated software, weak passwords, no HTTPS, exposed databases
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Brand Consistency</h3>
+                            <p class="term-definition">
+                                Ensuring all website elements align with dealership and manufacturer branding guidelines. Affects professional appearance.
+                            </p>
+                            <p class="term-examples">
+                                Check: Logos, colors, fonts, messaging, imagery style, tone of voice
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Competitive Parity</h3>
+                            <p class="term-definition">
+                                Features and functionality that competitors have which you're missing. Priority based on market expectations.
+                            </p>
+                            <p class="term-examples">
+                                Common gaps: Payment calculators, comparison tools, video walkarounds, live chat
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">ROI-Based Priority</h3>
+                            <p class="term-definition">
+                                Ranking fixes based on expected return on investment. Balance cost/effort against potential revenue increase.
+                            </p>
+                            <p class="term-examples">
+                                High ROI: Fix broken forms, add CTAs, improve mobile | Low ROI: Cosmetic changes
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Seasonal Priority</h3>
+                            <p class="term-definition">
+                                Issues that become more important during specific times of year based on shopping patterns and promotions.
+                            </p>
+                            <p class="term-examples">
+                                Examples: Holiday specials pages, model year-end promotions, tax season offers
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Technical Debt</h3>
+                            <p class="term-definition">
+                                Accumulated technical issues from quick fixes or outdated code that eventually need proper solutions.
+                            </p>
+                            <p class="term-examples">
+                                Signs: Slow performance, frequent bugs, difficult updates, security warnings
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Analytics & Insights Section -->
+                    <div class="category-section" id="analytics">
+                        <h2 class="category-title">
+                            <i class="fas fa-chart-line category-icon"></i>
+                            Analytics & Insights
+                        </h2>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Website Score vs. Lead Conversion Correlation</h3>
+                            <p class="term-definition">
+                                A scatter plot visualization showing the relationship between website quality (0-100 score) and actual sales conversion rates. This powerful metric reveals whether poor performance is due to website issues or sales process problems.
+                            </p>
+                            <p class="term-examples">
+                                <strong>How to interpret:</strong><br>
+                                • <strong>On the trend line:</strong> Your conversion matches your website quality<br>
+                                • <strong>Above the line:</strong> Excellent sales process maximizing website potential<br>
+                                • <strong>Below the line:</strong> Sales process issues preventing website ROI<br>
+                                • <strong>Expected correlation:</strong> 70+ website score = 15-20% conversion rate
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Expected Conversion Rate</h3>
+                            <p class="term-definition">
+                                The conversion rate your dealership should achieve based on website quality. Calculated using industry benchmarks: Base 5% + (Website Score/100 × 15%). A dealership with an 80/100 website should expect ~17% conversion.
+                            </p>
+                            <p class="term-examples">
+                                Examples: 60/100 website = 14% expected | 80/100 website = 17% expected | 90/100 website = 18.5% expected
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Performance Gap Analysis</h3>
+                            <p class="term-definition">
+                                The difference between your actual conversion rate and expected conversion rate based on website score. Identifies whether improvement should focus on website optimization or sales process enhancement.
+                            </p>
+                            <p class="term-examples">
+                                <strong>Positive gap:</strong> Outperforming website quality (strong sales team)<br>
+                                <strong>Negative gap:</strong> Underperforming website potential (process issues)<br>
+                                <strong>Action:</strong> Gaps over 3% warrant immediate investigation
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Combined Insights Dashboard</h3>
+                            <p class="term-definition">
+                                Unified view correlating website audit results with lead performance metrics. Shows how website issues directly impact lead conversion and revenue, providing data-driven prioritization for improvements.
+                            </p>
+                            <p class="term-examples">
+                                Key correlations: Mobile issues → lower conversion | Fast response → higher close rate | More CTAs → more leads
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">ROI Projection Model</h3>
+                            <p class="term-definition">
+                                Calculates potential revenue increase from website improvements based on: current lead volume × conversion rate improvement × average deal value. Each 1% conversion improvement typically equals $200K+ annually.
+                            </p>
+                            <p class="term-examples">
+                                Example: 100 leads/month × 2% conversion improvement × $30K average = $720K annual revenue increase
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Network Performance Benchmarking</h3>
+                            <p class="term-definition">
+                                Comparison of individual dealership metrics against network or industry averages. Identifies whether performance issues are isolated or systemic across the organization.
+                            </p>
+                            <p class="term-examples">
+                                Benchmarks: Avg website score 72/100 | Avg conversion 16% | Avg response time 45 min | Top 20% achieve 85+ score
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Conversion Rate Attribution</h3>
+                            <p class="term-definition">
+                                Breaking down which factors contribute most to conversion rate: website quality (30%), response time (25%), follow-up process (20%), pricing (15%), market factors (10%).
+                            </p>
+                            <p class="term-examples">
+                                Website improvements can only impact ~30% of conversion rate; remaining 70% depends on sales execution
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Lead Velocity Rate (LVR)</h3>
+                            <p class="term-definition">
+                                Month-over-month growth rate in qualified lead generation. More predictive of future revenue than current sales. Healthy LVR is 10-20% monthly growth.
+                            </p>
+                            <p class="term-examples">
+                                Calculation: (Leads this month - Leads last month) / Leads last month × 100 = LVR%
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Website Health Score</h3>
+                            <p class="term-definition">
+                                Composite 0-100 score combining all audit categories weighted by impact on user experience and lead generation. Scores: 85+ Elite | 75-84 Strong | 65-74 Average | <65 Needs Improvement.
+                            </p>
+                            <p class="term-examples">
+                                Weights: Lead Gen 20% | UX 20% | Performance 15% | SEO 15% | Mobile 15% | Content 10% | Technical 5%
+                            </p>
+                        </div>
+
+                        <div class="term-card">
+                            <h3 class="term-name">Confidence Indicators</h3>
+                            <p class="term-definition">
+                                Visual markers (✅ ⚠️ 🔍) showing the reliability of automated detection. High confidence means direct detection, moderate means indirect indicators found, manual review means human verification needed.
+                            </p>
+                            <p class="term-examples">
+                                ✅ High: SSL certificate present | ⚠️ Moderate: Forms may load dynamically | 🔍 Manual: Schema might be JavaScript-injected
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="text-center my-5">
+        <button onclick="window.location.href='/'" class="btn btn-lg btn-primary" style="background: #6B46C1; border-color: #6B46C1; padding: 12px 40px; font-weight: 600;">
+            <i class="fas fa-arrow-left"></i> Back to Home
+        </button>
+    </div>
+
+    <!-- Copyright Footer -->
+    <footer class="mt-5 py-4 bg-dark text-white text-center">
+        <div class="container">
+            <p class="mb-2">© 2025 JL Robinson. All Rights Reserved.</p>
+            <p class="small mb-0">Auto Audit Pro™ - Professional Dealership Website Analysis Platform</p>
+            <p class="small mb-0"><a href="https://autoauditpro.io" class="text-white">autoauditpro.io</a></p>
+        </div>
+    </footer>
+</body>
+</html>

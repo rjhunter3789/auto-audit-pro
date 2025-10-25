@@ -1,0 +1,897 @@
+<!--
+  Auto Audit Pro - Professional Dealership Website Analysis Platform
+  Version 2.6.3
+  © 2025 JL Robinson. All Rights Reserved.
+  
+  Author: JL Robinson
+  Contact: nakapaahu@gmail.com
+  Last Modified: August 13, 2025
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Print Header for PDF -->
+    <div class="print-header" style="display: none;">
+        Auto Audit Pro - Website Analysis Report
+    </div>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= results.domain %> - Website Analysis Report</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="/css/pdf-professional.css?v=<%= Date.now() %>" rel="stylesheet">
+    <style>
+        /* Cache-busted version: <%= Date.now() %> */
+        body { 
+            font-family: Arial, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            max-width: 1000px; 
+            margin: 0 auto; 
+            padding: 100px 20px 40px 20px !important; /* Further increased top padding for better spacing */
+            background: #f8f9fa;
+        }
+        
+        .report-container {
+            background: white;
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-top: 20px; /* Added top margin for extra spacing */
+        }
+        
+        h1 { 
+            color: #6B46C1; 
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
+            /* 3D text effect for dramatic impact */
+            text-shadow: 0 1px 0 #ccc, 
+                        0 2px 0 #c9c9c9, 
+                        0 3px 0 #bbb, 
+                        0 4px 0 #b9b9b9, 
+                        0 5px 0 #aaa, 
+                        0 6px 1px rgba(0,0,0,.1), 
+                        0 0 5px rgba(0,0,0,.1), 
+                        0 1px 3px rgba(0,0,0,.3), 
+                        0 3px 5px rgba(0,0,0,.2), 
+                        0 5px 10px rgba(0,0,0,.25), 
+                        0 10px 10px rgba(0,0,0,.2), 
+                        0 20px 20px rgba(0,0,0,.15);
+        }
+        
+        h2 { 
+            color: #9333EA; 
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+        
+        h3 { 
+            color: #6B46C1; 
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        
+        .performance-badge { 
+            display: inline-block; 
+            background: <% if (results.overallScore >= 85) { %>#10B981<% } else if (results.overallScore >= 75) { %>#3B82F6<% } else if (results.overallScore >= 65) { %>#F59E0B<% } else { %>#EF4444<% } %>; 
+            color: white; 
+            padding: 12px 30px; 
+            border-radius: 30px; 
+            font-weight: bold;
+            font-size: 1.3em;
+            margin: 0 auto;
+        }
+        
+        .metric-row { 
+            display: flex; 
+            justify-content: space-between; 
+            margin: 15px 0; 
+            padding: 15px; 
+            background: #f8f9fa; 
+            border-radius: 8px;
+            align-items: center;
+        }
+        
+        .metric-label { 
+            font-weight: bold; 
+            color: #666; 
+        }
+        
+        .metric-value { 
+            font-size: 1.3em; 
+            color: #6B46C1; 
+            font-weight: bold;
+        }
+        
+        .category-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+            gap: 20px; 
+            margin: 25px 0; 
+        }
+        
+        .category-item { 
+            background: #f8f9fa; 
+            padding: 20px; 
+            border-radius: 8px; 
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .category-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .category-item.excellent { 
+            border-color: #10B981; 
+            background: #D1FAE5; 
+        }
+        
+        .category-item.good { 
+            border-color: #F59E0B; 
+            background: #FEF3C7; 
+        }
+        
+        .category-item.poor { 
+            border-color: #EF4444; 
+            background: #FEE2E2; 
+        }
+        
+        .category-score { 
+            font-size: 2.5em; 
+            font-weight: bold; 
+            margin: 10px 0;
+        }
+        
+        .category-name { 
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .category-weight {
+            color: #666; 
+            font-size: 0.9em;
+        }
+        
+        .issues-section {
+            margin-top: 40px;
+            padding: 25px;
+            background: #FEF3C7;
+            border-radius: 8px;
+            border-left: 4px solid #F59E0B;
+        }
+        
+        .issue-item {
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 6px;
+            border-left: 4px solid;
+        }
+        
+        .issue-item.high { border-left-color: #EF4444; }
+        .issue-item.medium { border-left-color: #F59E0B; }
+        .issue-item.low { border-left-color: #3B82F6; }
+        
+        .priority-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-right: 10px;
+        }
+        
+        .priority-high { background: #EF4444; color: white; }
+        .priority-medium { background: #F59E0B; color: white; }
+        .priority-low { background: #3B82F6; color: white; }
+        
+        .recommendation { 
+            background: #E0E7FF; 
+            border-left: 4px solid #6B46C1; 
+            padding: 20px; 
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .footer { 
+            margin-top: 60px; 
+            text-align: center; 
+            color: #666; 
+            font-size: 0.9em;
+            border-top: 1px solid #E5E7EB;
+            padding-top: 20px;
+        }
+        
+        .action-buttons {
+            text-align: center;
+            margin: 40px 0;
+            gap: 15px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn-action {
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-primary-action {
+            background: #6B46C1;
+            color: white;
+        }
+        
+        .btn-primary-action:hover {
+            background: #553C9A;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(107, 70, 193, 0.3);
+        }
+        
+        .btn-secondary-action {
+            background: #E5E7EB;
+            color: #374151;
+        }
+        
+        .btn-secondary-action:hover {
+            background: #D1D5DB;
+        }
+        
+        /* Basic print overrides - main styles in pdf-professional.css */
+        @media print {
+            .category-item:hover {
+                transform: none;
+                box-shadow: none;
+            }
+        }
+        
+        /* SEO-specific styling */
+        .seo-only-notice {
+            background: #E0E7FF;
+            border: 1px solid #6B46C1;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        /* Responsive adjustments for smaller screens */
+        @media (max-width: 768px) {
+            body {
+                padding: 60px 15px 30px 15px; /* Slightly less top padding on mobile */
+            }
+            
+            .report-container {
+                padding: 20px;
+                margin-top: 10px;
+            }
+        }
+        
+        /* Extra spacing for potential fixed headers */
+        @media screen {
+            body {
+                min-height: 100vh;
+                padding-top: 100px; /* Extra padding to ensure content isn't hidden */
+            }
+        }
+        
+        /* Print Styles */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                margin: 0;
+                padding: 20px;
+                padding-top: 20px !important; /* Reset top padding for print */
+            }
+            .report-container {
+                max-width: 100%;
+                box-shadow: none;
+                margin-top: 0; /* Remove top margin for print */
+            }
+            .btn {
+                display: none;
+            }
+            .monitoring-cta {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Cover Page - Only visible in print -->
+    <div class="cover-page" style="display: none;">
+        <div style="text-align: center;">
+            <h1 style="font-size: 36pt; color: #6B46C1; margin-bottom: 40pt;">
+                Auto Audit Pro
+            </h1>
+            <h2 style="font-size: 24pt; margin-bottom: 60pt;">
+                Website Analysis Report
+            </h2>
+            <div class="report-meta" style="font-size: 16pt; line-height: 2;">
+                <p><strong>Prepared for:</strong> <%= results.domain %></p>
+                <p><strong>Brand:</strong> <%= results.brand %></p>
+                <p><strong>Date:</strong> <%= new Date(results.timestamp).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></p>
+                <p style="margin-top: 40pt; font-size: 14pt; color: #666;">
+                    Confidential and Proprietary<br>
+                    © <%= new Date().getFullYear() %> Auto Audit Pro - All Rights Reserved
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Header - Only visible in print -->
+    <div class="print-header" style="display: none;">
+        <%= results.domain %> - Website Analysis Report - <%= new Date(results.timestamp).toLocaleDateString() %>
+    </div>
+
+    <div class="report-container">
+        <% 
+        let performanceTier = 'Challenge';
+        let tierClass = 'tier-challenge';
+        if (results.overallScore >= 85) {
+            performanceTier = 'Elite';
+            tierClass = 'tier-elite';
+        } else if (results.overallScore >= 75) {
+            performanceTier = 'Strong';
+            tierClass = 'tier-strong';
+        } else if (results.overallScore >= 65) {
+            performanceTier = 'Average';
+            tierClass = 'tier-average';
+        }
+        %>
+        
+        <h1 style="text-align: center; margin-bottom: 10px;">
+            <%= results.domain %>
+        </h1>
+        
+        <div style="text-align: center; margin-bottom: 30px;">
+            <span class="performance-badge">
+                <%= results.overallScore %>/100 • <%= performanceTier %> Performer
+            </span>
+            <div style="margin-top: 15px; font-size: 0.85em; color: #6B7280;">
+                Industry Benchmark: Average dealer scores 72/100
+            </div>
+        </div>
+        
+        <!-- Download/Print Buttons -->
+        <div style="text-align: center; margin-bottom: 20px;" class="no-print">
+            <button onclick="window.print()" class="btn btn-primary" style="margin-right: 10px;">
+                <i class="fas fa-print"></i> Print Report
+            </button>
+            <button onclick="downloadPDF()" class="btn btn-success">
+                <i class="fas fa-download"></i> Download PDF
+            </button>
+        </div>
+        
+        
+        <div class="metric-row">
+            <span class="metric-label">Report Date:</span>
+            <span class="metric-value" id="report-timestamp" data-timestamp="<%= results.timestamp %>">Loading...</span>
+        </div>
+        
+        <div class="metric-row">
+            <span class="metric-label">Analysis Type:</span>
+            <span class="metric-value"><%= results.auditDepth || 'Comprehensive' %></span>
+        </div>
+        
+        <div class="metric-row">
+            <span class="metric-label">Primary Brand:</span>
+            <span class="metric-value"><%= results.brand %></span>
+        </div>
+        
+        <% if (results.auditType === 'seo') { %>
+        <div class="seo-only-notice">
+            <i class="fas fa-info-circle"></i> This is an SEO-focused analysis. For complete website performance insights, run a Comprehensive Audit.
+        </div>
+        <% } %>
+        
+        <h2 class="section-break">Performance Overview</h2>
+        
+        <div class="category-grid">
+            <% results.categories.forEach(function(category) { 
+                let categoryClass = 'poor';
+                if (category.score >= 4) categoryClass = 'excellent';
+                else if (category.score >= 3) categoryClass = 'good';
+            %>
+            <div class="category-item <%= categoryClass %>">
+                <div class="category-name"><%= category.name %></div>
+                <div class="category-score"><%= category.score %>/5</div>
+                <div class="category-weight">Weight: <%= (category.weight * 100).toFixed(0) %>%</div>
+                <% if (category.testsCompleted && category.maxTests) { %>
+                <div class="category-weight"><%= category.testsCompleted %>/<%= category.maxTests %></div>
+                <% } else if (category.score !== undefined) { %>
+                <div class="category-weight"><%= category.score %>/5</div>
+                <% } %>
+            </div>
+            <% }); %>
+        </div>
+        
+        <!-- Predictive Heatmap Section -->
+        <% if (results.heatmap && results.heatmap.success) { %>
+        <div style="margin-top: 40px;">
+            <h2 style="color: #1F2937; font-size: 2.5rem; font-weight: 700; margin-bottom: 20px;">
+                <i class="fas fa-fire-alt" style="color: #EF4444; margin-right: 10px;"></i>
+                Predicted User Activity Heatmap
+            </h2>
+            
+            <div style="background: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07); margin-bottom: 30px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start;">
+                    <!-- Heatmap Image -->
+                    <div>
+                        <h3 style="font-size: 1.2rem; color: #4B5563; margin-bottom: 15px;">Homepage Activity Prediction</h3>
+                        <div style="position: relative; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+                            <img src="<%= results.heatmap.heatmapPath %>" alt="Website Heatmap" 
+                                 style="width: 100%; height: auto; display: block;"
+                                 onerror="this.onerror=null; this.src='/images/heatmap-placeholder.png'; this.parentElement.style.backgroundColor='#f3f4f6'; this.style.opacity='0.5';">
+                        </div>
+                        <p style="font-size: 0.85rem; color: #6B7280; margin-top: 10px; text-align: center;">
+                            <i class="fas fa-info-circle"></i> Red areas indicate predicted high user activity
+                        </p>
+                    </div>
+                    
+                    <!-- Heatmap Insights -->
+                    <div>
+                        <h3 style="font-size: 1.2rem; color: #4B5563; margin-bottom: 15px;">Key Insights</h3>
+                        
+                        <% if (results.heatmapInsights) { %>
+                            <!-- Hotspot Summary -->
+                            <div style="background: #F9FAFB; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                <h4 style="font-size: 1rem; color: #374151; margin-bottom: 10px;">
+                                    <i class="fas fa-crosshairs" style="color: #EF4444;"></i> Predicted Hotspots
+                                </h4>
+                                <p style="color: #6B7280; margin-bottom: 5px;">
+                                    Found <strong><%= results.heatmapInsights.totalInteractiveElements %></strong> interactive elements
+                                </p>
+                                <% if (results.heatmapInsights.elementSummary) { %>
+                                    <p style="color: #6B7280; font-size: 0.9rem; margin-bottom: 10px;">
+                                        <em><%= results.heatmapInsights.elementSummary %></em>
+                                    </p>
+                                <% } %>
+                                <% if (results.heatmapInsights.hotspots && results.heatmapInsights.hotspots.length > 0) { %>
+                                    <ul style="margin: 10px 0; padding-left: 20px;">
+                                        <% results.heatmapInsights.hotspots.slice(0, 3).forEach(function(hotspot) { %>
+                                            <li style="color: #4B5563; margin-bottom: 5px;">
+                                                <strong><%= hotspot.type %></strong>: <%= hotspot.text %>
+                                            </li>
+                                        <% }); %>
+                                    </ul>
+                                <% } %>
+                            </div>
+                            
+                            <!-- Heatmap Recommendations -->
+                            <% if (results.heatmapInsights.recommendations && results.heatmapInsights.recommendations.length > 0) { %>
+                                <div style="background: #FEF3C7; padding: 15px; border-radius: 8px; border-left: 4px solid #F59E0B;">
+                                    <h4 style="font-size: 1rem; color: #92400E; margin-bottom: 10px;">
+                                        <i class="fas fa-lightbulb"></i> Optimization Opportunities
+                                    </h4>
+                                    <ul style="margin: 0; padding-left: 20px;">
+                                        <% results.heatmapInsights.recommendations.forEach(function(rec) { %>
+                                            <li style="color: #78350F; margin-bottom: 8px;">
+                                                <span style="font-weight: 600; color: #DC2626;"><%= rec.priority %></span>: 
+                                                <%= rec.message %>
+                                            </li>
+                                        <% }); %>
+                                    </ul>
+                                </div>
+                            <% } %>
+                        <% } %>
+                    </div>
+                </div>
+                
+                <!-- Real Tracking Upgrade CTA -->
+                <div style="margin-top: 30px; padding: 20px; background: linear-gradient(135deg, #F3E8FF 0%, #E9D5FF 100%); border-radius: 8px; text-align: center;">
+                    <h4 style="color: #6B46C1; margin-bottom: 10px;">
+                        <i class="fas fa-chart-line"></i> Want Real User Data?
+                    </h4>
+                    <p style="color: #4C1D95; margin-bottom: 15px;">
+                        This heatmap shows predicted behavior. Upgrade to Professional Tracking 
+                        to see actual click patterns, session recordings, and detailed user insights.
+                    </p>
+                    <a href="/website-audit" class="btn-action btn-primary-action" style="display: inline-block;">
+                        Learn About Professional Tracking →
+                    </a>
+                </div>
+            </div>
+        </div>
+        <% } else if (results.heatmap && !results.heatmap.success) { %>
+        <!-- Heatmap Error State -->
+        <div style="margin-top: 40px;">
+            <h2 style="color: #1F2937; font-size: 2.5rem; font-weight: 700; margin-bottom: 20px;">
+                <i class="fas fa-fire-alt" style="color: #EF4444; margin-right: 10px;"></i>
+                Predicted User Activity Heatmap
+            </h2>
+            
+            <div style="background: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07); margin-bottom: 30px;">
+                <div style="text-align: center; padding: 40px;">
+                    <img src="/images/heatmap-placeholder.png" alt="Heatmap placeholder" 
+                         style="max-width: 600px; width: 100%; height: auto; opacity: 0.3; margin-bottom: 20px;">
+                    <h3 style="color: #6B7280; margin-bottom: 10px;">Heatmap Generation Unavailable</h3>
+                    <p style="color: #9CA3AF; margin-bottom: 0;">
+                        Unable to generate the predictive heatmap for this website. 
+                        This may be due to site restrictions or technical limitations.
+                    </p>
+                    <% if (results.heatmap.error) { %>
+                        <p style="color: #DC2626; font-size: 0.9rem; margin-top: 10px;">
+                            <i class="fas fa-info-circle"></i> <%= results.heatmap.error %>
+                        </p>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+        <% } %>
+        
+        <!-- Category-Specific Disclaimers -->
+        <div style="margin: 20px 0; padding: 15px; background: #F3F4F6; border-radius: 8px; font-size: 0.9em; color: #6B7280;">
+            <% 
+            const hasPerformance = results.categories.some(c => c.name === 'Performance Testing');
+            const hasSEO = results.categories.some(c => c.name === 'SEO Analysis');
+            const hasLeadGen = results.categories.some(c => c.name === 'Lead Generation');
+            %>
+            <% if (hasPerformance) { %>
+            <p style="margin: 5px 0;">
+                <strong>Performance Note:</strong> Load times may vary based on user location, device, network speed, and CDN performance. Results represent a single test from our servers.
+            </p>
+            <% } %>
+            <% if (hasSEO) { %>
+            <p style="margin: 5px 0;">
+                <strong>SEO Note:</strong> Some SEO elements (schema markup, dynamic meta tags) may be implemented in ways not detected by automated scanning. Google Search Console provides the most accurate SEO data.
+            </p>
+            <% } %>
+            <% if (hasLeadGen) { %>
+            <p style="margin: 5px 0;">
+                <strong>Lead Generation Note:</strong> Many dealers use third-party chat tools, CRM integrations, and dynamic forms that load after initial page render. Manual verification recommended for complete assessment.
+            </p>
+            <% } %>
+        </div>
+        
+        <% if (results.issues && results.issues.length > 0) { %>
+        <h2 class="issues-section section-break">Issues & Recommendations</h2>
+        
+        <div class="issues-section keep-together">
+            <h3>
+                <i class="fas fa-exclamation-triangle"></i> 
+                <%= results.issues.length %> Issues Found
+            </h3>
+            
+            <% 
+            // Group issues by priority
+            const highPriorityIssues = results.issues.filter(i => i.priority === 'high');
+            const mediumPriorityIssues = results.issues.filter(i => i.priority === 'medium');
+            const lowPriorityIssues = results.issues.filter(i => i.priority === 'low');
+            const infoIssues = results.issues.filter(i => i.priority === 'info');
+            
+            // Function to get confidence icon
+            function getConfidenceIcon(confidence) {
+                if (confidence === 'high') return '✅';
+                if (confidence === 'moderate') return '⚠️';
+                if (confidence === 'manual-review') return '🔍';
+                return '';
+            }
+            %>
+            
+            <% if (highPriorityIssues.length > 0) { %>
+            <h4 style="color: #EF4444; margin-top: 20px;">High Priority Issues</h4>
+            <% highPriorityIssues.forEach(function(issue) { %>
+            <div class="issue-item high keep-together">
+                <span class="priority-badge priority-high">High</span>
+                <% if (issue.confidence) { %>
+                <span style="margin-left: 5px;"><%= getConfidenceIcon(issue.confidence) %></span>
+                <% } %>
+                <strong><%= issue.title %></strong>
+                <% if (issue.details) { %>
+                <div style="margin-top: 5px; color: #666;"><%= issue.details %></div>
+                <% } %>
+                <div style="margin-top: 5px; font-size: 0.9em; color: #999;">
+                    Category: <%= issue.category %>
+                </div>
+            </div>
+            <% }); %>
+            <% } %>
+            
+            <% if (mediumPriorityIssues.length > 0) { %>
+            <h4 style="color: #F59E0B; margin-top: 20px;">Medium Priority Issues</h4>
+            <% mediumPriorityIssues.forEach(function(issue) { %>
+            <div class="issue-item medium keep-together">
+                <span class="priority-badge priority-medium">Medium</span>
+                <% if (issue.confidence) { %>
+                <span style="margin-left: 5px;"><%= getConfidenceIcon(issue.confidence) %></span>
+                <% } %>
+                <strong><%= issue.title %></strong>
+                <% if (issue.details) { %>
+                <div style="margin-top: 5px; color: #666;"><%= issue.details %></div>
+                <% } %>
+                <div style="margin-top: 5px; font-size: 0.9em; color: #999;">
+                    Category: <%= issue.category %>
+                </div>
+            </div>
+            <% }); %>
+            <% } %>
+            
+            <% if (lowPriorityIssues.length > 0) { %>
+            <h4 style="color: #3B82F6; margin-top: 20px;">Low Priority Issues</h4>
+            <% lowPriorityIssues.forEach(function(issue) { %>
+            <div class="issue-item low keep-together">
+                <span class="priority-badge priority-low">Low</span>
+                <% if (issue.confidence) { %>
+                <span style="margin-left: 5px;"><%= getConfidenceIcon(issue.confidence) %></span>
+                <% } %>
+                <strong><%= issue.title %></strong>
+                <% if (issue.details) { %>
+                <div style="margin-top: 5px; color: #666;"><%= issue.details %></div>
+                <% } %>
+                <div style="margin-top: 5px; font-size: 0.9em; color: #999;">
+                    Category: <%= issue.category %>
+                </div>
+            </div>
+            <% }); %>
+            <% } %>
+            
+            <% if (infoIssues.length > 0) { %>
+            <h4 style="color: #6B7280; margin-top: 20px;">Manual Review Items</h4>
+            <div style="margin-bottom: 15px; padding: 10px; background: #F9FAFB; border-radius: 6px; font-size: 0.85em; color: #6B7280;">
+                <i class="fas fa-info-circle"></i> These items require manual verification as they often involve dynamic content, third-party integrations, or visual elements that automated tools cannot fully assess.
+            </div>
+            <% infoIssues.forEach(function(issue) { %>
+            <div class="issue-item" style="background: #F3F4F6; border-left-color: #6B7280;">
+                <span class="priority-badge" style="background: #6B7280; color: white;">Review</span>
+                <% if (issue.confidence) { %>
+                <span style="margin-left: 5px;"><%= getConfidenceIcon(issue.confidence) %></span>
+                <% } %>
+                <strong><%= issue.title %></strong>
+                <% if (issue.details) { %>
+                <div style="margin-top: 5px; color: #666;"><%= issue.details %></div>
+                <% } %>
+                <div style="margin-top: 5px; font-size: 0.9em; color: #999;">
+                    Category: <%= issue.category %>
+                </div>
+            </div>
+            <% }); %>
+            <% } %>
+        </div>
+        <% } %>
+        
+        <h2 class="section-break">Recommendations</h2>
+        
+        <% if (performanceTier === 'Elite') { %>
+        <div class="recommendation" style="background: #D1FAE5; border-color: #10B981;">
+            <strong>Excellent Performance!</strong> Your website is performing at an elite level. Focus on:
+            <ul style="margin: 10px 0;">
+                <li>Maintaining these high standards through regular monitoring</li>
+                <li>Staying current with emerging web technologies and best practices</li>
+                <li>Sharing your success strategies with other dealerships in your network</li>
+                <% if (results.auditType !== 'seo') { %>
+                <li>Continuing to optimize page load speeds for an even better user experience</li>
+                <% } %>
+            </ul>
+        </div>
+        <% } else { %>
+        <div class="recommendation keep-together">
+            <strong>Improvement Opportunities:</strong>
+            <ul style="margin: 10px 0;">
+                <% if (results.overallScore < 75) { %>
+                <li>Focus on addressing high-priority issues first for maximum impact</li>
+                <% } %>
+                <% if (results.categories.find(c => c.name === 'SEO Analysis' && c.score < 4)) { %>
+                <li>Improve SEO by optimizing meta tags, adding schema markup, and enhancing content structure</li>
+                <% } %>
+                <% if (results.categories.find(c => c.name === 'Performance Testing' && c.score < 4)) { %>
+                <li>Enhance page load speeds by optimizing images and leveraging browser caching</li>
+                <% } %>
+                <% if (results.categories.find(c => c.name === 'User Experience' && c.score < 4)) { %>
+                <li>Improve mobile responsiveness and navigation structure for better user engagement</li>
+                <% } %>
+                <% if (results.categories.find(c => c.name === 'Lead Generation' && c.score < 4)) { %>
+                <li>Add more prominent calls-to-action and optimize lead capture forms</li>
+                <% } %>
+                <% if (results.auditType === 'seo') { %>
+                <li>Consider running a Comprehensive Audit to identify performance and user experience improvements</li>
+                <% } %>
+            </ul>
+        </div>
+        <% } %>
+        
+        <h3>Detailed Action Items</h3>
+        <div style="margin-bottom: 20px; padding: 12px; background: #FEF3C7; border-radius: 6px; font-size: 0.85em; color: #78716C;">
+            <i class="fas fa-lightbulb"></i> <strong>Implementation Note:</strong> Timeframes and effort estimates are approximations based on typical dealership websites. Your specific implementation may vary based on your CMS, technical resources, and existing infrastructure.
+        </div>
+        <% if (!results.enhancedRecommendations || results.enhancedRecommendations.length === 0) { %>
+        <p style="color: #6B7280; font-style: italic; margin: 20px 0;">No Recommendations At This Time</p>
+        <% } else { %>
+        <%
+        // Flatten recommendations from the nested structure
+        let flatRecommendations = [];
+        results.enhancedRecommendations.forEach(function(rec) {
+            if (rec.recommendations && rec.recommendations.length > 0) {
+                rec.recommendations.forEach(function(item) {
+                    flatRecommendations.push({
+                        category: rec.category,
+                        priority: rec.priority,
+                        title: item.title,
+                        description: item.details,
+                        implementation: item.implementation,
+                        expectedResult: item.expectedResult,
+                        effort: item.effort,
+                        timeframe: item.timeframe
+                    });
+                });
+            }
+        });
+        
+        // Show up to 5 recommendations
+        %>
+        <% flatRecommendations.slice(0, 5).forEach(function(rec) { %>
+        <div class="recommendation keep-together">
+            <strong><%= rec.title %></strong>
+            <p style="margin: 10px 0;"><%= rec.description %></p>
+            <% if (rec.implementation) { %>
+            <div style="background: rgba(255,255,255,0.5); padding: 10px; border-radius: 4px; margin-top: 10px;">
+                <strong>How to implement:</strong> <%= rec.implementation %>
+            </div>
+            <% } %>
+            <% if (rec.expectedResult) { %>
+            <div style="margin-top: 10px; color: #059669;">
+                <strong>Expected Result:</strong> <%= rec.expectedResult %>
+            </div>
+            <% } %>
+        </div>
+        <% }); %>
+        <% } %>
+        
+        <div class="action-buttons">
+            <button onclick="window.print()" class="btn-action btn-primary-action">
+                <i class="fas fa-print"></i> Print Report
+            </button>
+            <button onclick="location.href='/website-audit'" class="btn-action btn-secondary-action">
+                <i class="fas fa-redo"></i> Run New Audit
+            </button>
+            <% if (results.auditType === 'seo') { %>
+            <button onclick="console.log('Comprehensive clicked'); rerunAsComprehensive()" class="btn-action btn-secondary-action">
+                <i class="fas fa-chart-line"></i> Run Comprehensive Audit
+            </button>
+            <% } %>
+            <button onclick="console.log('Combined insights clicked'); goToCombinedInsights()" class="btn-action btn-secondary-action" title="Combine website data with lead performance insights">
+                <i class="fas fa-chart-pie"></i> View Combined Insights
+            </button>
+            <button onclick="history.back()" class="btn-action btn-secondary-action">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
+        </div>
+        
+        <div style="margin-top: 40px; padding: 20px; background: #F9FAFB; border-radius: 8px; font-size: 0.85em; color: #6B7280; line-height: 1.6;">
+            <p style="margin: 0;">
+                <strong>Analysis Methodology:</strong> This automated analysis evaluates publicly accessible website data using industry best practices and current web standards. 
+                Some dynamic content may require manual verification. Results are based on a single page snapshot and may vary based on network conditions, 
+                device type, and geographic location. For the most accurate assessment of features that load dynamically (such as image galleries or search filters), 
+                manual review is recommended. Confidence indicators: ✅ High Confidence | ⚠️ Moderate Confidence | 🔍 Manual Review Recommended
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p>© 2025 JL Robinson. All Rights Reserved.</p>
+            <p>Auto Audit Pro™ - Professional Dealership Website Analysis Platform</p>
+            <p><a href="https://autoauditpro.io" style="color: #6B46C1;">autoauditpro.io</a></p>
+        </div>
+    </div>
+    
+    <script>
+        // Debug: Log when script loads
+        console.log('Report script loaded');
+        
+        // Store audit results for use in functions
+        window.auditResults = {
+            domain: '<%= results.domain %>',
+            dealershipName: '<%= results.dealershipName || results.domain %>',
+            overallScore: <%= results.overallScore || 0 %>,
+            brand: '<%= results.brand || "" %>',
+            auditType: '<%= results.auditType || "comprehensive" %>'
+        };
+        
+        // Store issues separately to avoid JSON parsing issues in template
+        try {
+            window.auditResults.issues = <%- JSON.stringify(results.issues || []) %>;
+        } catch (e) {
+            console.error('Error parsing issues:', e);
+            window.auditResults.issues = [];
+        }
+        
+        // Store categories if available
+        try {
+            window.auditResults.categories = <%- JSON.stringify(results.categories || []) %>;
+        } catch (e) {
+            console.error('Error parsing categories:', e);
+            window.auditResults.categories = [];
+        }
+        
+        function rerunAsComprehensive() {
+            console.log('rerunAsComprehensive called');
+            try {
+                // Store domain for rerun
+                sessionStorage.setItem('rerunDomain', window.auditResults.domain);
+                sessionStorage.setItem('rerunType', 'comprehensive');
+                console.log('Stored in session:', window.auditResults.domain);
+                window.location.href = '/website-audit';
+            } catch (error) {
+                console.error('Error in rerunAsComprehensive:', error);
+                alert('Error: Unable to run comprehensive audit. Please try again.');
+            }
+        }
+        
+        function goToCombinedInsights() {
+            console.log('goToCombinedInsights called');
+            try {
+                // Store website audit data for combined insights
+                const auditData = {
+                    domain: window.auditResults.domain,
+                    dealershipName: window.auditResults.dealershipName,
+                    overallScore: window.auditResults.overallScore,
+                    brand: window.auditResults.brand,
+                    score: window.auditResults.overallScore,
+                    issues: window.auditResults.issues,
+                    categories: window.auditResults.categories,
+                    timestamp: new Date().toISOString()
+                };
+                
+                console.log('Storing audit data:', auditData);
+                
+                // Store in session storage
+                sessionStorage.setItem('websiteAuditData', JSON.stringify(auditData));
+                sessionStorage.setItem('fromWebsiteAudit', 'true');
+                
+                // Navigate to combined insights
+                window.location.href = '/insights';
+            } catch (error) {
+                console.error('Error in goToCombinedInsights:', error);
+                alert('Error: Unable to navigate to Combined Insights. Please try again.');
+            }
+        }
+        
+        // Format timestamp in user's local timezone
+        const timestampElement = document.getElementById('report-timestamp');
+        if (timestampElement) {
+            const isoTimestamp = timestampElement.getAttribute('data-timestamp');
+            if (isoTimestamp) {
+                const date = new Date(isoTimestamp);
+                const options = { 
+                    year: 'numeric',
+                    month: 'long', 
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                };
+                timestampElement.textContent = date.toLocaleString('en-US', options);
+            }
+        }
+        
+        // Auto-trigger print dialog if print parameter is present
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('print') === 'true') {
+            window.print();
+        }
+        
+        // Download PDF function
+        async function downloadPDF() {
+            // For now, use print functionality
+            window.print();
+            
+            // Show instructions
+            setTimeout(() => {
+                alert('To save as PDF:\n\n1. In the print dialog, choose "Save as PDF" as the destination\n2. Click "Save"\n3. Choose where to save the file\n\nThis creates a professional PDF of your audit report!');
+            }, 500);
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</body>
+</html>

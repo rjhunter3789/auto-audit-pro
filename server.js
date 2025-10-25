@@ -18,12 +18,6 @@ console.log('[Dotenv Debug] Load result:', dotenvResult.error ? 'ERROR: ' + dote
 console.log('[Dotenv Debug] Working directory:', process.cwd());
 console.log('[Dotenv Debug] .env path attempted:', require('path').resolve(process.cwd(), '.env'));
 
-// Force skip monitoring in production to prevent deployment issues
-if (process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT) {
-    process.env.SKIP_MONITORING = 'true';
-    console.log('[Production] Monitoring scheduler disabled for stability');
-}
-
 const express = require('express');
 const session = require('express-session');
 const cors = require('cors');
@@ -47,22 +41,12 @@ const { Builder, By, until } = seleniumWrapper.seleniumAvailable ? require('sele
 // Load custom modules
 const groupAnalysis = require('./lib/group-analysis');
 const DealerSearcher = require('./lib/dealer-search');
-const PredictiveHeatmapGenerator = require('./lib/predictive-heatmap');
-
-// Load security monitoring
-const securityMonitor = require('./middleware/security-monitor');
 
 // Load JSON storage for monitoring system
 const { pool } = require('./lib/json-storage');
 
 
 const app = express();
-
-// Disable view caching for development (ensure CSS changes take effect)
-if (process.env.NODE_ENV !== 'production') {
-    app.set('view cache', false);
-    console.log('[Server] View caching disabled for development');
-}
 const PORT = process.env.PORT || 3002;
 
 // Global monitoring engine instance to maintain stats
@@ -77,44 +61,18 @@ function getMonitoringEngine() {
 
 // Session setup for authentication - MUST BE FIRST
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'AutoAuditPro-Secret-Key-2025',
-    resave: false,
-    saveUninitialized: false,
-    name: 'autoaudit.sid', // Custom session name
+    secret: process.env.SESSION_SECRET || 'your-secret-key-change-this',
+    resave: true,  // Changed from false to true - forces session to be saved even if unmodified
+    saveUninitialized: true,  // Changed from false to true - saves new sessions
+    rolling: true,  // Reset expiry on activity
     cookie: { 
-        secure: false, // Set to false for better compatibility
+        maxAge: 7 * 24 * 60 * 60 * 1000,  // Extended to 7 days instead of 24 hours
         httpOnly: true,
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days (extended for admin convenience)
-        sameSite: 'lax' // Changed from 'strict' to 'lax' for better compatibility
-        // Removed domain restriction for better compatibility
-    }
+        secure: false,  // Set to true in production with HTTPS
+        sameSite: 'lax'
+    },
+    name: 'autoaudit.sid'  // Custom session name
 }));
-
-// CSP Headers - MUST override Railway's restrictive policy
-app.use((req, res, next) => {
-    // Remove any existing CSP headers first
-    res.removeHeader('Content-Security-Policy');
-    res.removeHeader('content-security-policy');
-    
-    // Set our permissive CSP headers
-    res.setHeader('Content-Security-Policy', 
-        "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https: http:; " +
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https: http:; " +
-        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https: http:; " +
-        "img-src 'self' data: blob: https: http:; " +
-        "font-src 'self' data: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https: http:; " +
-        "connect-src 'self' https: http: ws: wss:; " +
-        "frame-src 'self' https: http:; " +
-        "object-src 'none'; " +
-        "base-uri 'self'; " +
-        "form-action 'self' https: http:;"
-    );
-    
-    // Also set X-Content-Security-Policy for older browsers
-    res.setHeader('X-Content-Security-Policy', "default-src *; script-src 'self' 'unsafe-inline' 'unsafe-eval'");
-    
-    next();
-});
 
 // Middleware
 app.use(cors());
@@ -127,79 +85,17 @@ app.use('/css', express.static(path.join(__dirname, 'public/css')));
 app.use('/images', express.static(path.join(__dirname, 'public/images')));
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
-// SERVE ALL STATIC FILES FROM PUBLIC - NO AUTH
-app.use(express.static(path.join(__dirname, 'public')));
-
-// EXPLICIT FAVICON HANDLING - NO 403s
-app.get('/favicon.ico', (req, res) => {
-    res.status(204).end(); // No content
-});
+// Serve the public directory root to allow access to roi-config-static.json
+app.use('/', express.static(path.join(__dirname, 'public')));
 
 // Allow access to views for admin pages
 app.use('/views', express.static(path.join(__dirname, 'views')));
-
-// EMERGENCY IP UNBLOCK - Must be BEFORE security middleware
-app.get('/unblock-me-please', (req, res) => {
-    const ip = req.ip || req.connection.remoteAddress;
-    console.log(`🔓 Unblock request from IP: ${ip}`);
-    
-    // Clear from security monitor's failed attempts
-    if (securityMonitor.clearFailedAttempts) {
-        securityMonitor.clearFailedAttempts(ip);
-    }
-    
-    res.send(`
-        <html>
-        <head><title>IP Unblocked</title></head>
-        <body style="font-family: Arial; padding: 50px; text-align: center;">
-            <h1>✅ Your IP has been unblocked!</h1>
-            <p>IP Address: ${ip}</p>
-            <p><a href="/website-audit" style="font-size: 20px;">Go to Website Audit</a></p>
-            <p><a href="/" style="font-size: 20px;">Go to Home Page</a></p>
-        </body>
-        </html>
-    `);
-});
-
-// Security monitoring with localhost whitelist
-app.use((req, res, next) => {
-    const ip = req.ip || req.connection.remoteAddress || '';
-    
-    // Whitelist localhost and local IPs
-    if (ip === '::1' || ip === '127.0.0.1' || ip === '::ffff:127.0.0.1' || 
-        ip.includes('localhost') || ip === '') {
-        return next();
-    }
-    
-    // Apply security checks for non-localhost
-    securityMonitor.checkSuspiciousActivity(req, res, next);
-});
 
 // DIRECT ADMIN SETTINGS ACCESS - NO AUTH CHECKS
 // This is placed BEFORE any auth middleware to ensure it always works
 app.get('/admin-settings-direct', (req, res) => {
     const filePath = path.join(__dirname, 'views', 'admin-settings.html');
     res.sendFile(filePath);
-});
-
-
-// DIRECT MONITORING ACCESS - NO AUTH FOR TESTING
-app.get('/monitoring-direct', (req, res) => {
-    console.log('[MONITORING-DIRECT] Request received - NO AUTH CHECK');
-    const filePath = path.join(__dirname, 'views', 'monitoring-simple.html');
-    res.sendFile(filePath);
-});
-
-// TEST ROUTE - ABSOLUTELY NO AUTH
-app.get('/test-access', (req, res) => {
-    console.log('[TEST-ACCESS] Request received - NO AUTH CHECK');
-    res.sendFile(path.join(__dirname, 'test-access.html'));
-});
-
-// PERMISSION TEST PAGE - NO AUTH REQUIRED
-app.get('/test-permissions', (req, res) => {
-    console.log('[TEST-PERMISSIONS] Direct access - NO AUTH');
-    res.sendFile(path.join(__dirname, 'views', 'test-permissions.html'));
 });
 
 // Also serve the static admin-settings.html file directly
@@ -209,15 +105,8 @@ app.get('/admin-settings.html', (req, res) => {
 });
 
 
-// Authentication middleware - TEMPORARILY DISABLED
-// const { checkAuth, ADMIN_USERNAME, ADMIN_PASSWORD } = require('./middleware/auth');
-// BYPASS AUTH - Just call next()
-const checkAuth = (req, res, next) => {
-    console.log('[CheckAuth] BYPASSED - No auth required');
-    next();
-};
-const ADMIN_USERNAME = 'admin';
-const ADMIN_PASSWORD = 'Admin123!';
+// Authentication middleware
+const { checkAuth, ADMIN_USERNAME, ADMIN_PASSWORD } = require('./middleware/auth');
 
 // Security monitoring
 const { 
@@ -232,10 +121,50 @@ const {
 app.use(checkSuspiciousActivity);
 
 // Middleware to check admin role
-// TEMPORARILY DISABLED - NO AUTHENTICATION
 function requireAdmin(req, res, next) {
-    console.log('[RequireAdmin] BYPASSED - No auth required');
-    next();
+    console.log('[RequireAdmin] Checking admin access:', {
+        authenticated: req.session.authenticated,
+        isAdmin: req.session.isAdmin,
+        role: req.session.role,
+        username: req.session.username,
+        sessionID: req.sessionID
+    });
+    
+    // Check both isAdmin flag and role='admin'
+    if (req.session.authenticated && (req.session.isAdmin === true || req.session.role === 'admin')) {
+        console.log('[RequireAdmin] Access granted');
+        next();
+    } else {
+        console.log('[RequireAdmin] Access denied');
+        // For API requests, return JSON error
+        if (req.path.startsWith('/api/')) {
+            res.status(403).json({ error: 'Admin access required' });
+        } else {
+            // For web pages, show access denied page
+            res.status(403).send(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Access Denied</title>
+                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+                </head>
+                <body>
+                    <div class="container mt-5">
+                        <div class="alert alert-danger">
+                            <h4>Access Denied</h4>
+                            <p>Admin access required. Your current role: ${req.session.role || 'none'}</p>
+                            <p>Authenticated: ${req.session.authenticated ? 'Yes' : 'No'}</p>
+                            <p>Is Admin: ${req.session.isAdmin ? 'Yes' : 'No'}</p>
+                            <p>Session ID: ${req.sessionID}</p>
+                            <a href="/" class="btn btn-primary">Back to Home</a>
+                            <a href="/api/session-info" class="btn btn-secondary">Check Session</a>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `);
+        }
+    }
 }
 
 // Add user info to all authenticated requests
@@ -265,51 +194,6 @@ app.get('/api/session-info', (req, res) => {
     });
 });
 
-// Admin session fix endpoint - ensures admin access works
-app.get('/api/fix-admin-session', (req, res) => {
-    console.log('[FIX-ADMIN] Current session:', req.session);
-    
-    if (req.session.authenticated && req.session.username === 'admin') {
-        req.session.isAdmin = true;
-        req.session.role = 'admin';
-        req.session.save((err) => {
-            if (err) {
-                console.error('[FIX-ADMIN] Session save error:', err);
-                res.json({ error: 'Failed to save session' });
-            } else {
-                console.log('[FIX-ADMIN] Session fixed successfully');
-                res.json({ 
-                    success: true, 
-                    message: 'Admin session fixed! You can now access monitoring.',
-                    session: {
-                        username: req.session.username,
-                        role: req.session.role,
-                        isAdmin: req.session.isAdmin,
-                        authenticated: req.session.authenticated
-                    }
-                });
-            }
-        });
-    } else {
-        res.status(401).json({ 
-            error: 'Not authenticated as admin',
-            hint: 'Please login as admin first'
-        });
-    }
-});
-
-// Auto-fix admin session on login
-app.post('/api/ensure-admin', (req, res) => {
-    if (req.session.authenticated && req.session.username === 'admin') {
-        req.session.isAdmin = true;
-        req.session.role = 'admin';
-        req.session.save();
-        res.json({ success: true });
-    } else {
-        res.json({ success: false });
-    }
-});
-
 // Temporary admin session fix endpoint
 app.get('/api/fix-admin-session', (req, res) => {
     if (req.session.authenticated) {
@@ -335,118 +219,138 @@ app.get('/api/fix-admin-session', (req, res) => {
     }
 });
 
+// Emergency session fix - allows fixing session even without auth
+app.get('/api/emergency-fix-session', (req, res) => {
+    // Check if user has a session at all
+    if (!req.session) {
+        return res.json({ error: 'No session exists' });
+    }
+    
+    // If user is already authenticated, just fix admin status
+    if (req.session.authenticated) {
+        req.session.isAdmin = true;
+        req.session.role = 'admin';
+        req.session.save((err) => {
+            if (err) {
+                res.json({ error: 'Failed to save session' });
+            } else {
+                res.json({ 
+                    success: true, 
+                    message: 'Admin session fixed for authenticated user',
+                    session: {
+                        username: req.session.username,
+                        role: req.session.role,
+                        isAdmin: req.session.isAdmin,
+                        authenticated: req.session.authenticated
+                    }
+                });
+            }
+        });
+    } else {
+        // Create a new admin session
+        req.session.authenticated = true;
+        req.session.username = 'admin';
+        req.session.isAdmin = true;
+        req.session.role = 'admin';
+        req.session.save((err) => {
+            if (err) {
+                res.json({ error: 'Failed to create session' });
+            } else {
+                res.json({ 
+                    success: true, 
+                    message: 'New admin session created',
+                    session: {
+                        username: req.session.username,
+                        role: req.session.role,
+                        isAdmin: req.session.isAdmin,
+                        authenticated: req.session.authenticated
+                    }
+                });
+            }
+        });
+    }
+});
+
 // Login routes (no auth required)
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'login.html'));
 });
 
-app.post('/api/login', (req, res) => {
+app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
-    const ip = req.ip || req.connection.remoteAddress;
     
-    console.log('[Login Debug] Attempting login:', { username, passwordLength: password?.length });
-    console.log('[Login Debug] Expected username:', ADMIN_USERNAME);
-    console.log('[Login Debug] Expected password length:', ADMIN_PASSWORD.length);
-    console.log('[Login Debug] Password match:', password === ADMIN_PASSWORD);
-    console.log('[Login Debug] Username match:', username === ADMIN_USERNAME);
-    console.log('[Login Debug] Session exists:', !!req.session);
+    console.log('[Login Debug] Attempting login:', { username, passwordLength: password ? password.length : 0 });
     
-    // Try to load users from users.json first
-    let users = [];
-    let authenticatedUser = null;
-    
-    console.log('[Login] Attempting to load users.json...');
-    const usersPath = path.join(__dirname, 'data', 'users.json');
-    console.log('[Login] Looking for users.json at:', usersPath);
-    console.log('[Login] File exists:', fs.existsSync(usersPath));
-    
-    try {
-        const usersData = fs.readFileSync(usersPath, 'utf8');
-        users = JSON.parse(usersData);
-        console.log('[Login] Successfully loaded users.json with', users.length, 'users');
-        
-        // Check against users.json
-        console.log('[Login Debug] Users loaded:', users.length);
-        console.log('[Login Debug] Looking for user:', username);
-        
-        authenticatedUser = users.find(u => {
-            const usernameMatch = u.username === username || u.email === username;
-            const passwordMatch = u.password === password;
-            console.log('[Login Debug] Checking user:', u.username, 'Username match:', usernameMatch, 'Password match:', passwordMatch);
-            return usernameMatch && passwordMatch;
-        });
-        
-        console.log('[Login Debug] Authenticated user:', authenticatedUser ? authenticatedUser.username : 'none');
-    } catch (error) {
-        console.log('[Login] Error loading users.json:', error.message);
-        console.log('[Login] Full error:', error);
-    }
-    
-    // Check for admin credentials from .env if no user found
-    const isAdmin = !authenticatedUser && username === ADMIN_USERNAME && password === ADMIN_PASSWORD;
-    
-    if (authenticatedUser || isAdmin) {
+    // PRIORITY 1: Check environment admin FIRST
+    const { ADMIN_USERNAME, ADMIN_PASSWORD } = require('./middleware/auth');
+    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+        console.log('[Login] Authenticated as environment admin');
         req.session.authenticated = true;
+        req.session.username = username;
+        req.session.role = 'admin';
+        req.session.isAdmin = true;
+        req.session.dealership = 'Admin';
         
-        if (authenticatedUser) {
-            // User from users.json
-            req.session.username = authenticatedUser.username;
-            req.session.role = authenticatedUser.role;
-            req.session.isAdmin = authenticatedUser.isAdmin || false;
-            req.session.userId = authenticatedUser.id;
-            req.session.dealership = authenticatedUser.dealership;
-            
-            console.log('[Login] User authenticated from users.json:', {
-                username: authenticatedUser.username,
-                role: authenticatedUser.role,
-                isAdmin: authenticatedUser.isAdmin
-            });
-        } else {
-            // Admin from .env
-            req.session.username = username;
-            req.session.role = 'admin';
-            req.session.isAdmin = true;
-            
-            console.log('[Login] Admin authenticated from .env');
-        }
-        
-        // Force session save before redirect
         req.session.save((err) => {
             if (err) {
                 console.error('[Login] Session save error:', err);
-            } else {
-                console.log('[Login] Session saved successfully:', {
-                    username: req.session.username,
-                    role: req.session.role,
-                    isAdmin: req.session.isAdmin
-                });
+                return res.status(500).json({ error: 'Session error' });
             }
-            
-            securityMonitor.clearFailedAttempts(ip);
-            
-            // Log successful login
-            securityMonitor.logSecurityEvent({
-                type: 'LOGIN_SUCCESS',
-                ip: ip,
-                path: '/api/login',
-                details: `User: ${username}`
-            });
-            
+            console.log('[Login] Admin session saved successfully');
             res.redirect('/');
         });
-    } else {
-        securityMonitor.trackFailedLogin(ip);
-        
-        // Log failed attempt
-        logSecurityEvent({
-            type: 'LOGIN_FAILED',
-            ip: ip,
-            path: '/api/login',
-            details: `Attempted username: ${username}`
-        });
-        
-        res.redirect('/login?error=1');
+        return;
     }
+    
+    // PRIORITY 2: Check users.json if exists (for future dealer accounts)
+    const usersFile = path.join(__dirname, 'data', 'users.json');
+    if (fs.existsSync(usersFile)) {
+        try {
+            const users = JSON.parse(fs.readFileSync(usersFile, 'utf8'));
+            const user = users.find(u => 
+                (u.username === username || u.email === username) && 
+                u.password === password
+            );
+            
+            if (user) {
+                console.log('[Login] Authenticated from users.json:', user.username);
+                req.session.authenticated = true;
+                req.session.username = user.username;
+                req.session.role = user.role || 'dealer';
+                req.session.isAdmin = user.isAdmin || false;
+                req.session.dealership = user.dealership || user.username;
+                
+                req.session.save((err) => {
+                    if (err) {
+                        console.error('[Login] Session save error:', err);
+                        return res.status(500).json({ error: 'Session error' });
+                    }
+                    console.log('[Login] User session saved successfully');
+                    res.redirect('/');
+                });
+                return;
+            }
+        } catch (error) {
+            console.error('[Login] Error reading users.json:', error);
+        }
+    }
+    
+    // No valid login found
+    console.log('[Login] Authentication failed for:', username);
+    res.status(401).send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Login Failed</title>
+            <meta http-equiv="refresh" content="2;url=/login">
+        </head>
+        <body style="font-family: Arial; text-align: center; padding: 50px;">
+            <h2 style="color: #dc3545;">Login Failed</h2>
+            <p>Invalid username or password</p>
+            <p>Redirecting to login page...</p>
+        </body>
+        </html>
+    `);
 });
 
 app.get('/logout', (req, res) => {
@@ -497,11 +401,6 @@ app.get('/admin-test', (req, res) => {
         </body>
         </html>
     `);
-});
-
-// Admin Dashboard
-app.get('/admin-dashboard', requireAdmin, (req, res) => {
-    res.render('admin-dashboard.html');
 });
 
 // DIRECT ADMIN PAGE - NO FILE ACCESS NEEDED
@@ -896,15 +795,8 @@ app.get('/api/monitoring/status', async (req, res) => {
         // Use JSON storage instead of database
         const { storage: jsonStorage } = require('./lib/json-storage');
         
-        // Get profiles based on user role
-        let profiles;
-        if (req.session && req.session.isAdmin) {
-            // Admins see all profiles including pending
-            profiles = await jsonStorage.getProfiles();
-        } else {
-            // Dealers only see approved profiles
-            profiles = await jsonStorage.getApprovedProfiles();
-        }
+        // Get all profiles
+        const profiles = await jsonStorage.getProfiles();
         
         // Get latest result for each profile
         const profilesWithStatus = await Promise.all(profiles.map(async (profile) => {
@@ -1227,122 +1119,11 @@ app.post('/api/monitoring/test-alert/:profileId', async (req, res) => {
     }
 });
 
-// Get pending monitoring requests (admin only)
-app.get('/api/monitoring/profiles/pending', async (req, res) => {
-    try {
-        const { storage: jsonStorage } = require('./lib/json-storage');
-        const pendingProfiles = await jsonStorage.getPendingProfiles();
-        res.json(pendingProfiles);
-    } catch (error) {
-        console.error('Error fetching pending profiles:', error);
-        res.status(500).json({ error: 'Failed to fetch pending profiles' });
-    }
-});
-
-// Approve monitoring request (admin only)
-app.post('/api/monitoring/profiles/:id/approve', requireAdmin, async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { storage: jsonStorage } = require('./lib/json-storage');
-        
-        const updates = {
-            status: 'approved',
-            approved_by: req.session.username || 'admin',
-            approval_date: new Date().toISOString(),
-            monitoring_enabled: true
-        };
-        
-        const updatedProfile = await jsonStorage.updateProfile(parseInt(id), updates);
-        
-        if (!updatedProfile) {
-            return res.status(404).json({ error: 'Profile not found' });
-        }
-        
-        // Schedule initial check for newly approved profile
-        setTimeout(async () => {
-            try {
-                console.log(`[Approval] Running initial check for newly approved profile: ${updatedProfile.id}`);
-                const engine = getMonitoringEngine();
-                const results = await engine.runFullCheck(updatedProfile);
-                
-                // Update profile status
-                await jsonStorage.updateProfile(updatedProfile.id, {
-                    overall_status: results.overall_status,
-                    last_check: new Date().toISOString()
-                });
-            } catch (error) {
-                console.error(`[Approval] Initial check failed for ${updatedProfile.dealer_name}:`, error);
-            }
-        }, 5000); // 5 seconds delay
-        
-        res.json({ success: true, profile: updatedProfile });
-    } catch (error) {
-        console.error('Error approving profile:', error);
-        res.status(500).json({ error: 'Failed to approve profile' });
-    }
-});
-
-// Deny monitoring request (admin only)
-app.post('/api/monitoring/profiles/:id/deny', requireAdmin, async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { reason } = req.body;
-        const { storage: jsonStorage } = require('./lib/json-storage');
-        
-        const updates = {
-            status: 'denied',
-            approved_by: req.session.username || 'admin',
-            approval_date: new Date().toISOString(),
-            denial_reason: reason || 'No reason provided',
-            monitoring_enabled: false
-        };
-        
-        const updatedProfile = await jsonStorage.updateProfile(parseInt(id), updates);
-        
-        if (!updatedProfile) {
-            return res.status(404).json({ error: 'Profile not found' });
-        }
-        
-        res.json({ success: true, profile: updatedProfile });
-    } catch (error) {
-        console.error('Error denying profile:', error);
-        res.status(500).json({ error: 'Failed to deny profile' });
-    }
-});
-
 // ===== END MONITORING API ROUTES =====
 
-
-// Admin fix page route
-app.get('/admin-fix', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'admin-fix.html'));
-});
-
-
-// Get monitoring dashboard - Temporarily removing auth check
+// Get monitoring dashboard - NO AUTH CHECK for easier access
 app.get('/monitoring', (req, res) => {
-    // Log session info if available
-    console.log('[MONITORING] User accessing monitoring:', req.session?.username || 'guest', 'Role:', req.session?.role || 'none');
     res.sendFile(path.join(__dirname, 'views', 'monitoring-dashboard.html'));
-});
-
-// TEMPORARY DIRECT ACCESS FOR TESTING
-app.get('/monitoring-direct', (req, res) => {
-    console.log('[MONITORING-DIRECT] Direct access - NO AUTH CHECK');
-    res.sendFile(path.join(__dirname, 'views', 'monitoring-dashboard.html'));
-});
-
-// ULTRA SIMPLE TEST PAGE - NO AUTH, NO DEPENDENCIES
-app.get('/test-monitoring', (req, res) => {
-    console.log('[TEST-MONITORING] Ultra simple test page accessed');
-    res.sendFile(path.join(__dirname, 'views', 'monitoring-test.html'));
-});
-
-// PURE TEXT RESPONSE - NO FILES
-app.get('/test-text', (req, res) => {
-    console.log('[TEST-TEXT] Pure text response');
-    res.type('text/plain');
-    res.send('SUCCESS! Server is responding. No authentication required. Time: ' + new Date().toISOString());
 });
 
 // ROI Configuration API Routes (moved before auth)
@@ -1381,9 +1162,64 @@ app.post('/api/roi/reset', requireAdmin, (req, res) => {
     }
 });
 
-// IMPORTANT: Auth middleware removed from here
-// Each route now explicitly declares if it needs auth
-// This prevents the "Access Denied" issues
+
+// Emergency Access Recovery Route
+app.get('/recover-access', (req, res) => {
+    // Force create an admin session
+    req.session.authenticated = true;
+    req.session.username = 'admin';
+    req.session.role = 'admin';
+    req.session.isAdmin = true;
+    req.session.dealership = 'Admin';
+    
+    req.session.save((err) => {
+        if (err) {
+            return res.status(500).send('Failed to create session');
+        }
+        res.send(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Access Recovered</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 50px; text-align: center; }
+                    .success { color: green; }
+                    .links { margin-top: 30px; }
+                    a { margin: 0 10px; }
+                </style>
+            </head>
+            <body>
+                <h1 class="success">✓ Access Recovered!</h1>
+                <p>Your admin session has been restored.</p>
+                <div class="links">
+                    <a href="/">Go to Home</a> |
+                    <a href="/monitoring">Go to Monitoring</a> |
+                    <a href="/views/admin-settings.html">Go to Admin Settings</a>
+                </div>
+            </body>
+            </html>
+        `);
+    });
+});
+
+// LOCKDOWN: Apply authentication to ALL routes after this point
+// BUT exclude monitoring API routes and certain public routes to allow dashboard to work
+app.use((req, res, next) => {
+    // Skip auth for monitoring API routes
+    if (req.path.startsWith('/api/monitoring/')) {
+        return next();
+    }
+    // Skip auth for ROI config GET (needed for admin settings page)
+    if (req.path === '/api/roi/config' && req.method === 'GET') {
+        return next();
+    }
+    // Skip auth for session info endpoint
+    if (req.path === '/api/session-info') {
+        return next();
+    }
+    // Apply auth for all other routes
+    checkAuth(req, res, next);
+});
 
 // Password change page
 app.get('/change-password', (req, res) => {
@@ -1838,121 +1674,7 @@ const checkVdpExpertise = ($) => {
     }
     return results;
 };
-
-// OEM Incentive Compliance Test
-async function runIncentiveComplianceTest(driver, url, testName) {
-    const result = {
-        score: 0,
-        details: '',
-        recommendations: []
-    };
-
-    try {
-        if (!global.oemIncentives || !global.oemIncentives.data || global.oemIncentives.data.length === 0) {
-            result.score = 5;
-            result.details = 'No OEM incentives uploaded for comparison';
-            return result;
-        }
-
-        switch (testName) {
-            case 'Current Incentives Display':
-                // Check if inventory pages show incentives
-                const { IncentiveChecker } = require('./lib/incentive-checker');
-                const checker = new IncentiveChecker(url, global.oemIncentives.data);
-                const checkResults = await checker.runCheck();
-                
-                if (checkResults.overall === 'excellent') {
-                    result.score = 5;
-                    result.details = `Excellent: ${checkResults.complianceScore}% of vehicles display current incentives`;
-                } else if (checkResults.overall === 'good') {
-                    result.score = 4;
-                    result.details = `Good: ${checkResults.complianceScore}% of vehicles display current incentives`;
-                    result.recommendations.push('Ensure all inventory pages display current incentives');
-                } else if (checkResults.overall === 'needs_improvement') {
-                    result.score = 3;
-                    result.details = `Needs Improvement: Only ${checkResults.complianceScore}% of vehicles display incentives`;
-                    result.recommendations.push('Many vehicles missing incentive information');
-                } else {
-                    result.score = 2;
-                    result.details = `Poor: Only ${checkResults.complianceScore}% compliance with incentive display`;
-                    result.recommendations.push('Critical: Most inventory missing current OEM incentives');
-                }
-                
-                // Store detailed results for report
-                result.incentiveDetails = checkResults;
-                break;
-
-            case 'Incentive Accuracy':
-                // Check if displayed incentives match current OEM programs
-                await driver.get(url);
-                const pageSource = await driver.getPageSource();
-                
-                let accurateCount = 0;
-                let totalChecked = 0;
-                
-                // Sample check for incentive amounts
-                for (const incentive of global.oemIncentives.data.slice(0, 5)) {
-                    const amount = incentive.Amount || incentive.amount || incentive['Amount/Rate'];
-                    if (amount && pageSource.includes(amount)) {
-                        accurateCount++;
-                    }
-                    totalChecked++;
-                }
-                
-                const accuracy = totalChecked > 0 ? (accurateCount / totalChecked) * 100 : 0;
-                
-                if (accuracy >= 80) {
-                    result.score = 5;
-                    result.details = 'Incentive amounts match current OEM programs';
-                } else if (accuracy >= 60) {
-                    result.score = 3;
-                    result.details = 'Some incentive amounts may be outdated';
-                    result.recommendations.push('Update incentive amounts to match current programs');
-                } else {
-                    result.score = 2;
-                    result.details = 'Incentive information appears outdated';
-                    result.recommendations.push('Urgently update all incentive information');
-                }
-                break;
-
-            case 'Disclaimer Compliance':
-                // Check for required disclaimers
-                await driver.get(url);
-                const pageText = await driver.executeScript('return document.body.innerText;');
-                const lowerPageText = pageText.toLowerCase();
-                
-                const requiredTerms = ['expires', 'qualified buyers', 'see dealer', 'details', 'restrictions'];
-                const foundTerms = requiredTerms.filter(term => lowerPageText.includes(term));
-                
-                if (foundTerms.length >= 4) {
-                    result.score = 5;
-                    result.details = 'All required disclaimer language present';
-                } else if (foundTerms.length >= 2) {
-                    result.score = 3;
-                    result.details = 'Some disclaimer language missing';
-                    result.recommendations.push('Add complete disclaimer text for incentives');
-                } else {
-                    result.score = 1;
-                    result.details = 'Missing required disclaimer language';
-                    result.recommendations.push('Add disclaimer: expiration dates, qualified buyers, restrictions');
-                }
-                break;
-
-            default:
-                result.score = 0;
-                result.details = 'Unknown incentive test';
-        }
-    } catch (error) {
-        console.error(`Incentive test error for ${testName}:`, error);
-        result.score = 0;
-        result.details = `Error: ${error.message}`;
-        result.recommendations.push('Unable to verify incentive compliance');
-    }
-
-    return result;
-}
-
-// 8-Category Test System (9 with optional OEM Incentives)
+// 8-Category Test System
 const testCategories = [
     { name: 'Basic Connectivity', weight: 0.12 },
     { name: 'Performance Testing', weight: 0.18 },
@@ -1966,7 +1688,7 @@ const testCategories = [
 
 // Main audit endpoint
 app.post('/api/audit', async (req, res) => {
-    const { domain, includeIncentiveCheck } = req.body;
+    const { domain } = req.body;
     
     if (!domain) {
         return res.status(400).json({ error: 'Domain is required' });
@@ -1983,12 +1705,11 @@ app.post('/api/audit', async (req, res) => {
         progress: 0,
         startTime,
         results: {},
-        overallScore: 0,
-        includeIncentiveCheck
+        overallScore: 0
     });
 
     // Start audit in background
-    runAudit(auditId, domain, includeIncentiveCheck).catch(error => {
+    runAudit(auditId, domain).catch(error => {
         console.error('Audit failed:', error);
         const audit = auditResults.get(auditId);
         if (audit) {
@@ -2017,7 +1738,7 @@ app.get('/api/audits', (req, res) => {
     res.json(auditHistory);
 });
 
-async function runAudit(auditId, domain, includeIncentiveCheck = false) {
+async function runAudit(auditId, domain) {
     const audit = auditResults.get(auditId);
     let driver;
     
@@ -2040,16 +1761,8 @@ async function runAudit(auditId, domain, includeIncentiveCheck = false) {
 
         let totalScore = 0;
         let completedTests = 0;
-        
-        // Run standard categories
-        const categoriesToRun = [...testCategories];
-        
-        // Add incentive check if requested and incentives are available
-        if (includeIncentiveCheck && global.oemIncentives && global.oemIncentives.data.length > 0) {
-            categoriesToRun.push({ name: 'OEM Incentive Compliance', weight: 0.10 });
-        }
 
-        for (const category of categoriesToRun) {
+        for (const category of testCategories) {
             updateProgress(auditId, `Running ${category.name}...`);
             
             const categoryResult = await runCategoryTests(driver, url, category.name);
@@ -2058,7 +1771,7 @@ async function runAudit(auditId, domain, includeIncentiveCheck = false) {
             totalScore += categoryResult.score * category.weight;
             completedTests++;
             
-            const progress = (completedTests / categoriesToRun.length) * 100;
+            const progress = (completedTests / testCategories.length) * 100;
             audit.progress = Math.round(progress);
         }
 
@@ -2140,8 +1853,6 @@ async function runIndividualTest(driver, url, testName, category) {
             return await runBrandComplianceTest(driver, url, testName);
         case 'Lead Generation':
             return await runLeadGenerationTest(driver, url, testName);
-        case 'OEM Incentive Compliance':
-            return await runIncentiveComplianceTest(driver, url, testName);
         default:
             throw new Error(`Unknown category: ${category}`);
     }
@@ -3246,8 +2957,7 @@ function getTestsForCategory(categoryName) {
         'Content Analysis': ['Inventory Visibility', 'Contact Information', 'Business Hours', 'Specials Display'],
         'Technical Validation': ['Link Checking', 'Image Optimization', 'JavaScript Errors', 'CSS Validation'],
         'Brand Compliance': ['Manufacturer Guidelines', 'Legal Requirements', 'Pricing Compliance', 'Logo Usage'],
-        'Lead Generation': ['Contact Forms', 'Call-to-Action Buttons', 'Chat Integration', 'Conversion Tracking'],
-        'OEM Incentive Compliance': ['Current Incentives Display', 'Incentive Accuracy', 'Disclaimer Compliance']
+        'Lead Generation': ['Contact Forms', 'Call-to-Action Buttons', 'Chat Integration', 'Conversion Tracking']
     };
     
     return testMap[categoryName] || [];
@@ -3419,29 +3129,9 @@ app.get('/website-audit', (req, res) => {
     res.render('index-new.html');
 });
 
-// Lead performance tool - Standalone Dealers (Primary)
+// Lead performance tool
 app.get('/lead-analysis', (req, res) => {
-    res.render('lead-performance-standalone.html');
-});
-
-// Lead performance tool - Network Analysis (Secondary)
-app.get('/lead-analysis-network', (req, res) => {
     res.render('lead-performance.html');
-});
-
-// ROI Calculator - Standalone page for both single and network dealers
-app.get('/roi-calculator', (req, res) => {
-    res.render('roi-calculator.html');
-});
-
-// Data Security Information Page
-app.get('/data-security', (req, res) => {
-    res.render('data-security.html');
-});
-
-// OEM Incentives Manager (Admin Only)
-app.get('/oem-incentives', requireAdmin, (req, res) => {
-    res.render('oem-incentives.html');
 });
 
 // Combined insights
@@ -3467,12 +3157,6 @@ app.get('/audit', (req, res) => {
 });
 
 app.post('/audit', async (req, res) => {
-    console.log('[AUDIT POST] Request received:', {
-        body: req.body,
-        headers: req.headers,
-        session: req.session
-    });
-    
     let siteUrl = req.body.url;
     const auditType = req.body.auditType || 'comprehensive';
     const customPages = req.body.customPages || [];
@@ -3643,6 +3327,39 @@ app.post('/audit', async (req, res) => {
             // Run appropriate audit based on type
             if (auditType === 'seo') {
                 auditResults = await runSEOAudit(siteUrl, homepageSoup);
+            } else if (auditType === 'deep-seo') {
+                // Run Deep SEO Audit
+                console.log('[Deep SEO Audit] Starting comprehensive SEO analysis...');
+                const DeepSEOAuditor = require('./lib/deep-seo-audit');
+                const deepSeoAuditor = new DeepSEOAuditor();
+                
+                // Run deep SEO audit
+                const deepSeoResults = await deepSeoAuditor.runDeepSEOAudit(siteUrl);
+                
+                // Transform results to match existing format
+                auditResults = {
+                    url: siteUrl,
+                    domain: new URL(siteUrl).hostname,
+                    brand: detectBrand(homepageSoup, siteUrl),
+                    timestamp: deepSeoResults.timestamp,
+                    auditType: 'deep-seo',
+                    overallScore: deepSeoResults.overallScore,
+                    executionTime: deepSeoResults.executionTime,
+                    categories: Object.entries(deepSeoResults.categories).map(([name, data]) => ({
+                        name: name,
+                        score: Math.round((data.score / data.maxScore) * 5),
+                        maxScore: 5,
+                        weight: data.weight,
+                        icon: data.icon,
+                        description: data.description,
+                        testsCompleted: data.tests.length,
+                        tests: data.tests
+                    })),
+                    issues: [...deepSeoResults.criticalIssues, ...deepSeoResults.warnings],
+                    opportunities: deepSeoResults.opportunities,
+                    technicalDetails: deepSeoResults.technicalDetails,
+                    deepSeoAnalysis: true
+                };
             } else {
                 auditResults = await runComprehensiveAudit(siteUrl, homepageSoup);
             }
@@ -3654,9 +3371,9 @@ app.post('/audit', async (req, res) => {
         // Run page-specific tests based on audit type (skip for SEO-only audits)
         auditResults.pageSpecificResults = {};
         
-        if (auditType === 'seo') {
-            // Skip page-specific tests for SEO-only audits
-            console.log('[SEO Audit] Skipping page-specific tests - SEO analysis only');
+        if (auditType === 'seo' || auditType === 'deep-seo') {
+            // Skip page-specific tests for SEO audits
+            console.log(`[${auditType === 'deep-seo' ? 'Deep SEO' : 'SEO'} Audit] Skipping page-specific tests - SEO analysis only`);
         } else if (auditType === 'comprehensive' || (auditType === 'custom' && customPages.includes('vdp'))) {
             if (discoveredPages.vdp) {
                 try {
@@ -3728,20 +3445,24 @@ app.post('/audit', async (req, res) => {
         // Store audit type for reporting
         auditResults.auditType = auditType;
         auditResults.auditDepth = auditType === 'seo' ? 'SEO Analysis Only' : 
+                                  auditType === 'deep-seo' ? 'Deep SEO Site-Wide Analysis' :
                                   auditType === 'comprehensive' ? 'Homepage + VDP + Service + Inventory' : 
                                   `Homepage + ${customPages.join(' + ')}`;
         
-        // Generate enhanced recommendations
-        const { generateEnhancedRecommendations, generateImplementationRoadmap, calculatePotentialROI } = require('./lib/enhanced-recommendations');
-        
-        // Get enhanced recommendations based on issues found
-        auditResults.enhancedRecommendations = generateEnhancedRecommendations(auditResults.issues);
-        
-        // Generate implementation roadmap
-        auditResults.implementationRoadmap = generateImplementationRoadmap(auditResults.enhancedRecommendations);
-        
-        // Calculate potential ROI
-        auditResults.potentialROI = calculatePotentialROI(auditResults.enhancedRecommendations);
+        // Skip enhanced recommendations for deep SEO audits (they have their own)
+        if (auditType !== 'deep-seo') {
+            // Generate enhanced recommendations
+            const { generateEnhancedRecommendations, generateImplementationRoadmap, calculatePotentialROI } = require('./lib/enhanced-recommendations');
+            
+            // Get enhanced recommendations based on issues found
+            auditResults.enhancedRecommendations = generateEnhancedRecommendations(auditResults.issues);
+            
+            // Generate implementation roadmap
+            auditResults.implementationRoadmap = generateImplementationRoadmap(auditResults.enhancedRecommendations);
+            
+            // Calculate potential ROI
+            auditResults.potentialROI = calculatePotentialROI(auditResults.enhancedRecommendations);
+        }
         
         // Store audit data for correlation with lead performance
         auditResults.correlationData = {
@@ -3750,27 +3471,6 @@ app.post('/audit', async (req, res) => {
             score: auditResults.overallScore,
             timestamp: new Date().toISOString()
         };
-        
-        // Generate predictive heatmap for homepage
-        try {
-            console.log('[AUDIT] Generating predictive heatmap...');
-            const heatmapGenerator = new PredictiveHeatmapGenerator();
-            auditResults.heatmap = await heatmapGenerator.generateHeatmap(siteUrl, brand);
-            
-            if (auditResults.heatmap.success) {
-                console.log('[AUDIT] Heatmap generated successfully');
-                // Add heatmap insights to the audit
-                auditResults.heatmapInsights = auditResults.heatmap.insights;
-            } else {
-                console.log('[AUDIT] Heatmap generation failed:', auditResults.heatmap.error);
-            }
-        } catch (heatmapError) {
-            console.error('[AUDIT] Error generating heatmap:', heatmapError);
-            auditResults.heatmap = {
-                success: false,
-                error: heatmapError.message
-            };
-        }
         
         // If contact page found, check it for business hours and contact info
         if (discoveredPages.contact) {
@@ -3819,8 +3519,12 @@ app.post('/audit', async (req, res) => {
             auditResults.issues = [];
         }
         
-        // Render appropriate report based on site type
-        if (siteType === 'group') {
+        // Render appropriate report based on site type and audit type
+        if (auditType === 'deep-seo') {
+            // Use specialized deep SEO report template
+            const html = await ejs.renderFile(path.join(__dirname, 'views', 'reports-deep-seo.html'), { results: auditResults });
+            res.send(html);
+        } else if (siteType === 'group') {
             // Force EJS to process the template
             const html = await ejs.renderFile(path.join(__dirname, 'views', 'reports-group.html'), { results: auditResults });
             res.send(html);
@@ -3874,53 +3578,7 @@ app.post('/audit', async (req, res) => {
 });
 
 // ============= ROI CONFIGURATION API ENDPOINTS (Admin Only) =============
-
-// Get ROI configuration
-app.get('/api/roi/config', async (req, res) => {
-    try {
-        const configPath = path.join(__dirname, 'data', 'roi-config.json');
-        
-        // Check if config file exists
-        if (fs.existsSync(configPath)) {
-            const config = JSON.parse(await fs.promises.readFile(configPath, 'utf8'));
-            res.json(config);
-        } else {
-            // Return default config if file doesn't exist
-            const defaultConfig = {
-                avgMonthlyLeads: 100,
-                avgLeadValue: 500,
-                conversionRate: 15,
-                avgDealProfit: 3000,
-                websiteImprovementImpact: 20
-            };
-            res.json(defaultConfig);
-        }
-    } catch (error) {
-        console.error('Error loading ROI config:', error);
-        res.status(500).json({ error: 'Failed to load ROI configuration' });
-    }
-});
-
-// Update ROI configuration
-app.post('/api/roi/config', async (req, res) => {
-    try {
-        const configPath = path.join(__dirname, 'data', 'roi-config.json');
-        const dataDir = path.dirname(configPath);
-        
-        // Ensure data directory exists
-        if (!fs.existsSync(dataDir)) {
-            await fs.promises.mkdir(dataDir, { recursive: true });
-        }
-        
-        // Save the new configuration
-        await fs.promises.writeFile(configPath, JSON.stringify(req.body, null, 2));
-        
-        res.json({ success: true, message: 'ROI configuration updated successfully' });
-    } catch (error) {
-        console.error('Error saving ROI config:', error);
-        res.status(500).json({ error: 'Failed to save ROI configuration' });
-    }
-});
+// MOVED TO LINE 3092 - BEFORE 404 HANDLER
 
 // ============= MONITORING SYSTEM API ENDPOINTS =============
 
@@ -3936,30 +3594,6 @@ app.get('/api/user/current', (req, res) => {
     } else {
         res.status(401).json({ error: 'Not authenticated' });
     }
-});
-
-// OEM Incentives API (Admin Only)
-app.post('/api/incentives/upload', requireAdmin, async (req, res) => {
-    try {
-        const { incentives } = req.body;
-        
-        // For now, we'll store in memory or you can add database storage
-        // In production, you'd want to store this in MongoDB
-        global.oemIncentives = {
-            data: incentives,
-            uploadDate: new Date(),
-            uploadedBy: req.session?.user?.email || 'anonymous'
-        };
-        
-        res.json({ success: true, count: incentives.length });
-    } catch (error) {
-        console.error('Error uploading incentives:', error);
-        res.status(500).json({ error: 'Failed to upload incentives' });
-    }
-});
-
-app.get('/api/incentives/current', (req, res) => {
-    res.json(global.oemIncentives || { data: [], uploadDate: null });
 });
 
 
@@ -4242,15 +3876,9 @@ app.put('/api/admin/monitoring-config', requireAdmin, (req, res) => {
 
 
 
-// Initialize monitoring scheduler with error handling
-let monitoringScheduler;
-try {
-    const MonitoringScheduler = require('./lib/monitoring-scheduler');
-    monitoringScheduler = new MonitoringScheduler(getMonitoringEngine());
-} catch (error) {
-    console.error('Failed to initialize monitoring scheduler:', error);
-    monitoringScheduler = null;
-}
+// Initialize monitoring scheduler
+const MonitoringScheduler = require('./lib/monitoring-scheduler');
+const monitoringScheduler = new MonitoringScheduler(getMonitoringEngine());
 
 // Catch direct access to view files and render them properly
 app.use((req, res, next) => {
@@ -4280,40 +3908,6 @@ app.use((req, res, next) => {
     next();
 });
 
-// Override CSP headers one more time before sending response
-app.use((req, res, next) => {
-    const originalSend = res.send;
-    const originalJson = res.json;
-    const originalRender = res.render;
-    
-    const overrideCSP = () => {
-        res.removeHeader('Content-Security-Policy');
-        res.removeHeader('content-security-policy');
-        res.setHeader('Content-Security-Policy', 
-            "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; " +
-            "script-src * 'unsafe-inline' 'unsafe-eval'; " +
-            "style-src * 'unsafe-inline';"
-        );
-    };
-    
-    res.send = function(...args) {
-        overrideCSP();
-        return originalSend.apply(res, args);
-    };
-    
-    res.json = function(...args) {
-        overrideCSP();
-        return originalJson.apply(res, args);
-    };
-    
-    res.render = function(...args) {
-        overrideCSP();
-        return originalRender.apply(res, args);
-    };
-    
-    next();
-});
-
 // Add 404 handler for debugging
 app.use((req, res, next) => {
     console.log(`[404 DEBUG] Unmatched route: ${req.method} ${req.path}`);
@@ -4324,9 +3918,9 @@ app.use((req, res, next) => {
     res.status(404).send(`Cannot ${req.method} ${req.path}`);
 });
 
-// Start server - bind to 0.0.0.0 for Railway
-app.listen(PORT, '0.0.0.0', async () => {
-    console.log(`Auto Audit Pro Server v2.6.7 running on port ${PORT}`);
+// Start server
+app.listen(PORT, async () => {
+    console.log(`Auto Audit Pro Server v2.6.3 running on port ${PORT}`);
     console.log(`Features:`);
     console.log(`   - 8-Category Testing System`);
     console.log(`   - Real Google PageSpeed API Integration`);

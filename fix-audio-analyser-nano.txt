@@ -1,0 +1,59 @@
+FIX AUDIO ANALYSER - NANO COMMANDS
+===================================
+
+ssh root@146.190.39.214
+cd /var/www/smart-doc-v2
+nano templates/voice-handsfree.html
+
+1. GO TO initAudio function (around line 247):
+   Ctrl+_
+   247
+   Enter
+
+2. FIND THIS LINE (around line 264):
+   mediaRecorder = new MediaRecorder(stream);
+
+3. MOVE THIS LINE UP to RIGHT AFTER getting the stream (around line 256).
+   Cut it (Ctrl+K) and paste it (Ctrl+U) after:
+   console.log('Got media stream');
+   status.textContent = 'Microphone ready';
+
+4. FIND THE ANALYSER SETUP (around line 270):
+   microphone = audioContext.createMediaStreamSource(stream);
+
+5. REPLACE THAT LINE WITH:
+   const analysisStream = stream.clone();
+   microphone = audioContext.createMediaStreamSource(analysisStream);
+
+6. GO TO monitorAudioLevels function (around line 301):
+   Ctrl+_
+   301
+   Enter
+
+7. FIND THE checkAudioLevel function inside it (around line 309)
+
+8. AFTER THIS LINE (around line 317):
+   const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+
+9. ADD THESE LINES:
+   const sum = dataArray.reduce((a, b) => a + b, 0);
+   
+   // If analyser is broken (returns 0), disable auto-stop
+   if (sum === 0 && mediaRecorder && mediaRecorder.state === 'recording') {
+       silenceDuration = 0;
+       silenceProgress.style.width = '0%';
+   }
+
+10. SAVE AND EXIT:
+    Ctrl+X
+    Y
+    Enter
+
+11. RESTART:
+    pm2 restart smart-doc-v2
+
+This fix:
+- Moves MediaRecorder creation before analyser (like test page)
+- Uses cloned stream for analyser to prevent interference  
+- Detects when analyser is broken and disables auto-stop
+- Keeps hands-free mode working when analyser works

@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dealer Lead Analysis - Auto Audit Pro Suite</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary-purple: #6B46C1;
+            --secondary-purple: #9333EA;
+            --accent-green: #10B981;
+            --accent-red: #EF4444;
+    <link rel="stylesheet" href="/css/navigation.css">
+            --dark-bg: #1F2937;
+        }
+
+        body {
+            background: #F3F4F6;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Navigation Bar */
+        .suite-nav {
+            background: var(--dark-bg);
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .suite-nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .suite-brand {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            margin: 0;
+        }
+
+        .nav-links a {
+            color: #9CA3AF;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: white;
+        }
+
+        /* Main Content */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .page-header {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .page-header h1 {
+            color: var(--dark-bg);
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Upload Card */
+        .upload-card {
+            background: white;
+            border: 2px dashed #CBD5E1;
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 2rem;
+        }
+
+        .upload-card:hover {
+            border-color: var(--primary-purple);
+            background: #F9FAFB;
+        }
+
+        .upload-card.dragover {
+            border-color: var(--primary-purple);
+            background: #F3F0FF;
+        }
+
+        .upload-card i {
+            font-size: 3rem;
+            color: var(--primary-purple);
+            margin-bottom: 1rem;
+        }
+
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--dark-bg);
+            margin: 0;
+        }
+
+        /* Charts */
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            height: 400px;
+        }
+
+        /* Analysis Section */
+        .analysis-section {
+            display: none;
+        }
+
+        .analysis-section.active {
+            display: block;
+        }
+
+        /* Format Help */
+        .format-help {
+            background: #F0F9FF;
+            border-left: 4px solid #3B82F6;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            border-radius: 4px;
+        }
+
+        .format-help h5 {
+            color: #1E40AF;
+            margin-bottom: 0.5rem;
+        }
+
+        .format-help code {
+            background: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        
+        /* Print Styles */
+        @media print {
+            .suite-nav,
+            .page-header .btn,
+            .page-header button,
+            .page-header a,
+            .upload-card,
+            .text-center.mt-4,
+            footer {
+                display: none !important;
+            }
+            
+            body {
+                background: white;
+                padding: 20px;
+            }
+            
+            .main-container {
+                max-width: 100%;
+                padding: 0;
+            }
+            
+            .chart-container {
+                break-inside: avoid;
+                height: 300px !important;
+            }
+            
+            .metric-card {
+                break-inside: avoid;
+            }
+            
+            .page-header h1 {
+                color: black;
+                font-size: 24pt;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="suite-nav">
+        <div class="container">
+            <a href="/" class="suite-brand">Auto Audit Pro Suite</a>
+            <div class="nav-links">
+                <a href="/website-audit">Website Analysis</a>
+                <a href="/lead-analysis" class="active">Lead Performance</a>
+                <a href="/monitoring">Monitoring</a>
+                <a href="/definitions">Definitions</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1>Dealer Lead Analysis</h1>
+            <p>Upload and analyze your individual dealer lead reports</p>
+            <div class="mt-3">
+                <a href="/lead-analysis-network" class="btn btn-outline-primary">
+                    <i class="fas fa-network-wired"></i> Switch to Network Analysis
+                </a>
+                <button class="btn btn-outline-secondary ms-2" onclick="showSecuritySettings()">
+                    <i class="fas fa-shield-alt"></i> Security Settings
+                </button>
+                <button class="btn btn-outline-info ms-2" onclick="showFileFormatHelp()">
+                    <i class="fas fa-info-circle"></i> File Format Help
+                </button>
+            </div>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="upload-card" id="uploadCard">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <h3>Upload Dealer Lead Data</h3>
+            <p>Drag & drop your Excel/CSV file here or click to browse</p>
+            <p class="text-muted small">Supports .xlsx, .xlsm, .xls, and .csv files</p>
+            <input type="file" id="fileInput" accept=".csv,.xlsx,.xlsm,.xls" style="display: none;">
+        </div>
+
+        <!-- Analysis Section -->
+        <div class="analysis-section" id="analysisSection">
+            <!-- Dealer Info -->
+            <div class="dealer-info mb-4">
+                <h2 id="dealerName">-</h2>
+                <p class="text-muted">Analysis Period: <span id="analysisPeriod">-</span></p>
+            </div>
+
+            <!-- Key Metrics -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <h4>Total Leads</h4>
+                    <p class="metric-value" id="totalLeads">-</p>
+                    <p class="text-muted small">All lead types</p>
+                </div>
+                <div class="metric-card">
+                    <h4>Your Conversion Rate</h4>
+                    <p class="metric-value" id="conversionRate">-</p>
+                    <p class="text-muted small">Sales at your dealership</p>
+                </div>
+                <div class="metric-card">
+                    <h4>Lost to Competition</h4>
+                    <p class="metric-value" id="lostToCompetitionRate">-</p>
+                    <p class="text-muted small">Sales lost to others</p>
+                </div>
+                <div class="metric-card">
+                    <h4>Market Conversion</h4>
+                    <p class="metric-value" id="marketConversionRate">-</p>
+                    <p class="text-muted small">Total market sales</p>
+                </div>
+                <div class="metric-card">
+                    <h4>Response Rate</h4>
+                    <p class="metric-value" id="responseRate">-</p>
+                    <p class="text-muted small">Leads responded to</p>
+                </div>
+                <div class="metric-card">
+                    <h4>Avg Response Time</h4>
+                    <p class="metric-value" id="avgResponseTime">-</p>
+                    <p class="text-muted small">In minutes</p>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="chart-container">
+                        <canvas id="leadSourceChart"></canvas>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="chart-container">
+                        <canvas id="responseTimeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lead Type Breakdown -->
+            <div class="chart-container">
+                <h4>Lead Type Performance</h4>
+                <canvas id="leadTypeChart"></canvas>
+            </div>
+
+            <!-- Export Options -->
+            <div class="text-center mt-4">
+                <button class="btn btn-primary" onclick="window.print()">
+                    <i class="fas fa-print"></i> Print Report
+                </button>
+                <button class="btn btn-primary" onclick="exportReport()">
+                    <i class="fas fa-download"></i> Export Data
+                </button>
+                <button class="btn btn-success" onclick="openROICalculator()">
+                    <i class="fas fa-calculator"></i> ROI Calculator
+                </button>
+                <button class="btn btn-outline-primary" onclick="resetAnalysis()">
+                    <i class="fas fa-redo"></i> Upload New File
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lead Performance JavaScript for Standalone Dealers -->
+    <script src="/js/lead-performance-standalone.js?v=2.6.4"></script>
+
+    <!-- File Format Help Modal -->
+    <div class="modal fade" id="formatModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-file-excel text-success"></i> Expected File Format
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Your Excel/CSV file should follow this structure:</p>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <tr>
+                                <td><strong>Cell A1</strong></td>
+                                <td>Dealer PA Code (e.g., <code>F08684</code> or <code>L12345</code>)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Cell C1</strong></td>
+                                <td>Lead Performance Report</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Row 2</strong></td>
+                                <td>Column headers</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Row 3+</strong></td>
+                                <td>Lead data (all types: Form, Phone, Chat)</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-lightbulb"></i> <strong>Tip:</strong> The file can be a single dealer export from your CRM or lead management system.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Settings Modal -->
+    <div class="modal fade" id="securityModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-shield-alt text-success"></i> Data Security Settings
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Security Status -->
+                    <div class="alert alert-success">
+                        <h6 class="alert-heading">Your Data is Protected</h6>
+                        <ul class="mb-0">
+                            <li><strong>100% Client-Side Processing</strong> - No customer data sent to servers</li>
+                            <li><strong>Automatic Cleanup</strong> - Data cleared when browser closes</li>
+                            <li><strong>7-Day Expiration</strong> - Old data automatically removed</li>
+                            <li><strong>No Account Required</strong> - Use tools anonymously</li>
+                        </ul>
+                    </div>
+
+                    <!-- Settings -->
+                    <div class="card">
+                        <div class="card-body">
+                            <h6 class="card-title">Privacy Preferences</h6>
+                            
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="keepDataOnClose" onchange="updateSecuritySettings()">
+                                <label class="form-check-label" for="keepDataOnClose">
+                                    <strong>Keep data when closing browser</strong>
+                                    <br>
+                                    <small class="text-muted">By default, all data is cleared when you close your browser for maximum security</small>
+                                </label>
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="extendDataRetention" onchange="updateSecuritySettings()">
+                                <label class="form-check-label" for="extendDataRetention">
+                                    <strong>Extend data retention to 30 days</strong>
+                                    <br>
+                                    <small class="text-muted">Default is 7 days for enhanced security</small>
+                                </label>
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="rememberSettings" onchange="updateSecuritySettings()">
+                                <label class="form-check-label" for="rememberSettings">
+                                    <strong>Remember my preferences</strong>
+                                    <br>
+                                    <small class="text-muted">Save these settings for next time</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Management -->
+                    <div class="card mt-3">
+                        <div class="card-body">
+                            <h6 class="card-title">Data Management</h6>
+                            <p class="text-muted">Current data stored: <span id="dataSize">Calculating...</span></p>
+                            <button class="btn btn-danger" onclick="clearAllData()">
+                                <i class="fas fa-trash"></i> Clear All Data Now
+                            </button>
+                            <button class="btn btn-secondary ms-2" onclick="exportAllData()">
+                                <i class="fas fa-download"></i> Export My Data
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Info Link -->
+                    <div class="text-center mt-3">
+                        <a href="/data-security" target="_blank" class="text-decoration-none">
+                            <i class="fas fa-external-link-alt"></i> Learn more about our security practices
+                        </a>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="saveSecuritySettings()">Save Settings</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Bootstrap JS for modal -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Security Settings Functions -->
+    <script>
+        function showFileFormatHelp() {
+            const modal = new bootstrap.Modal(document.getElementById('formatModal'));
+            modal.show();
+        }
+
+        function showSecuritySettings() {
+            // Load current settings
+            document.getElementById('keepDataOnClose').checked = localStorage.getItem('keepDataOnClose') === 'true';
+            document.getElementById('extendDataRetention').checked = localStorage.getItem('extendDataRetention') === 'true';
+            document.getElementById('rememberSettings').checked = localStorage.getItem('rememberSettings') === 'true';
+            
+            // Calculate data size
+            let totalSize = 0;
+            for (let key in localStorage) {
+                if (localStorage.hasOwnProperty(key)) {
+                    totalSize += localStorage[key].length + key.length;
+                }
+            }
+            document.getElementById('dataSize').textContent = 
+                totalSize > 1024 ? `${(totalSize/1024).toFixed(1)} KB` : `${totalSize} bytes`;
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('securityModal'));
+            modal.show();
+        }
+
+        function updateSecuritySettings() {
+            // Update in real-time if remember is checked
+            if (document.getElementById('rememberSettings').checked) {
+                saveSecuritySettings();
+            }
+        }
+
+        function saveSecuritySettings() {
+            localStorage.setItem('keepDataOnClose', document.getElementById('keepDataOnClose').checked);
+            localStorage.setItem('extendDataRetention', document.getElementById('extendDataRetention').checked);
+            localStorage.setItem('rememberSettings', document.getElementById('rememberSettings').checked);
+            
+            // Show confirmation
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = 'Settings Saved!';
+            btn.classList.add('btn-success');
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.classList.remove('btn-success');
+            }, 2000);
+        }
+
+        function clearAllData() {
+            if (confirm('This will clear all lead data. Are you sure?')) {
+                // Clear lead data but keep settings
+                const settings = {
+                    keepDataOnClose: localStorage.getItem('keepDataOnClose'),
+                    extendDataRetention: localStorage.getItem('extendDataRetention'),
+                    rememberSettings: localStorage.getItem('rememberSettings')
+                };
+                
+                // Clear storage
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                // Restore settings
+                for (let key in settings) {
+                    if (settings[key]) localStorage.setItem(key, settings[key]);
+                }
+                
+                alert('All lead data has been cleared. The page will reload.');
+                location.reload();
+            }
+        }
+
+        function exportAllData() {
+            const data = {
+                exportDate: new Date().toISOString(),
+                localStorage: {},
+                sessionStorage: {},
+                currentDealerData: window.dealerData || {}
+            };
+            
+            // Export localStorage
+            for (let key in localStorage) {
+                if (localStorage.hasOwnProperty(key) && !key.includes('password')) {
+                    data.localStorage[key] = localStorage[key];
+                }
+            }
+            
+            // Export sessionStorage
+            for (let key in sessionStorage) {
+                if (sessionStorage.hasOwnProperty(key) && !key.includes('password')) {
+                    data.sessionStorage[key] = sessionStorage[key];
+                }
+            }
+            
+            // Download as JSON
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `lead-data-export-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+
+    <!-- Footer -->
+    <footer style="background-color: #1F2937; color: #9CA3AF; padding: 2rem 0; margin-top: 4rem;">
+        <div class="container text-center">
+            <p class="mb-1">© 2025 Auto Audit Pro Suite. All Rights Reserved.</p>
+            <p class="mb-1">Professional Dealership Website Analysis Platform</p>
+            <p class="mb-0">
+                <a href="/privacy" style="color: #9CA3AF; text-decoration: none;">Privacy Policy</a> | 
+                <a href="/terms" style="color: #9CA3AF; text-decoration: none;">Terms of Service</a> | 
+                <a href="/contact" style="color: #9CA3AF; text-decoration: none;">Contact</a>
+            </p>
+        </div>
+    </footer>
+</body>
+</html>

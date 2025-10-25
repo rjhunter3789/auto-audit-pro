@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Auto Audit Pro Suite</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary-purple: #6B46C1;
+            --secondary-purple: #9333EA;
+            --dark-bg: #1F2937;
+        }
+
+        body {
+    <link rel="stylesheet" href="/css/navigation.css">
+            background: #F3F4F6;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Navigation Bar */
+        .suite-nav {
+            background: var(--dark-bg);
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .suite-nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .suite-brand {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .suite-brand:hover {
+            color: #E5E7EB;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            margin: 0;
+        }
+
+        .nav-links a {
+            color: #9CA3AF;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: white;
+        }
+
+        /* Main Content */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .admin-header {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid var(--primary-purple);
+        }
+
+        .admin-header h1 {
+            color: var(--dark-bg);
+            margin-bottom: 0.5rem;
+        }
+
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .admin-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .admin-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .admin-card .icon {
+            font-size: 2.5rem;
+            color: var(--primary-purple);
+            margin-bottom: 1rem;
+        }
+
+        .admin-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--dark-bg);
+        }
+
+        .admin-card p {
+            color: #6B7280;
+            margin: 0;
+            font-size: 0.95rem;
+        }
+
+        .admin-card.new {
+            border: 2px dashed var(--primary-purple);
+            background: #F9F7FF;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-purple);
+        }
+
+        .stat-card .label {
+            color: #6B7280;
+            font-size: 0.875rem;
+        }
+
+        .logout-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--primary-purple);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: var(--secondary-purple);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="suite-nav">
+        <div class="container">
+            <a href="/" class="suite-brand">Auto Audit Pro Suite</a>
+            <div class="nav-links">
+                <a href="/website-audit">Website Analysis</a>
+                <a href="/lead-analysis">Lead Performance</a>
+                <a href="/monitoring">Monitoring</a>
+                <a href="/definitions">Definitions</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <a href="/api/logout" class="logout-btn">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+
+        <!-- Admin Header -->
+        <div class="admin-header">
+            <h1><i class="fas fa-user-shield"></i> Admin Dashboard</h1>
+            <p class="text-muted mb-0">Manage all aspects of Auto Audit Pro Suite</p>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="value" id="totalAudits">-</div>
+                <div class="label">Total Audits Today</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" id="activeMonitoring">-</div>
+                <div class="label">Active Monitoring</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" id="activeAlerts">-</div>
+                <div class="label">Active Alerts</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" id="systemStatus">OK</div>
+                <div class="label">System Status</div>
+            </div>
+        </div>
+
+        <!-- Admin Features Grid -->
+        <div class="admin-grid">
+            <!-- OEM Incentives -->
+            <a href="/oem-incentives" class="admin-card new">
+                <div class="icon">
+                    <i class="fas fa-tags"></i>
+                </div>
+                <h3>OEM Incentives</h3>
+                <p>Upload and manage manufacturer incentives for compliance auditing</p>
+            </a>
+
+            <!-- Monitoring Settings -->
+            <a href="/admin-settings-direct" class="admin-card">
+                <div class="icon">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <h3>Monitoring Settings</h3>
+                <p>Configure website monitoring alerts and notifications</p>
+            </a>
+
+            <!-- User Management -->
+            <a href="/admin/users" class="admin-card">
+                <div class="icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3>User Management</h3>
+                <p>Manage dealer accounts and permissions</p>
+            </a>
+
+            <!-- ROI Settings -->
+            <a href="/roi-settings" class="admin-card">
+                <div class="icon">
+                    <i class="fas fa-calculator"></i>
+                </div>
+                <h3>ROI Calculator Settings</h3>
+                <p>Configure default values for ROI calculations</p>
+            </a>
+
+            <!-- Audit History -->
+            <a href="/admin/audit-history" class="admin-card">
+                <div class="icon">
+                    <i class="fas fa-history"></i>
+                </div>
+                <h3>Audit History</h3>
+                <p>View all website audits and reports</p>
+            </a>
+
+            <!-- System Logs -->
+            <a href="/admin/logs" class="admin-card">
+                <div class="icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <h3>System Logs</h3>
+                <p>View security events and system logs</p>
+            </a>
+
+            <!-- API Settings -->
+            <a href="/admin/api-settings" class="admin-card">
+                <div class="icon">
+                    <i class="fas fa-key"></i>
+                </div>
+                <h3>API Settings</h3>
+                <p>Manage API keys and integrations</p>
+            </a>
+
+            <!-- Backup/Export -->
+            <a href="/admin/backup" class="admin-card">
+                <div class="icon">
+                    <i class="fas fa-download"></i>
+                </div>
+                <h3>Backup & Export</h3>
+                <p>Export data and create system backups</p>
+            </a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Load dashboard stats
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fetch audit count
+            fetch('/api/audits')
+                .then(res => res.json())
+                .then(data => {
+                    const today = new Date().toDateString();
+                    const todayAudits = data.filter(audit => 
+                        new Date(audit.completedAt).toDateString() === today
+                    ).length;
+                    document.getElementById('totalAudits').textContent = todayAudits;
+                })
+                .catch(err => console.error('Error loading audits:', err));
+
+            // Fetch monitoring profiles
+            fetch('/api/monitoring/profiles')
+                .then(res => res.json())
+                .then(data => {
+                    const activeCount = data.filter(p => p.status === 'active').length;
+                    document.getElementById('activeMonitoring').textContent = activeCount;
+                })
+                .catch(err => console.error('Error loading monitoring:', err));
+
+            // Fetch alerts
+            fetch('/api/monitoring/alerts/recent')
+                .then(res => res.json())
+                .then(data => {
+                    const activeAlerts = data.filter(a => !a.resolved).length;
+                    document.getElementById('activeAlerts').textContent = activeAlerts;
+                })
+                .catch(err => console.error('Error loading alerts:', err));
+        });
+    </script>
+</body>
+</html>

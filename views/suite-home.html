@@ -99,6 +99,9 @@
             box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
             position: relative;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
         }
 
         .tool-card:hover {
@@ -168,6 +171,7 @@
         .tool-features {
             text-align: left;
             margin-bottom: 2rem;
+            flex-grow: 1;
         }
 
         .tool-features li {
@@ -224,6 +228,16 @@
 
         .btn-monitoring:hover {
             background: linear-gradient(135deg, #c0392b 0%, #a02920 100%);
+            transform: translateY(-1px);
+            color: white;
+        }
+
+        .btn-inventory {
+            background: linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%);
+        }
+
+        .btn-inventory:hover {
+            background: linear-gradient(135deg, #7C3AED 0%, #8B5CF6 100%);
             transform: translateY(-1px);
             color: white;
         }
@@ -522,6 +536,25 @@
                 </ul>
                 <a href="/monitoring" class="btn-tool btn-monitoring">
                     <i class="fas fa-desktop"></i> Open Dashboard
+                </a>
+            </div>
+
+            <!-- Inventory Incentive Audit Tool -->
+            <div class="tool-card inventory-audit">
+                <i class="fas fa-car tool-icon"></i>
+                <h2 class="tool-title">Inventory Incentive Audit</h2>
+                <p class="tool-description">
+                    Specialized audit to verify your inventory pages display current OEM incentives correctly
+                </p>
+                <ul class="tool-features">
+                    <li>Automatic Vehicle Page Scanning</li>
+                    <li>OEM Incentive Verification</li>
+                    <li>Compliance Scoring</li>
+                    <li>Missing Incentive Detection</li>
+                    <li>Detailed Compliance Report</li>
+                </ul>
+                <a href="/inventory-incentive-audit" class="btn-tool btn-inventory">
+                    <i class="fas fa-clipboard-check"></i> Check Incentives
                 </a>
             </div>
         </div>
