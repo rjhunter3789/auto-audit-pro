@@ -42,3 +42,19 @@ temp/
 # Chrome driver downloads
 chromedriver*
 drivers/public/uploads/profiles/*
+  # Test files
+  public/test*.txt
+  public/css/test.txt
+  views/test-*.html
+
+  # Runtime data
+  data/monitoring/*.json
+  data/monitoring/*.json.backup
+
+  # Backup directories
+  views_backup/
+  *_backup/
+
+  # Generated files
+  public/heatmaps/
+  EOF
