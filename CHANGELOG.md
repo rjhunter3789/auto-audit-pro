@@ -1,5 +1,68 @@
 # Auto Audit Pro Suite - Changelog & Feature Documentation
 
+## Version 2.7.0 - October 27, 2025 (Lead Generation System)
+
+### 🚀 New Features
+- **Lead Generation System**
+  - Beautiful public homepage showcasing Auto Audit Pro features
+  - Professional lead capture form with dealership information fields
+  - Smart routing: visitors see homepage → lead form → suite access
+  - Email notifications to alerts@autoauditpro.io for new leads
+  - Welcome emails sent to leads upon signup
+  - Session tracking prevents repeated lead forms
+
+- **Lead Management Dashboard**
+  - Admin panel at `/captured-leads` to view all leads
+  - Statistics: total leads, weekly/monthly counts, conversion rates
+  - Search and filter by name, role, date range
+  - Export leads to CSV
+  - Delete individual leads
+  - Direct email links to contact leads
+
+- **User Management Tools**
+  - `check-user-permissions.js` - View and modify user roles
+  - `manage-users.js` - Add/remove users from system
+  - User cleanup: removed test "dealer" user, kept only admin
+
+- **Monitoring Management Scripts**
+  - `remove-monitoring-site.js` - Remove websites from monitoring
+  - `manage-pending-monitoring.js` - Handle pending requests
+  - `fix-monitoring-data.js` - Reset monitoring data
+  - `force-clear-monitoring.js` - Complete system reset
+
+### 🎨 Improvements
+- **Homepage Design**
+  - Hero section with compelling value proposition
+  - Feature cards explaining all capabilities
+  - Mock dashboard screenshot for visual proof
+  - Customer testimonial section
+  - Multiple CTAs throughout page
+  - Professional branding with logo integration
+
+- **Lead Gate Enhancements**
+  - "Already have an account? Login here" link
+  - Form validation and error handling
+  - Benefits reminder on form page
+  - Clean, conversion-focused design
+
+- **Routing Updates**
+  - Public homepage at `/`
+  - Lead gate at `/request-access`
+  - Authenticated users auto-redirect to suite
+  - Admin users bypass lead gate entirely
+
+### 🐛 Bug Fixes
+- Fixed monitoring "PENDING APPROVAL" error
+- Cleaned up null user entries in users.json
+- Updated auth middleware to support public pages
+- Added email transporter initialization for lead notifications
+
+### 📝 Documentation
+- Created comprehensive RECOVERY.md guide
+- Added system recovery procedures
+- Documented all management scripts
+- Listed key file locations and common issues
+
 ## Version 2.6.14 - August 16, 2025 (Session 3 - ROI Calculator & Response Time Fixes)
 
 ### 🚀 New Features

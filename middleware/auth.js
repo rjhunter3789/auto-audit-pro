@@ -21,20 +21,38 @@ function checkAuth(req, res, next) {
         isAdmin: req.session?.isAdmin
     });
     
-    // Allow access to login page and logout
-    if (req.path === '/login' || req.path === '/api/login' || req.path === '/logout') {
-        console.log('[AUTH] Allowing access to login/logout path');
+    // Allow access to login page, logout, lead gate routes, and homepage
+    const publicPaths = [
+        '/',  // Public homepage
+        '/login', 
+        '/api/login', 
+        '/logout',
+        '/request-access',
+        '/api/lead-gate'
+    ];
+    
+    if (publicPaths.includes(req.path)) {
+        console.log('[AUTH] Allowing access to public path:', req.path);
         return next();
     }
     
     // Check if user is authenticated
     if (!req.session || !req.session.authenticated) {
-        console.log('[AUTH] User not authenticated, redirecting to login');
+        console.log('[AUTH] User not authenticated');
+        
+        // For suite access pages, redirect to lead gate
+        if (req.path === '/suite-access' || req.path.startsWith('/website-audit') || req.path.startsWith('/lead-analysis')) {
+            console.log('[AUTH] Redirecting to lead gate for suite access');
+            return res.redirect('/request-access');
+        }
+        
         // API request - return 401
         if (req.path.startsWith('/api/')) {
             return res.status(401).json({ error: 'Authentication required' });
         }
-        // Web request - redirect to login
+        
+        // All other web requests - redirect to login
+        console.log('[AUTH] Redirecting to login');
         return res.redirect('/login');
     }
     

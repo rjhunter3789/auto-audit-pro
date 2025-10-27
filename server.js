@@ -3119,23 +3119,233 @@ function generateAuditId() {
 const { runComprehensiveAudit, runSEOAudit } = require('./lib/audit-tests');
 const { auditVDP, auditServicePage, auditInventoryPage, auditSpecialsPage } = require('./lib/page-specific-tests');
 
-// This shows the main suite landing page
-app.get('/', (req, res) => {
+// Lead gate middleware
+function requireLeadOrAdmin(req, res, next) {
+    // Check if user is admin
+    if (req.session && req.session.isAdmin) {
+        return next();
+    }
+    
+    // Check if user has already filled lead form
+    if (req.session && req.session.leadCaptured) {
+        return next();
+    }
+    
+    // Otherwise, show lead gate
+    res.redirect('/request-access');
+}
+
+// Lead gate page
+app.get('/request-access', (req, res) => {
+    // If admin or already captured, redirect to suite
+    if ((req.session && req.session.isAdmin) || (req.session && req.session.leadCaptured)) {
+        return res.redirect('/');
+    }
+    res.render('lead-gate.html');
+});
+
+// Handle lead gate form submission
+app.post('/api/lead-gate', async (req, res) => {
+    try {
+        const leadData = req.body;
+        
+        // Validate required fields
+        if (!leadData.dealershipName || !leadData.websiteUrl || !leadData.contactName || !leadData.email || !leadData.role) {
+            return res.status(400).json({ error: 'Please fill in all required fields' });
+        }
+        
+        // Add timestamp and ID
+        leadData.id = generateId();
+        leadData.capturedAt = new Date().toISOString();
+        leadData.ipAddress = req.ip;
+        leadData.userAgent = req.headers['user-agent'];
+        
+        // Load existing leads
+        const leadsPath = path.join(__dirname, 'data', 'captured-leads.json');
+        let leads = [];
+        try {
+            const leadsData = await fs.readFile(leadsPath, 'utf8');
+            leads = JSON.parse(leadsData);
+        } catch (error) {
+            // File doesn't exist yet, that's ok
+        }
+        
+        // Add new lead
+        leads.push(leadData);
+        
+        // Save leads
+        await fs.writeFile(leadsPath, JSON.stringify(leads, null, 2));
+        
+        // Mark session as lead captured
+        req.session.leadCaptured = true;
+        req.session.leadEmail = leadData.email;
+        
+        console.log(`[Lead Gate] New lead captured: ${leadData.dealershipName} - ${leadData.email}`);
+        
+        // Initialize email transporter if not exists
+        if (!global.emailTransporter && process.env.SMTP_USER) {
+            const nodemailer = require('nodemailer');
+            try {
+                global.emailTransporter = nodemailer.createTransport({
+                    host: process.env.SMTP_HOST || 'smtp.titan.email',
+                    port: process.env.SMTP_PORT || 587,
+                    secure: false,
+                    auth: {
+                        user: process.env.SMTP_USER,
+                        pass: process.env.SMTP_PASS
+                    }
+                });
+                console.log('[Lead Gate] Email transporter initialized');
+            } catch (error) {
+                console.error('[Lead Gate] Failed to create email transporter:', error);
+            }
+        }
+        
+        // Send email notification if transporter exists
+        if (global.emailTransporter) {
+            try {
+                // Email to admin
+                await global.emailTransporter.sendMail({
+                    from: process.env.SMTP_FROM || 'alerts@autoauditpro.io',
+                    to: process.env.SMTP_FROM || 'alerts@autoauditpro.io',
+                    subject: `New Lead: ${leadData.dealershipName}`,
+                    html: `
+                        <h2>New Lead Captured</h2>
+                        <p><strong>Dealership:</strong> ${leadData.dealershipName}</p>
+                        <p><strong>Website:</strong> <a href="${leadData.websiteUrl}">${leadData.websiteUrl}</a></p>
+                        <p><strong>Contact:</strong> ${leadData.contactName}</p>
+                        <p><strong>Email:</strong> <a href="mailto:${leadData.email}">${leadData.email}</a></p>
+                        <p><strong>Phone:</strong> ${leadData.phone || 'Not provided'}</p>
+                        <p><strong>Role:</strong> ${leadData.role}</p>
+                        <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
+                        <hr>
+                        <p><a href="${req.protocol}://${req.get('host')}/captured-leads">View All Leads</a></p>
+                    `
+                });
+                
+                // Welcome email to lead
+                await global.emailTransporter.sendMail({
+                    from: process.env.SMTP_FROM || 'alerts@autoauditpro.io',
+                    to: leadData.email,
+                    subject: 'Welcome to Auto Audit Pro Suite',
+                    html: `
+                        <h2>Welcome to Auto Audit Pro, ${leadData.contactName}!</h2>
+                        <p>Thank you for requesting access to Auto Audit Pro Suite. You now have full access to:</p>
+                        <ul>
+                            <li>Complete 8-category website analysis</li>
+                            <li>Real-time performance monitoring</li>
+                            <li>SEO and technical reports</li>
+                            <li>Lead generation insights</li>
+                        </ul>
+                        <p><strong>Get Started:</strong></p>
+                        <p><a href="${req.protocol}://${req.get('host')}/suite-access" style="background: #2a5298; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Access Your Dashboard</a></p>
+                        <p>If you have any questions, feel free to reply to this email.</p>
+                        <p>Best regards,<br>The Auto Audit Pro Team</p>
+                    `
+                });
+                
+                console.log('[Lead Gate] Email notifications sent successfully');
+            } catch (error) {
+                console.error('[Lead Gate] Email notification error:', error);
+                // Don't fail the lead capture if email fails
+            }
+        }
+        
+        res.json({ 
+            success: true, 
+            redirect: '/suite-access'
+        });
+        
+    } catch (error) {
+        console.error('[Lead Gate] Error capturing lead:', error);
+        res.status(500).json({ error: 'Failed to process request' });
+    }
+});
+
+// Suite access page (shows after lead capture)
+app.get('/suite-access', requireLeadOrAdmin, (req, res) => {
     res.render('suite-home.html');
 });
 
-// Website audit tool (original functionality)
-app.get('/website-audit', (req, res) => {
+// Public homepage - no auth required
+app.get('/', (req, res) => {
+    // If user is authenticated (admin or lead captured), redirect to suite
+    if ((req.session && req.session.authenticated) || (req.session && req.session.leadCaptured)) {
+        return res.redirect('/suite-access');
+    }
+    // Otherwise show public homepage
+    res.render('homepage-public.html');
+});
+
+// Admin: View captured leads
+app.get('/captured-leads', requireAdmin, (req, res) => {
+    res.render('captured-leads.html');
+});
+
+// API: Get captured leads
+app.get('/api/captured-leads', requireAdmin, async (req, res) => {
+    try {
+        const leadsPath = path.join(__dirname, 'data', 'captured-leads.json');
+        let leads = [];
+        
+        try {
+            const leadsData = await fs.readFile(leadsPath, 'utf8');
+            leads = JSON.parse(leadsData);
+        } catch (error) {
+            // No leads yet
+        }
+        
+        // Sort by most recent first
+        leads.sort((a, b) => new Date(b.capturedAt) - new Date(a.capturedAt));
+        
+        res.json(leads);
+    } catch (error) {
+        console.error('[Lead Gate] Error loading leads:', error);
+        res.status(500).json({ error: 'Failed to load leads' });
+    }
+});
+
+// API: Delete captured lead
+app.delete('/api/captured-leads/:id', requireAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const leadsPath = path.join(__dirname, 'data', 'captured-leads.json');
+        
+        let leads = [];
+        try {
+            const leadsData = await fs.readFile(leadsPath, 'utf8');
+            leads = JSON.parse(leadsData);
+        } catch (error) {
+            return res.status(404).json({ error: 'Lead not found' });
+        }
+        
+        // Remove the lead
+        leads = leads.filter(lead => lead.id !== id);
+        
+        // Save updated leads
+        await fs.writeFile(leadsPath, JSON.stringify(leads, null, 2));
+        
+        console.log(`[Lead Gate] Lead deleted: ${id}`);
+        res.json({ success: true });
+        
+    } catch (error) {
+        console.error('[Lead Gate] Error deleting lead:', error);
+        res.status(500).json({ error: 'Failed to delete lead' });
+    }
+});
+
+// Website audit tool (requires lead or admin)
+app.get('/website-audit', requireLeadOrAdmin, (req, res) => {
     res.render('index-new.html');
 });
 
-// Lead performance tool
-app.get('/lead-analysis', (req, res) => {
+// Lead performance tool (requires lead or admin)
+app.get('/lead-analysis', requireLeadOrAdmin, (req, res) => {
     res.render('lead-performance.html');
 });
 
-// Combined insights
-app.get('/insights', (req, res) => {
+// Combined insights (requires lead or admin)
+app.get('/insights', requireLeadOrAdmin, (req, res) => {
     res.render('combined-insights.html');
 });
 

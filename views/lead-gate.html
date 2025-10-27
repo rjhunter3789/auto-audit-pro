@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Audit Pro Suite - Request Access</title>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .lead-gate-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .logo-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo-section img {
+            height: 60px;
+            width: auto;
+            margin-bottom: 20px;
+        }
+        
+        .logo-section h1 {
+            color: #1e3c72;
+            font-size: 2rem;
+            margin: 10px 0;
+        }
+        
+        .logo-section p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        .form-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .form-header h2 {
+            color: #333;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .form-header p {
+            color: #666;
+            font-size: 0.95rem;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 0.95rem;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #2a5298;
+        }
+        
+        .required {
+            color: #dc3545;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: #2a5298;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .submit-btn:hover {
+            background: #1e3c72;
+        }
+        
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .privacy-note {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.85rem;
+            color: #666;
+        }
+        
+        .privacy-note a {
+            color: #2a5298;
+            text-decoration: none;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .benefits-list {
+            background: #f8f9fa;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .benefits-list h3 {
+            color: #333;
+            margin-top: 0;
+            font-size: 1.1rem;
+        }
+        
+        .benefits-list ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .benefits-list li {
+            color: #555;
+            margin-bottom: 8px;
+        }
+        
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #2a5298;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="lead-gate-container">
+        <div class="logo-section">
+            <img src="/images/auto-audit-pro-logo-transparent.svg" alt="Auto Audit Pro" onerror="this.onerror=null; this.src='/images/logo.png'">
+            <h1>Auto Audit Pro Suite</h1>
+            <p>Professional Dealership Website Analysis Platform</p>
+        </div>
+        
+        <div class="form-header">
+            <h2>Request Free Access</h2>
+            <p>Get instant insights into your dealership's digital performance</p>
+        </div>
+        
+        <div class="error-message" id="errorMessage"></div>
+        <div class="success-message" id="successMessage"></div>
+        
+        <form id="leadGateForm">
+            <div class="form-group">
+                <label for="dealershipName">Dealership Name <span class="required">*</span></label>
+                <input type="text" id="dealershipName" name="dealershipName" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="websiteUrl">Website URL <span class="required">*</span></label>
+                <input type="url" id="websiteUrl" name="websiteUrl" placeholder="https://www.yourdealership.com" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="contactName">Your Name <span class="required">*</span></label>
+                <input type="text" id="contactName" name="contactName" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email Address <span class="required">*</span></label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" name="phone">
+            </div>
+            
+            <div class="form-group">
+                <label for="role">Your Role <span class="required">*</span></label>
+                <select id="role" name="role" required>
+                    <option value="">Select your role</option>
+                    <option value="owner">Dealer Owner/Principal</option>
+                    <option value="gm">General Manager</option>
+                    <option value="marketing">Marketing Director</option>
+                    <option value="internet">Internet/Digital Manager</option>
+                    <option value="vendor">Vendor/Partner</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            
+            <div class="benefits-list">
+                <h3>What you'll get access to:</h3>
+                <ul>
+                    <li>8-Category comprehensive website analysis</li>
+                    <li>Real-time performance monitoring</li>
+                    <li>SEO and technical validation reports</li>
+                    <li>Lead generation effectiveness scoring</li>
+                    <li>Competitor comparison insights</li>
+                    <li>Priority action recommendations</li>
+                </ul>
+            </div>
+            
+            <button type="submit" class="submit-btn" id="submitBtn">Get Instant Access</button>
+            
+            <div class="loading-spinner" id="loadingSpinner">
+                <div class="spinner"></div>
+                <p>Processing your request...</p>
+            </div>
+        </form>
+        
+        <div class="privacy-note">
+            <p>We respect your privacy. Your information will never be shared with third parties.</p>
+            <p>By submitting, you agree to receive communications about Auto Audit Pro.</p>
+            <hr style="margin: 30px 0; border: none; border-top: 1px solid #e0e0e0;">
+            <p style="font-size: 1rem;">Already have an account? <a href="/login" style="color: #2a5298; font-weight: bold;">Login here</a></p>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('leadGateForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const errorDiv = document.getElementById('errorMessage');
+            const successDiv = document.getElementById('successMessage');
+            const submitBtn = document.getElementById('submitBtn');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            
+            // Hide messages
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+            
+            // Disable submit button and show loading
+            submitBtn.disabled = true;
+            loadingSpinner.style.display = 'block';
+            
+            // Collect form data
+            const formData = {
+                dealershipName: document.getElementById('dealershipName').value,
+                websiteUrl: document.getElementById('websiteUrl').value,
+                contactName: document.getElementById('contactName').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                role: document.getElementById('role').value,
+                submittedAt: new Date().toISOString()
+            };
+            
+            try {
+                const response = await fetch('/api/lead-gate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    // Success - redirect to suite
+                    successDiv.textContent = 'Access granted! Redirecting...';
+                    successDiv.style.display = 'block';
+                    setTimeout(() => {
+                        window.location.href = result.redirect || '/suite-access';
+                    }, 1000);
+                } else {
+                    // Error
+                    errorDiv.textContent = result.error || 'An error occurred. Please try again.';
+                    errorDiv.style.display = 'block';
+                    submitBtn.disabled = false;
+                    loadingSpinner.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                errorDiv.textContent = 'Network error. Please check your connection and try again.';
+                errorDiv.style.display = 'block';
+                submitBtn.disabled = false;
+                loadingSpinner.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

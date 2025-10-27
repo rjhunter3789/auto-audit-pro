@@ -7,20 +7,5 @@
     "role": "admin",
     "isAdmin": true,
     "created_at": "2025-07-30T14:54:16.597Z"
-  },
-  {
-    "id": "2",
-    "username": "dealer",
-    "email": "dealer@priceford.com",
-    "password": "Dealer123!",
-    "role": "dealer",
-    "dealership": "Price Ford",
-    "isAdmin": false,
-    "created_at": "2025-07-17T22:20:40.362Z",
-    "subscription": {
-      "plan": "professional",
-      "status": "active",
-      "expires_at": "2026-07-17T22:20:40.362Z"
-    }
   }
 ]
