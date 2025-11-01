@@ -46,6 +46,15 @@ const DealerSearcher = require('./lib/dealer-search');
 const { pool } = require('./lib/json-storage');
 
 
+// Monitoring and Logging
+const { logger, loggers } = require('./lib/logger');
+const { requestLogger, errorLogger, auditLogger, performanceMonitor } = require('./middleware/logging');
+const { getMonitoring } = require('./lib/monitoring-system');
+const rateLimiter = require('./middleware/rate-limiter');
+
+// Initialize monitoring system
+const monitoring = getMonitoring();
+
 const app = express();
 const PORT = process.env.PORT || 3002;
 
@@ -73,6 +82,20 @@ app.use(session({
     },
     name: 'autoaudit.sid'  // Custom session name
 }));
+// Request logging and monitoring
+app.use(requestLogger);
+
+// Apply rate limiting
+rateLimiter.applyToApp(app);
+
+// Track requests in monitoring system
+app.use((req, res, next) => {
+    res.on('finish', () => {
+        monitoring.trackRequest(req, res, Date.now() - req.startTime);
+    });
+    next();
+});
+
 
 // Middleware
 app.use(cors());
@@ -4120,6 +4143,10 @@ app.use((req, res, next) => {
 
 // Add 404 handler for debugging
 app.use((req, res, next) => {
+
+// Error logging (must be last)
+app.use(errorLogger);
+
     console.log(`[404 DEBUG] Unmatched route: ${req.method} ${req.path}`);
     console.log(`[404 DEBUG] Available routes:`, app._router.stack
         .filter(r => r.route)

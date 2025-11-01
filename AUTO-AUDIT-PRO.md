@@ -17,7 +17,7 @@ Auto Audit Pro is a comprehensive web application that performs in-depth analysi
 ### 📊 8-Category Testing System
 1. **Basic Connectivity** - SSL security, server response, DNS resolution
 2. **Performance Testing** - Page speed, Core Web Vitals (LCP, FID, CLS), mobile performance
-3. **SEO Analysis** - Meta tags, schema markup, XML sitemaps, heading structure
+3. **SEO Analysis** - Meta tags, schema markup, XML sitemaps, heading structure (includes AI Tag Analysis)
 4. **User Experience** - Navigation clarity, form functionality, mobile responsiveness
 5. **Content Analysis** - Inventory visibility, contact information, business hours
 6. **Technical Validation** - Code quality, broken links, image optimization
@@ -51,6 +51,67 @@ Auto Audit Pro is a comprehensive web application that performs in-depth analysi
 - Expiration date visibility
 - Legal disclaimer compliance
 - CTA effectiveness on each offer
+
+### 🤖 AI Tag Analysis Engine (NEW)
+
+#### Overview
+Advanced AI and voice search readiness evaluation focusing on structured data, meta optimization, and conversational content quality for automotive dealerships.
+
+#### Core Components
+
+1. **Schema.org Validation & Scoring**
+   - Comprehensive JSON-LD extraction and validation
+   - Automotive-specific schema requirements (AutoDealer, Vehicle, Product)
+   - Weighted scoring system for different schema types
+   - Rich results eligibility assessment
+
+2. **AI Readiness Scoring (0-100)**
+   - **Structured Data (40%)**: Schema completeness and accuracy
+   - **Natural Language (25%)**: Conversational quality of content
+   - **Voice Optimization (15%)**: Speakable markup and FAQ implementation
+   - **Entity Graph (10%)**: NAP consistency and knowledge graph optimization
+   - **Meta Quality (10%)**: Unique, descriptive, AI-friendly meta tags
+
+3. **Automotive-Specific Analysis**
+   - Vehicle schema completeness (VIN, make, model, fuelType, driveType)
+   - Service department structured data
+   - Parts catalog optimization
+   - Finance offer markup validation
+   - Multi-location consistency for dealer groups
+
+4. **Natural Language Evaluation**
+   - LLM-powered content analysis for AI friendliness
+   - Keyword stuffing detection
+   - Conversational tone assessment
+   - FAQ quality and completeness
+   - Meta description optimization suggestions
+
+5. **Competitive Intelligence**
+   - Regional dealer benchmarking
+   - Schema implementation comparison
+   - AI visibility tracking
+   - Best practices identification
+
+#### Key Scoring Categories
+
+| Schema Type | Weight | Required Properties |
+|-------------|---------|-------------------|
+| AutoDealer/LocalBusiness | 15% | Name, address, phone, hours, geo coordinates |
+| Vehicle/Product | 25% | Price, VIN, make, model, year, fuelType, driveType |
+| Review/AggregateRating | 10% | Rating value, review count, best rating |
+| FAQPage | 15% | Minimum 3 Q&As with conversational tone |
+| Speakable | 10% | Voice-optimized content markers |
+| ImageObject/VideoObject | 10% | Alt text, captions, proper URLs |
+| Meta & OG Tags | 10% | Unique, descriptive, keyword-optimized |
+| BreadcrumbList | 5% | Proper hierarchy, full navigation paths |
+
+#### Output Deliverables
+- **AI Readiness Score**: Overall 0-100 score with category breakdowns
+- **Schema Validation Report**: Pass/fail status for each schema type
+- **Implementation Recommendations**: Prioritized fixes with code examples
+- **Competitive Comparison**: Regional and brand benchmarking
+- **Voice Search Optimization**: Specific improvements for voice assistants
+- **SGE Readiness**: Search Generative Experience compatibility assessment
 
 ### 🏢 Dealer Group Analysis
 
@@ -126,6 +187,14 @@ Auto Audit Pro is a comprehensive web application that performs in-depth analysi
 - Multi-location improvement recommendations
 - Consolidated ROI across all locations
 
+#### AI Tag Analysis Reports
+- AI Readiness Score dashboard with visual indicators
+- Schema validation results with pass/fail status
+- Natural language quality assessment
+- Voice search optimization recommendations
+- Competitive benchmarking against regional dealers
+- SGE (Search Generative Experience) compatibility rating
+
 ### 💡 Interactive Features
 - **Tooltip Definitions** - Hover over '?' icons for instant explanations
 - **Comprehensive Glossary** - Full definitions page with detailed explanations
@@ -137,6 +206,8 @@ Auto Audit Pro is a comprehensive web application that performs in-depth analysi
 - Selenium WebDriver for reliable page analysis
 - Cheerio for HTML parsing
 - Real Google PageSpeed API integration
+- AI Tag Analysis Engine with schema.org validation
+- LLM integration for natural language evaluation
 - Comprehensive error handling
 - Railway-optimized deployment
 

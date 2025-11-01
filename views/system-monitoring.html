@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<!--
+ * System Monitoring Dashboard
+ * Auto Audit Pro - Real-time application monitoring
+ * © 2025 JL Robinson. All Rights Reserved.
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Monitoring - Auto Audit Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-blue: #4A90E2;
+            --success-green: #28a745;
+            --warning-yellow: #ffc107;
+            --danger-red: #dc3545;
+            --dark-bg: #1a1a1a;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        .metric-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+            transition: transform 0.2s;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+        
+        .metric-label {
+            color: #666;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+        
+        .status-healthy {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-degraded {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-critical {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+        
+        .error-item {
+            background: #f8f9fa;
+            padding: 0.75rem;
+            border-left: 3px solid var(--danger-red);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .slow-request-item {
+            background: #fff3cd;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+        
+        .refresh-indicator {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .navbar {
+            background-color: var(--primary-blue) !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+        }
+        
+        .progress-bar-animated {
+            transition: width 0.6s ease;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-chart-line me-2"></i>Auto Audit Pro Monitoring
+            </a>
+            <div class="ms-auto">
+                <span class="text-white me-3">
+                    <i class="fas fa-sync-alt refresh-indicator" id="refreshIcon" style="display:none;"></i>
+                    Auto-refresh: <span id="refreshCountdown">30</span>s
+                </span>
+                <button class="btn btn-outline-light btn-sm" onclick="refreshMetrics()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <!-- Health Status -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="metric-card">
+                    <h4>System Health</h4>
+                    <div id="healthStatus">
+                        <div class="status-badge status-healthy">
+                            <i class="fas fa-check-circle me-2"></i>
+                            Healthy
+                        </div>
+                    </div>
+                    <div id="healthIssues"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="row">
+            <div class="col-md-3">
+                <div class="metric-card text-center">
+                    <div class="metric-label">Total Requests</div>
+                    <div class="metric-value text-primary" id="totalRequests">0</div>
+                    <small class="text-muted">Success Rate: <span id="successRate">0%</span></small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card text-center">
+                    <div class="metric-label">Avg Response Time</div>
+                    <div class="metric-value text-info" id="avgResponseTime">0ms</div>
+                    <small class="text-muted">Last hour</small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card text-center">
+                    <div class="metric-label">Total Audits</div>
+                    <div class="metric-value text-success" id="totalAudits">0</div>
+                    <small class="text-muted">Success: <span id="auditSuccess">0</span></small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card text-center">
+                    <div class="metric-label">Error Rate</div>
+                    <div class="metric-value text-danger" id="errorRate">0%</div>
+                    <small class="text-muted">Total: <span id="totalErrors">0</span></small>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Resources -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="metric-card">
+                    <h5><i class="fas fa-memory me-2"></i>Memory Usage</h5>
+                    <div class="progress mb-2" style="height: 25px;">
+                        <div class="progress-bar progress-bar-animated" id="memoryBar" role="progressbar" style="width: 0%">
+                            <span id="memoryPercent">0%</span>
+                        </div>
+                    </div>
+                    <small class="text-muted">
+                        Used: <span id="memoryUsed">0</span> / Total: <span id="memoryTotal">0</span>
+                    </small>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="metric-card">
+                    <h5><i class="fas fa-microchip me-2"></i>CPU Usage</h5>
+                    <div class="progress mb-2" style="height: 25px;">
+                        <div class="progress-bar progress-bar-animated" id="cpuBar" role="progressbar" style="width: 0%">
+                            <span id="cpuPercent">0%</span>
+                        </div>
+                    </div>
+                    <small class="text-muted">
+                        Load Average: <span id="loadAvg">0</span> | Cores: <span id="cpuCores">0</span>
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance & Errors -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="metric-card">
+                    <h5><i class="fas fa-exclamation-triangle me-2"></i>Recent Errors</h5>
+                    <div id="recentErrors" style="max-height: 300px; overflow-y: auto;">
+                        <div class="text-muted">No recent errors</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="metric-card">
+                    <h5><i class="fas fa-turtle me-2"></i>Slow Requests</h5>
+                    <div id="slowRequests" style="max-height: 300px; overflow-y: auto;">
+                        <div class="text-muted">No slow requests</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Endpoint Statistics -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="metric-card">
+                    <h5><i class="fas fa-route me-2"></i>Endpoint Statistics</h5>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Endpoint</th>
+                                    <th>Requests</th>
+                                    <th>Avg Time</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="endpointStats">
+                                <tr>
+                                    <td colspan="4" class="text-muted text-center">No data available</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let refreshInterval;
+        let countdown = 30;
+
+        // Fetch and display metrics
+        async function fetchMetrics() {
+            document.getElementById('refreshIcon').style.display = 'inline-block';
+            
+            try {
+                const response = await fetch('/api/monitoring/metrics');
+                const data = await response.json();
+                
+                updateHealthStatus(data.summary);
+                updateKeyMetrics(data);
+                updateSystemResources(data.system);
+                updateErrors(data.errors);
+                updatePerformance(data.performance);
+                updateEndpointStats(data.requests.byEndpoint);
+                
+            } catch (error) {
+                console.error('Failed to fetch metrics:', error);
+                showError('Failed to fetch monitoring data');
+            } finally {
+                document.getElementById('refreshIcon').style.display = 'none';
+            }
+        }
+
+        // Update health status
+        function updateHealthStatus(summary) {
+            const statusDiv = document.getElementById('healthStatus');
+            const issuesDiv = document.getElementById('healthIssues');
+            
+            let badgeClass = 'status-healthy';
+            let icon = 'fa-check-circle';
+            
+            if (summary.status === 'degraded') {
+                badgeClass = 'status-degraded';
+                icon = 'fa-exclamation-circle';
+            } else if (summary.status === 'critical') {
+                badgeClass = 'status-critical';
+                icon = 'fa-times-circle';
+            }
+            
+            statusDiv.innerHTML = `
+                <div class="status-badge ${badgeClass}">
+                    <i class="fas ${icon} me-2"></i>
+                    ${summary.status.charAt(0).toUpperCase() + summary.status.slice(1)}
+                </div>
+                <small class="text-muted">Uptime: ${summary.metrics.uptime}</small>
+            `;
+            
+            if (summary.issues && summary.issues.length > 0) {
+                issuesDiv.innerHTML = '<div class="alert alert-warning mt-2">' +
+                    '<strong>Issues:</strong><ul class="mb-0">' +
+                    summary.issues.map(issue => `<li>${issue}</li>`).join('') +
+                    '</ul></div>';
+            } else {
+                issuesDiv.innerHTML = '';
+            }
+        }
+
+        // Update key metrics
+        function updateKeyMetrics(data) {
+            document.getElementById('totalRequests').textContent = data.requests.total.toLocaleString();
+            document.getElementById('successRate').textContent = 
+                data.requests.total > 0 
+                ? ((data.requests.success / data.requests.total) * 100).toFixed(1) + '%'
+                : '0%';
+            
+            document.getElementById('avgResponseTime').textContent = 
+                Math.round(data.requests.avgResponseTime) + 'ms';
+            
+            document.getElementById('totalAudits').textContent = data.audits.total.toLocaleString();
+            document.getElementById('auditSuccess').textContent = data.audits.completed.toLocaleString();
+            
+            const errorRate = data.requests.total > 0 
+                ? ((data.errors.total / data.requests.total) * 100).toFixed(2)
+                : 0;
+            document.getElementById('errorRate').textContent = errorRate + '%';
+            document.getElementById('totalErrors').textContent = data.errors.total.toLocaleString();
+        }
+
+        // Update system resources
+        function updateSystemResources(system) {
+            // Memory
+            const memPercent = parseFloat(system.memory.percentUsed);
+            const memoryBar = document.getElementById('memoryBar');
+            memoryBar.style.width = memPercent + '%';
+            memoryBar.className = 'progress-bar progress-bar-animated';
+            
+            if (memPercent > 90) {
+                memoryBar.classList.add('bg-danger');
+            } else if (memPercent > 70) {
+                memoryBar.classList.add('bg-warning');
+            } else {
+                memoryBar.classList.add('bg-success');
+            }
+            
+            document.getElementById('memoryPercent').textContent = memPercent + '%';
+            document.getElementById('memoryUsed').textContent = formatBytes(system.memory.used);
+            document.getElementById('memoryTotal').textContent = formatBytes(system.memory.total);
+            
+            // CPU
+            const cpuPercent = system.cpu.usage;
+            const cpuBar = document.getElementById('cpuBar');
+            cpuBar.style.width = cpuPercent + '%';
+            cpuBar.className = 'progress-bar progress-bar-animated';
+            
+            if (cpuPercent > 80) {
+                cpuBar.classList.add('bg-danger');
+            } else if (cpuPercent > 60) {
+                cpuBar.classList.add('bg-warning');
+            } else {
+                cpuBar.classList.add('bg-success');
+            }
+            
+            document.getElementById('cpuPercent').textContent = cpuPercent + '%';
+            document.getElementById('loadAvg').textContent = 
+                system.cpu.loadAvg.map(v => v.toFixed(2)).join(', ');
+            document.getElementById('cpuCores').textContent = system.cpu.cores;
+        }
+
+        // Update errors
+        function updateErrors(errors) {
+            const errorsDiv = document.getElementById('recentErrors');
+            
+            if (!errors.recent || errors.recent.length === 0) {
+                errorsDiv.innerHTML = '<div class="text-muted">No recent errors</div>';
+                return;
+            }
+            
+            errorsDiv.innerHTML = errors.recent.slice(-5).reverse().map(error => `
+                <div class="error-item">
+                    <div class="d-flex justify-content-between">
+                        <strong>${error.type}</strong>
+                        <small>${new Date(error.timestamp).toLocaleTimeString()}</small>
+                    </div>
+                    <div class="text-truncate">${error.message}</div>
+                </div>
+            `).join('');
+        }
+
+        // Update performance
+        function updatePerformance(performance) {
+            const slowDiv = document.getElementById('slowRequests');
+            
+            if (!performance.slowRequests || performance.slowRequests.length === 0) {
+                slowDiv.innerHTML = '<div class="text-muted">No slow requests</div>';
+                return;
+            }
+            
+            slowDiv.innerHTML = performance.slowRequests.slice(-5).reverse().map(req => `
+                <div class="slow-request-item">
+                    <div class="d-flex justify-content-between">
+                        <strong>${req.endpoint}</strong>
+                        <span class="badge bg-warning">${req.responseTime}ms</span>
+                    </div>
+                    <div class="text-truncate small">${req.url}</div>
+                </div>
+            `).join('');
+        }
+
+        // Update endpoint statistics
+        function updateEndpointStats(endpoints) {
+            const tbody = document.getElementById('endpointStats');
+            
+            if (!endpoints || Object.keys(endpoints).length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-muted text-center">No data available</td></tr>';
+                return;
+            }
+            
+            const sortedEndpoints = Object.entries(endpoints)
+                .sort((a, b) => b[1].count - a[1].count)
+                .slice(0, 10);
+            
+            tbody.innerHTML = sortedEndpoints.map(([endpoint, stats]) => {
+                let statusClass = 'text-success';
+                if (stats.avgTime > 2000) statusClass = 'text-danger';
+                else if (stats.avgTime > 1000) statusClass = 'text-warning';
+                
+                return `
+                    <tr>
+                        <td>${endpoint}</td>
+                        <td>${stats.count.toLocaleString()}</td>
+                        <td class="${statusClass}">${Math.round(stats.avgTime)}ms</td>
+                        <td>
+                            <div class="progress" style="height: 10px; width: 100px;">
+                                <div class="progress-bar bg-info" style="width: ${Math.min(stats.avgTime / 50, 100)}%"></div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Format bytes
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Show error message
+        function showError(message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.querySelector('.container-fluid').prepend(alertDiv);
+        }
+
+        // Refresh metrics
+        function refreshMetrics() {
+            fetchMetrics();
+            countdown = 30;
+        }
+
+        // Start auto-refresh
+        function startAutoRefresh() {
+            refreshInterval = setInterval(() => {
+                countdown--;
+                document.getElementById('refreshCountdown').textContent = countdown;
+                
+                if (countdown <= 0) {
+                    refreshMetrics();
+                }
+            }, 1000);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchMetrics();
+            startAutoRefresh();
+        });
+
+        // Clean up on page unload
+        window.addEventListener('beforeunload', () => {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

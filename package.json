@@ -1,6 +1,6 @@
 {
   "name": "dealership-audit-mvp",
-  "version": "2.6.14",
+  "version": "2.8.0",
   "description": "Auto Audit Pro - Professional Dealership Website Analysis Platform with Security",
   "main": "server.js",
   "scripts": {
@@ -28,7 +28,9 @@
     "dotenv": "^16.3.1",
     "ejs": "^3.1.9",
     "express": "^4.18.2",
+    "express-rate-limit": "^8.2.1",
     "express-session": "^1.18.1",
+    "express-slow-down": "^3.0.0",
     "helmet": "^7.1.0",
     "multer": "^2.0.1",
     "node-cron": "^4.2.1",

@@ -41,20 +41,64 @@ temp/
 
 # Chrome driver downloads
 chromedriver*
-drivers/public/uploads/profiles/*
-  # Test files
-  public/test*.txt
-  public/css/test.txt
-  views/test-*.html
+drivers/
 
-  # Runtime data
-  data/monitoring/*.json
-  data/monitoring/*.json.backup
+# Development and debug files
+_dev/
+debug-scripts/
+temp-files/
+voice-debug/
 
-  # Backup directories
-  views_backup/
-  *_backup/
+# Test files
+test-*.js
+test-*.html
+*-test.*
+*-fix.*
+fix-*.js
+fix-*.sh
 
-  # Generated files
-  public/heatmaps/
-  EOF
+# Backup files
+*.backup
+*.backup-*
+*_backup/
+views_backup/
+
+# Command and note files
+*.txt
+!README.txt
+!requirements.txt
+!LICENSE.txt
+
+# Voice debug files
+voice-handsfree-*.html
+
+# Public test files
+public/test*.txt
+public/css/test.txt
+public/*-test.*
+public/*-fix.*
+public/monitoring-static.html
+public/csp-*.html
+
+# Runtime data (keep structure, ignore contents)
+data/monitoring/*.json.backup*
+data/*.json.backup*
+
+# Generated files
+public/heatmaps/
+public/uploads/profiles/*
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Temporary PowerShell scripts
+*.ps1
+!deploy-*.ps1
+
+# Keep important configuration
+!package.json
+!package-lock.json
+!.gitignore
+!.env.example

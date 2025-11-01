@@ -1,3 +1,0 @@
-ssh root@146.190.39.214
-cd /var/www/smart-doc-v2
-source ../smart-document-assistant/venv/bin/activate
