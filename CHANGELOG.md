@@ -1,5 +1,18 @@
 # Auto Audit Pro Suite - Changelog & Feature Documentation
 
+## Version 2.8.1 - November 1, 2025 (Node.js Compatibility Fix)
+
+### 🐛 Bug Fixes
+- Fixed Node.js 18 compatibility issues on production server
+- Downgraded selenium-webdriver from 4.38.0 to 4.15.0
+- Downgraded cheerio from 1.0.0-rc.12 to 1.0.0-rc.10
+- Resolved "ReferenceError: File is not defined" errors from undici package
+
+### 📝 Notes
+- Production server running Node 18.19.1 requires these specific package versions
+- All functionality remains intact with downgraded packages
+- Consider upgrading server to Node 20+ in future for latest package support
+
 ## Version 2.8.0 - October 31, 2025 (Infrastructure & Security Update)
 
 ### 🔐 Security Enhancements

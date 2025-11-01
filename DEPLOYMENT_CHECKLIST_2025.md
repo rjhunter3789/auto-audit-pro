@@ -1,4 +1,4 @@
-# Auto Audit Pro - Deployment Checklist (October 2025)
+# Auto Audit Pro - Deployment Checklist (November 2025)
 
 ## 🚀 Ready for Deployment
 
@@ -29,6 +29,11 @@
 4. **AI Tag Analysis Specification**
    - Documented new feature for future implementation
    - Added to AUTO-AUDIT-PRO.md
+
+5. **Node.js Compatibility Fixes**
+   - Downgraded selenium-webdriver to 4.15.0 for Node 18 compatibility
+   - Downgraded cheerio to 1.0.0-rc.10 for Node 18 compatibility
+   - Fixed production server compatibility issues
 
 ### 📋 Pre-Deployment Steps
 
