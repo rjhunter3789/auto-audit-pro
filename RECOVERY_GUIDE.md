@@ -1,5 +1,7 @@
 # Auto Audit Pro - Recovery Guide
 
+Last Updated: November 2, 2025 - Version 2.8.3
+
 ## Quick Recovery Commands
 
 ### 1. Application Won't Start
@@ -156,3 +158,14 @@ pm2 restart auto-audit
 - Rate limiting configuration issue
 - Already fixed in latest version
 - Non-critical warning
+
+### "0 Issues Found" when issues exist
+- Fixed in v2.8.3
+- Clear browser cache and refresh
+- Check console: `pm2 logs auto-audit | grep "Deep SEO Report"`
+
+### Logo not updating
+- Verify file exists: `ls -la public/images/logo.png`
+- Clear browser cache: Ctrl+F5
+- Check direct URL: https://autoauditpro.io/images/logo.png
+- May need to update logo.png AND auto-audit-pro-logo-transparent.svg

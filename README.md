@@ -171,4 +171,18 @@ For issues and questions:
 
 ---
 
-**Current Version**: 2.8.1 (November 2, 2025)
+**Current Version**: 2.8.3 (November 2, 2025)
+
+## Recent Updates
+
+### v2.8.3 (Nov 2, 2025)
+- Fixed Deep SEO issue counting and reporting
+- Added inline fix recommendations for all SEO issues
+- Enhanced issue descriptions with actionable advice
+- Improved UI with red-bordered issue highlights
+
+### v2.8.2 (Nov 2, 2025)  
+- Selenium WebDriver integration for bot-protected sites
+- Fixed orphaned page detection
+- Chrome/ChromeDriver compatibility fixes
+- Extended wait strategies for Vue.js/React sites
