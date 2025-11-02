@@ -292,6 +292,22 @@
         </a>
         
         <!-- Technical Statistics -->
+        <% 
+        // Calculate totals
+        const totalIssues = (results.criticalIssues?.length || 0) + (results.warnings?.length || 0);
+        const totalOpportunities = results.opportunities?.length || 0;
+        
+        // Debug output (will be hidden)
+        console.log('[Deep SEO Report] Results structure:', {
+            hasCriticalIssues: !!results.criticalIssues,
+            criticalIssuesCount: results.criticalIssues?.length || 0,
+            hasWarnings: !!results.warnings,
+            warningsCount: results.warnings?.length || 0,
+            hasOpportunities: !!results.opportunities,
+            opportunitiesCount: results.opportunities?.length || 0,
+            totalIssues: totalIssues
+        });
+        %>
         <div class="technical-stats">
             <h2 class="text-center mb-4">Site Analysis Overview</h2>
             <div class="row">
@@ -309,13 +325,13 @@
                 </div>
                 <div class="col-md-3">
                     <div class="stat-item">
-                        <div class="stat-value"><%= (results.criticalIssues?.length || 0) + (results.warnings?.length || 0) %></div>
+                        <div class="stat-value"><%= totalIssues %></div>
                         <div class="stat-label">Issues Found</div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="stat-item">
-                        <div class="stat-value"><%= results.opportunities?.length || 0 %></div>
+                        <div class="stat-value"><%= totalOpportunities %></div>
                         <div class="stat-label">Opportunities</div>
                     </div>
                 </div>
