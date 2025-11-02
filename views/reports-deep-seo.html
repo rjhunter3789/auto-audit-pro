@@ -311,17 +311,41 @@
         </div>
         
         <!-- Critical Issues Section -->
-        <% if (results.issues && results.issues.filter(i => i.priority === 'critical' || i.priority === 'high').length > 0) { %>
+        <% const allIssues = [...(results.criticalIssues || []), ...(results.warnings || [])]; %>
+        <% if (allIssues.length > 0) { %>
         <div class="mt-5">
             <h2 class="mb-4"><i class="fas fa-exclamation-triangle text-danger"></i> Critical Issues to Address</h2>
-            <% results.issues.filter(i => i.priority === 'critical' || i.priority === 'high').forEach(issue => { %>
+            <% 
+            // Remove duplicates based on title
+            const uniqueIssues = allIssues.filter((issue, index, self) =>
+                index === self.findIndex((i) => i.title === issue.title)
+            );
+            %>
+            <% uniqueIssues.forEach(issue => { %>
                 <div class="issue-card priority-<%= issue.priority %>">
                     <h5><%= issue.title %></h5>
                     <p class="mb-2"><%= issue.details %></p>
                     <% if (issue.recommendation) { %>
                         <p class="mb-0"><strong>Recommendation:</strong> <%= issue.recommendation %></p>
                     <% } %>
-                    <small class="text-muted">Category: <%= issue.category %></small>
+                    <small class="text-muted">Category: <%= issue.category %> | Priority: <%= issue.priority %></small>
+                </div>
+            <% }); %>
+        </div>
+        <% } %>
+        
+        <!-- Opportunities Section -->
+        <% if (results.opportunities && results.opportunities.length > 0) { %>
+        <div class="mt-4">
+            <h2 class="mb-4"><i class="fas fa-lightbulb text-warning"></i> Improvement Opportunities</h2>
+            <% results.opportunities.forEach(opp => { %>
+                <div class="issue-card priority-low">
+                    <h5><%= opp.title %></h5>
+                    <p class="mb-2"><%= opp.details %></p>
+                    <% if (opp.recommendation) { %>
+                        <p class="mb-0"><strong>Recommendation:</strong> <%= opp.recommendation %></p>
+                    <% } %>
+                    <small class="text-muted">Category: <%= opp.category %></small>
                 </div>
             <% }); %>
         </div>
