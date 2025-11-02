@@ -132,6 +132,18 @@
             border-bottom: none;
         }
         
+        .issue-details {
+            background-color: #fef8f8;
+            padding: 0.75rem 1rem;
+            border-left: 3px solid #dc3545;
+            margin-top: -0.5rem;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .issue-details small {
+            line-height: 1.4;
+        }
+        
         .test-passed {
             color: var(--success-green);
         }
@@ -297,7 +309,7 @@
                 </div>
                 <div class="col-md-3">
                     <div class="stat-item">
-                        <div class="stat-value"><%= results.issues?.length || 0 %></div>
+                        <div class="stat-value"><%= (results.criticalIssues?.length || 0) + (results.warnings?.length || 0) %></div>
                         <div class="stat-label">Issues Found</div>
                     </div>
                 </div>
@@ -386,6 +398,14 @@
                                     </span>
                                     <span class="text-muted"><%= test.value || (test.passed ? 'Pass' : 'Fail') %></span>
                                 </div>
+                                <% if (!test.passed && test.issue) { %>
+                                    <div class="issue-details ms-4 mb-3">
+                                        <small class="text-danger d-block mb-1"><%= test.issue.details %></small>
+                                        <% if (test.issue.recommendation) { %>
+                                            <small class="text-muted d-block"><strong>Fix:</strong> <%= test.issue.recommendation %></small>
+                                        <% } %>
+                                    </div>
+                                <% } %>
                             <% }); %>
                         </div>
                     </div>
