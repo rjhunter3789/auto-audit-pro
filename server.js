@@ -1761,6 +1761,115 @@ app.get('/api/audits', (req, res) => {
     res.json(auditHistory);
 });
 
+// NOVA Integration - Synchronous audit endpoint for voice assistant
+app.post('/api/nova/run-audit', async (req, res) => {
+    const { url, apiKey, mode, page } = req.body;
+
+    // Validate API key
+    const NOVA_API_KEY = process.env.NOVA_API_KEY;
+    if (!NOVA_API_KEY || apiKey !== NOVA_API_KEY) {
+        console.log('[NOVA] Invalid or missing API key');
+        return res.status(401).json({ error: 'Invalid API key' });
+    }
+
+    if (!url) {
+        return res.status(400).json({ error: 'URL is required' });
+    }
+
+    console.log(`[NOVA] Starting audit for: ${url} | mode: ${mode || 'comprehensive'}`);
+
+    try {
+        // Extract domain from URL
+        let domain;
+        try {
+            const urlObj = new URL(url);
+            domain = urlObj.hostname;
+        } catch {
+            domain = url.replace(/^https?:\/\//, '').split('/')[0];
+        }
+
+        const auditId = generateAuditId();
+        const startTime = new Date();
+
+        // Initialize audit result
+        auditResults.set(auditId, {
+            id: auditId,
+            domain,
+            status: 'running',
+            progress: 0,
+            startTime,
+            results: {},
+            overallScore: 0
+        });
+
+        // Run audit and wait for completion
+        await runAudit(auditId, domain);
+
+        const audit = auditResults.get(auditId);
+
+        if (audit.status === 'failed') {
+            return res.status(500).json({
+                error: audit.error || 'Audit failed',
+                overallScore: 0
+            });
+        }
+
+        // Generate summary from results
+        const summary = generateAuditSummary(audit);
+
+        console.log(`[NOVA] Audit completed for ${domain} | Score: ${audit.overallScore}`);
+
+        res.json({
+            success: true,
+            overallScore: audit.overallScore,
+            summary: summary,
+            pdfUrl: '',
+            auditId: auditId,
+            domain: domain,
+            duration: audit.duration
+        });
+
+    } catch (error) {
+        console.error('[NOVA] Audit error:', error);
+        res.status(500).json({
+            error: error.message || 'Unknown audit error',
+            overallScore: 0
+        });
+    }
+});
+
+// Generate human-readable summary for NOVA
+function generateAuditSummary(audit) {
+    const score = audit.overallScore;
+    let grade, advice;
+
+    if (score >= 90) {
+        grade = 'excellent';
+        advice = 'The website is performing very well across all categories.';
+    } else if (score >= 80) {
+        grade = 'good';
+        advice = 'The website has solid fundamentals with room for minor improvements.';
+    } else if (score >= 70) {
+        grade = 'fair';
+        advice = 'The website needs attention in several areas to improve user experience and SEO.';
+    } else if (score >= 60) {
+        grade = 'needs work';
+        advice = 'The website has significant issues that should be addressed to compete effectively.';
+    } else {
+        grade = 'critical';
+        advice = 'The website requires immediate attention. Multiple areas need significant improvement.';
+    }
+
+    const categories = Object.entries(audit.results || {})
+        .map(([name, data]) => ({ name, score: data.score || 0 }))
+        .sort((a, b) => a.score - b.score);
+
+    const weakAreas = categories.slice(0, 2).map(c => c.name).join(' and ');
+
+    return `Overall score: ${score}/100 (${grade}). ${advice}${weakAreas ? ` Focus areas: ${weakAreas}.` : ''}`;
+}
+
+
 async function runAudit(auditId, domain) {
     const audit = auditResults.get(auditId);
     let driver;
