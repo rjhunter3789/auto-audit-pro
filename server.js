@@ -50,6 +50,7 @@ const { pool } = require('./lib/json-storage');
 const { logger, loggers } = require('./lib/logger');
 const { requestLogger, errorLogger, auditLogger, performanceMonitor } = require('./middleware/logging');
 const { getMonitoring } = require('./lib/monitoring-system');
+const { generateAuditPDF } = require('./lib/pdf-generator');
 const rateLimiter = require('./middleware/rate-limiter');
 
 // Initialize monitoring system
@@ -1817,13 +1818,24 @@ app.post('/api/nova/run-audit', async (req, res) => {
         // Generate summary from results
         const summary = generateAuditSummary(audit);
 
+        // Generate PDF report
+        let pdfUrl = '';
+        try {
+            const baseUrl = process.env.BASE_URL || 'https://autoauditpro.io';
+            pdfUrl = await generateAuditPDF(audit, baseUrl);
+            console.log(`[NOVA] PDF generated: ${pdfUrl}`);
+        } catch (pdfError) {
+            console.error('[NOVA] PDF generation failed:', pdfError.message);
+            // Continue without PDF - don't fail the whole request
+        }
+
         console.log(`[NOVA] Audit completed for ${domain} | Score: ${audit.overallScore}`);
 
         res.json({
             success: true,
             overallScore: audit.overallScore,
             summary: summary,
-            pdfUrl: '',
+            pdfUrl: pdfUrl,
             auditId: auditId,
             domain: domain,
             duration: audit.duration
