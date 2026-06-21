@@ -57,6 +57,9 @@ const rateLimiter = require('./middleware/rate-limiter');
 const monitoring = getMonitoring();
 
 const app = express();
+
+// Trust Nginx reverse proxy so req.ip uses the real client IP
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3002;
 
 // Global monitoring engine instance to maintain stats
