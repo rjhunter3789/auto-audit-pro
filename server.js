@@ -3491,6 +3491,31 @@ app.get('/lead-analysis', requireLeadOrAdmin, (req, res) => {
     res.render('lead-performance.html');
 });
 
+// Lead performance alias (requires lead or admin)
+app.get('/lead-performance', requireLeadOrAdmin, (req, res) => {
+    res.render('lead-performance.html');
+});
+
+// Lead intelligence page (requires lead or admin)
+app.get('/lead-intelligence', requireLeadOrAdmin, (req, res) => {
+    res.render('lead-intelligence.html');
+});
+
+// Dealer intelligence alias (requires lead or admin)
+app.get('/dealer-intelligence', requireLeadOrAdmin, (req, res) => {
+    res.render('lead-intelligence.html');
+});
+
+// AI visibility intelligence page (requires lead or admin)
+app.get('/ai-visibility-intelligence', requireLeadOrAdmin, (req, res) => {
+    res.render('ai-visibility-intelligence.html');
+});
+
+// Incentive intelligence page (requires lead or admin)
+app.get('/incentive-intelligence', requireLeadOrAdmin, (req, res) => {
+    res.render('incentive-intelligence.html');
+});
+
 // Combined insights (requires lead or admin)
 app.get('/insights', requireLeadOrAdmin, (req, res) => {
     res.render('combined-insights.html');
